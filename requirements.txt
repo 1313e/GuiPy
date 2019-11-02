@@ -1,0 +1,4 @@
+e13tools>=0.6.12
+matplotlib>=2.2.4
+numpy>=1.8
+
