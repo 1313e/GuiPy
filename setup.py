@@ -59,6 +59,9 @@ setup(name="guipy",
       python_requires='>=3.5, <4',
       packages=find_packages(),
       package_dir={'guipy': "guipy"},
+      entry_points={
+          'gui_scripts': [
+              "guipy = guipy.app.start:main"]},
       include_package_data=True,
       install_requires=requirements,
       zip_safe=False,

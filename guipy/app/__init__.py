@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 
 """
-GuiPy
-=====
-An easy plotting GUI for Python.
+GuiPy Application
+=================
+Contains the core application function for using *GuiPy*.
 
 """
 
 
 # %% IMPORTS AND DECLARATIONS
-# Import globals
-from ._globals import *
-
 # GuiPy imports
-from .__version__ import __version__
+from .mainwindow import MainWindow
 
 # All declaration
-__all__ = []
+__all__ = ['MainWindow']
 
 # Author declaration
 __author__ = "Ellert van der Velden (@1313e)"
