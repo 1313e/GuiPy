@@ -11,11 +11,15 @@ created for *GuiPy*.
 
 # %% IMPORTS
 # Import base modules
-from . import base_layouts, base_widgets
-from .base_layouts import *
-from .base_widgets import *
+from . import core
+from .core import *
+from . import base
+from .base import *
+from . import dock
+from .dock import *
 
 # All declaration
-__all__ = ['base_layouts', 'base_widgets']
-__all__.extend(base_layouts.__all__)
-__all__.extend(base_widgets.__all__)
+__all__ = ['base', 'core', 'dock']
+__all__.extend(base.__all__)
+__all__.extend(core.__all__)
+__all__.extend(dock.__all__)

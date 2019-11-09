@@ -17,7 +17,8 @@ from PyQt5 import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import __version__, APP_NAME
-from guipy.widgets import QW_QAction
+from guipy.plugins import DataTable
+from guipy.widgets import BaseDockWidget, QW_QAction
 
 # All declaration
 __all__ = ['MainWindow']
@@ -62,9 +63,11 @@ class MainWindow(QW.QMainWindow):
         # Set window title
         self.setWindowTitle(APP_NAME)
 
-        # Make a central widget
-        self.main_widget = QW.QWidget(self)
-        self.setCentralWidget(self.main_widget)
+        # Disable the default context menu (right-click menu)
+        self.setContextMenuPolicy(QC.Qt.NoContextMenu)
+
+        # Initialize empty list with plugins
+        self.plugin_list = []
 
         # Create statusbar
         self.create_statusbar()
@@ -75,6 +78,9 @@ class MainWindow(QW.QMainWindow):
 
         # Set resolution of window
         self.resize(800, 600)
+
+        # Add all required plugins
+        self.add_plugins()
 
     # This function creates the statusbar in the viewer
     def create_statusbar(self):
@@ -131,6 +137,36 @@ class MainWindow(QW.QMainWindow):
             triggered=QW.QApplication.aboutQt,
             role=QW_QAction.AboutQtRole)
         help_menu.addAction(aboutqt_act)
+
+    # This function adds all plugins to the main window
+    def add_plugins(self):
+        """
+        Add all plugins to the main window.
+
+        """
+
+        # Create the DataTable plugin
+        data_table = DataTable(self)
+        self.add_dockwidget(data_table)
+
+    # This function adds a dock widget to the main window
+    def add_dockwidget(self, plugin):
+        """
+        Adds a provided `plugin` as a dock widget to this main window.
+
+        """
+
+        # Create a dock widget object
+        dock_widget = BaseDockWidget(plugin.title, self)
+
+        # Add provided plugin as a widget to it
+        dock_widget.setWidget(plugin)
+
+        # Add dock_widget to the main window
+        self.addDockWidget(plugin.location, dock_widget)
+
+        # Add plugin to list of all current plugins
+        self.plugin_list.append(plugin)
 
     # This function creates a message box with the 'about' information
     @QC.pyqtSlot()

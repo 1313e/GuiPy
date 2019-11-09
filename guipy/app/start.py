@@ -17,7 +17,10 @@ from PyQt5 import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import APP_NAME
-from guipy.app import MainWindow
+from guipy.app.main_window import MainWindow
+
+# All declaration
+__all__ = ['main']
 
 
 # %% MAIN FUNCTION

@@ -16,10 +16,10 @@ from ._globals import *
 from .__version__ import __version__
 
 # Import subpackages
-from . import app, widgets
+from . import app, layouts, plugins, widgets
 
 # All declaration
-__all__ = ['app', 'widgets']
+__all__ = ['app', 'layouts', 'plugins', 'widgets']
 
 # Author declaration
 __author__ = "Ellert van der Velden (@1313e)"

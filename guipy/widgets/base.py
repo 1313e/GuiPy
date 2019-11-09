@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-GUI Base Widget Classes
-=======================
+Base Widgets
+============
 Provides a collection of custom :class:`~PyQt5.QtWidgets.QWidget` base classes
 that allow for certain widgets to be standardized.
 
@@ -17,7 +17,7 @@ from sys import platform
 from PyQt5 import QtCore as QC, QtWidgets as QW
 
 # All declaration
-__all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDoubleSpinBox',
+__all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDockWidget', 'QW_QDoubleSpinBox',
            'QW_QEditableComboBox', 'QW_QLabel', 'QW_QMenu', 'QW_QSpinBox',
            'QW_QToolBar']
 
@@ -197,6 +197,11 @@ class QW_QEditableComboBox(QW_QComboBox):
         self.setInsertPolicy(self.NoInsert)
         self.completer().setCompletionMode(QW.QCompleter.PopupCompletion)
         self.completer().setFilterMode(QC.Qt.MatchContains)
+
+
+# Create custom QDockWidget
+class QW_QDockWidget(QW.QDockWidget):
+    pass
 
 
 # Create custom QAbstractSpinBox that automatically sets some properties

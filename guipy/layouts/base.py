@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-GUI Base Layout Classes
-=======================
+Base Layouts
+============
 Provides a collection of custom :class:`~PyQt5.QtWidgets.QLayout` base classes
 that allow for certain layouts to be standardized.
 
