@@ -79,6 +79,24 @@ class BaseBox(QW.QWidget):
         # Connect the signals
         signal.connect(self.modified)
 
+    # Define get_box_value method
+    def get_box_value(self):
+        """
+        Obtain the value of this widget and return it.
+
+        """
+
+        raise NotImplementedError(self.__class__)
+
+    # Define set_box_value method
+    def set_box_value(self, value):
+        """
+        Set the value of this widget to `value`.
+
+        """
+
+        raise NotImplementedError(self.__class__)
+
 
 # %% FUNCTION DEFINITIONS
 # This function gets the value of a provided box

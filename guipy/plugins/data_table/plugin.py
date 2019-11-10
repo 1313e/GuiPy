@@ -72,6 +72,10 @@ class DataTable(BasePluginWidget):
 
         # Create the DataTable object
         self.data_table = DataTableWidget(self)
+        self.data_table.n_rows_changed.connect(
+            lambda x: set_box_value(n_rows_box, x))
+        self.data_table.n_cols_changed.connect(
+            lambda x: set_box_value(n_cols_box, x))
 
         # Set n_rows and n_cols
         set_box_value(n_rows_box, 3)

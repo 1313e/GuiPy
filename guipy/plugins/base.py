@@ -15,6 +15,9 @@ that allow for certain plugins to be standardized.
 # Package imports
 from PyQt5 import QtCore as QC, QtWidgets as QW
 
+# GuiPy imports
+from guipy.widgets.core import BaseBox
+
 # All declaration
 __all__ = ['BasePlugin', 'BasePluginWidget']
 
@@ -33,7 +36,7 @@ class BasePlugin(object):
 
 
 # Define base class for making plugin widgets
-class BasePluginWidget(QW.QWidget, BasePlugin):
+class BasePluginWidget(BaseBox, BasePlugin):
     # Property for location of this plugin widget
     @property
     def location(self):
