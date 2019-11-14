@@ -15,7 +15,7 @@ from PyQt5 import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.plugins.base import BasePluginWidget
-from guipy.plugins.data_table.widgets import DataTableWidget
+from guipy.plugins.data_table.widgets import DataTableView
 from guipy.widgets import (
     QW_QLabel, QW_QSpinBox, get_modified_box_signal, set_box_value)
 
@@ -24,7 +24,7 @@ __all__ = ['DataTable']
 
 
 # %% CLASS DEFINITIONS
-# Define class for the DataTable widget
+# Define class for the DataTable plugin
 class DataTable(BasePluginWidget):
     # Properties
     TITLE = "Data table"
@@ -59,7 +59,7 @@ class DataTable(BasePluginWidget):
         n_rows_box.setRange(1, 9999999)
         get_modified_box_signal(n_rows_box).connect(self.n_rows_changed)
         n_cols_box = QW_QSpinBox(self)
-        n_cols_box.setRange(1, 9999999)
+        n_cols_box.setRange(1, 676)
         get_modified_box_signal(n_cols_box).connect(self.n_cols_changed)
 
         # Add spinboxes to dimensions layout
@@ -70,16 +70,16 @@ class DataTable(BasePluginWidget):
         # Add a stretcher
         dimensions_layout.addStretch()
 
-        # Create the DataTable object
-        self.data_table = DataTableWidget(self)
+        # Create the DataTableView object
+        self.data_table = DataTableView(self)
         self.data_table.n_rows_changed.connect(
             lambda x: set_box_value(n_rows_box, x))
         self.data_table.n_cols_changed.connect(
             lambda x: set_box_value(n_cols_box, x))
 
         # Set n_rows and n_cols
-        set_box_value(n_rows_box, 3)
-        set_box_value(n_cols_box, 3)
+#        set_box_value(n_rows_box, 3)
+#        set_box_value(n_cols_box, 3)
 
         # Add data_table to the layout
         layout.addWidget(self.data_table)

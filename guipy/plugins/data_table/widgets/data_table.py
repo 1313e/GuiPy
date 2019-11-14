@@ -22,16 +22,16 @@ from guipy.plugins.data_table.widgets.selection_model import (
 from guipy.widgets import QW_QAction, QW_QMenu
 
 # All declaration
-__all__ = ['DataTableWidget']
+__all__ = ['DataTableView']
 
 
 # %% CLASS DEFINITIONS
-# Define class for the DataTable widget
+# Define table view widget for the DataTable plugin
 # TODO: Allow for columns and rows to be inserted and removed
 # TODO: Allow for the column headers to be modified
 # TODO: Save all data in the widget before resizing
 # HINT: https://doc.qt.io/qt-5/model-view-programming.html
-class DataTableWidget(QW.QTableWidget):
+class DataTableView(QW.QTableView):
     # Signals
     n_rows_changed = QC.pyqtSignal(int)
     n_cols_changed = QC.pyqtSignal(int)
@@ -53,7 +53,7 @@ class DataTableWidget(QW.QTableWidget):
         self.create_headers()
 
         # Set model for the data table widget
-#        QW.QTableView.setModel(self, DataTableModel(self))
+        self.setModel(DataTableModel(self))
 
         # Create selection model for the data table widget
         selection_model = DataTableSelectionModel(self.model(), self)
@@ -63,8 +63,16 @@ class DataTableWidget(QW.QTableWidget):
         self.setSelectionModel(selection_model)
 
         # Connect signals from parent
-        self.parent.n_rows_changed.connect(self.setRowCount)
-        self.parent.n_cols_changed.connect(self.setColumnCount)
+#        self.parent.n_rows_changed.connect(self.setRowCount)
+#        self.parent.n_cols_changed.connect(self.setColumnCount)
+
+    # This function returns the number of columns in the model
+    def columnCount(self):
+        return(self.model().columnCount())
+
+    # This function returns the number of rows in the model
+    def rowCount(self):
+        return(self.model().rowCount())
 
     # This function creates the headers for the data table
     def create_headers(self):
