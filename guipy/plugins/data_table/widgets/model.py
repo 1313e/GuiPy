@@ -18,7 +18,7 @@ from PyQt5 import QtCore as QC, QtWidgets as QW
 # GuiPy imports
 
 # All declaration
-__all__ = ['DataTableModel']
+__all__ = ['DataTableColumn', 'DataTableModel']
 
 
 # %% GLOBALS
@@ -39,27 +39,18 @@ class DataTableModel(QC.QAbstractTableModel):
 
     # This function sets up the data table model
     def init(self):
-        # Initialize an empty list of column names and auto_rename flags
-        self.col_names = [self.to_base_26(1)]
-        self.col_flags = [True]
+        # Initialize the list of column data arrays
+        self.column_list = []
 
-        # Initialize an empty list of static column names
-        self.static_names = []
-
-        # Set the dtype that each data column must have
-        self.dtype = float
-
-        # Initialize an empty array of data
-        self.table_data = np.zeros((1, 1), dtype=self.dtype)
-
-        # Connect certain signals with slots
-        self.columnsAboutToBeInserted.connect(self.insertColumnNames)
+        # Add the first column to this list
+        self.insertColumns(-1, 1, QC.QModelIndex())
 
     # This function returns the data column belonging to a specified name
-    def columnData(self, name):
+    # TODO: Fix me
+    def dataColumn(self, name):
         """
-        Returns the data array that belongs to the column with the provided
-        column `name`.
+        Returns the :obj:`~DataTableColumn` object that belongs to the column
+        with the provided column `name`.
 
         Parameters
         ----------
@@ -68,14 +59,298 @@ class DataTableModel(QC.QAbstractTableModel):
 
         Returns
         -------
-        data_column : 1D :obj:`~numpy.ndarray` object
-            The data array that belongs to the column specified by the provided
-            `name`.
+        data_column : :obj:`~DataTableColumn`
+            The data column that belongs to the column specified by the
+            provided `name`.
 
         """
 
         # Return the data column belonging to this name
-        return(self.table_data[:, self.col_names.index(name)])
+        return(self.column_list[self.col_names.index(name)])
+
+    # Override headerData function
+    def headerData(self, section, orientation, role):
+        # If role is not DisplayRole, return empty QVariant
+        if(role != QC.Qt.DisplayRole):
+            return(QC.QVariant())
+
+        # If the horizontal header information is requested
+        if(orientation == QC.Qt.Horizontal):
+            # Return the corresponding column name
+            return(self.column_list[section].name)
+
+        # If the vertical header information is requested
+        else:
+            # Return the row number itself
+            return(section)
+
+    # Override data function
+    def data(self, index, role):
+        # If this index is valid
+        if index.isValid():
+            # If a valid role is provided
+            if role in (QC.Qt.DisplayRole, QC.Qt.EditRole):
+                # Obtain the data column belonging to the requested index
+                data_col = self.column_list[index.column()]
+
+                # Obtain the requested data point
+                data_point = data_col[index.row()]
+
+                # Convert to proper QVariant
+                data_point = QC.QVariant(data_col.dtype(data_point))
+
+                # Return it
+                return(data_point)
+
+        # If this index is not valid
+        else:
+            # Return an empty QVariant
+            return(QC.QVariant())
+
+    # Override flags function
+    def flags(self, index):
+        # If this index is valid, this item is editable
+        if index.isValid():
+            return(QC.Qt.ItemIsEnabled |
+                   QC.Qt.ItemIsSelectable |
+                   QC.Qt.ItemIsEditable)
+        # Else, this item is only enabled and selectable
+        else:
+            return(QC.Qt.ItemIsEnabled |
+                   QC.Qt.ItemIsSelectable)
+
+    # Override setData function
+    def setData(self, index, value, role):
+        # If this index is valid and the role is editing
+        if index.isValid() and (role == QC.Qt.EditRole):
+            # Obtain the data column belonging to the requested index
+            data_col = self.column_list[index.column()]
+
+            # Set the value
+            data_col[index.row()] = value
+
+            # Emit dataChanged signal
+            self.dataChanged.emit(index, index, [role])
+
+            # Return that operation finished successfully
+            return(True)
+
+        # Else, return that operation did not finish successfully
+        else:
+            return(False)
+
+    # Override rowCount function
+    def rowCount(self, *args, **kwargs):
+        if self.column_list:
+            return(self.column_list[0].length)
+
+    # Override columnCount function
+    def columnCount(self, *args, **kwargs):
+        return(len(self.column_list))
+
+    # Override insertRows function
+    def insertRows(self, row=-1, count=1, parent=None):
+        # If row == -1, set it to the current number of rows
+        if(row == -1):
+            row = self.rowCount()
+
+        # If parent is None, set it to QC.QModelIndex()
+        if parent is None:
+            parent = QC.QModelIndex()
+
+        # Notify other functions that rows are going to be inserted
+        self.beginInsertRows(parent, row, row+count-1)
+
+        # Insert the rows into all data columns
+        for column in self.column_list:
+            column.insertRows(row, count)
+
+        # Notify other functions that rows have been inserted
+        self.endInsertRows()
+
+        # Return that operation was successful
+        return(True)
+
+    # Override removeRows function
+    def removeRows(self, row=-1, count=1, parent=None):
+        # If row == -1, set it to the current number of rows
+        if(row == -1):
+            row = self.rowCount()
+
+        # If parent is None, set it to QC.QModelIndex()
+        if parent is None:
+            parent = QC.QModelIndex()
+
+        # Notify other functions that rows are going to be removed
+        self.beginRemoveRows(parent, row-count, row-1)
+
+        # Remove the rows from all data columns
+        for column in self.column_list:
+            column.removeRows(row, count)
+
+        # Notify other functions that rows have been removed
+        self.endRemoveRows()
+
+        # Return that operation was successful
+        return(True)
+
+    # Override insertColumns function
+    def insertColumns(self, col=-1, count=1, parent=None):
+        # If col == -1, set it to current number of columns
+        if(col == -1):
+            col = self.columnCount()
+
+        # If parent is None, set it to QC.QModelIndex()
+        if parent is None:
+            parent = QC.QModelIndex()
+
+        # Determine the length the new columns must have
+        length = self.rowCount()
+
+        # If length is None, no columns currently exist, so set it to 1
+        if length is None:
+            length = 1
+
+        # Notify other functions that columns are going to be inserted
+        self.beginInsertColumns(parent, col, col+count-1)
+
+        # Create as many columns as required
+        for i in range(col, col+count):
+            self.column_list.insert(i, DataTableColumn(self, i, length))
+
+        # Modify the index of all columns that have now been moved
+        for column in self.column_list[col+count:]:
+            column._index += count
+
+        # Notify other functions that columns have been inserted
+        self.endInsertColumns()
+
+        # Return that operation was successful
+        return(True)
+
+    # Override removeColumns function
+    def removeColumns(self, col=-1, count=1, parent=None):
+        # If col == -1, set it to current number of columns
+        if(col == -1):
+            col = self.columnCount()
+
+        # If parent is None, set it to QC.QModelIndex()
+        if parent is None:
+            parent = QC.QModelIndex()
+
+        # Notify other functions that columns are going to be removed
+        self.beginRemoveColumns(parent, col-count, col-1)
+
+        # Delete as many columns as required
+        for _ in range(count):
+            self.column_list.pop(col-1)
+
+        # Modify the index of all columns that have now been moved
+        for column in self.column_list[col-count:]:
+            column._index -= count
+
+        # Notify other functions that columns have been removed
+        self.endRemoveColumns()
+
+        # Return that operation was successful
+        return(True)
+
+    # This function edits the name of a column
+    # TODO: Whenever this is triggered, draw a lineedit for typing the name
+    # TODO: Additionally, also add an 'auto_rename' bool
+    # When this bool is True, the column is automatically renamed upon column
+    # count changes. It is always set to False if the column has a custom name
+    @QC.pyqtSlot(int)
+    def editColumnName(self, col):
+        raise NotImplementedError
+
+    # This function sets the name of a column
+    # TODO: No two columns can have the same name. If attempted, show error
+    @QC.pyqtSlot(int, str, bool)
+    def setColumnName(self, col, name):
+        # Check if the given name not already exists
+        if name in self.col_names and (self.col_names[col] != name):
+            # TODO: Show an error
+            pass
+
+
+# Define class used as a container for data columns in the DataTableModel
+class DataTableColumn(QC.QObject):
+    """
+    Defines the :class:`~DataTableColumn` class.
+
+    This class is used as a container for making data columns in the
+    :class:`~DataTableModel` class.
+
+    """
+
+    # Initialize data column
+    def __init__(self, parent, index, length):
+        """
+        Initialize an instance of the :class:`~DataTableColumn` class.
+
+        Parameters
+        ----------
+        parent : :obj:`~PyQt5.QtWidgets.QWidget` object
+            The widget to use as the parent of this data column.
+        index : int
+            The logical index of this data column.
+        length : int
+            The length (number of rows) requested for this data column.
+
+        """
+
+        # Save provided index and length
+        self._index = index
+        self._length = length
+
+        # Call super constructor
+        super().__init__(parent)
+
+        # Set up the data column
+        self.init()
+
+    # This function sets up the data column
+    def init(self):
+        # Set default values for dtype and auto_rename
+        self._dtype = float
+        self._auto_rename = True
+
+        # Initialize data array
+        self._data = np.zeros(self._length, dtype=self._dtype)
+
+    # Specify the __getitem__ function
+    def __getitem__(self, key):
+        return(self._data[key])
+
+    # Specify the __setitem__ function
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+    # This property contains the name of this data column
+    @property
+    def name(self):
+        return(getattr(self, '_name', self.to_base_26(self._index+1)))
+
+    # This property contains the logical index of this data column
+    @property
+    def index(self):
+        return(self._index)
+
+    # This property contains the length of this data column
+    @property
+    def length(self):
+        return(self._length)
+
+    # This property contains the dtype of this data column
+    @property
+    def dtype(self):
+        return(self._dtype)
+
+    # This property contains the data array of this data column
+    @property
+    def data(self):
+        return(self._data)
 
     # This function converts a value to base-26 using the alphabetical letters
     @staticmethod
@@ -121,195 +396,37 @@ class DataTableModel(QC.QAbstractTableModel):
         # Return result
         return(result)
 
-    # Override headerData function
-    def headerData(self, section, orientation, role):
-        # If role is not DisplayRole, return empty QVariant
-        if(role != QC.Qt.DisplayRole):
-            return(QC.QVariant())
-
-        # If the horizontal header information is requested
-        if(orientation == QC.Qt.Horizontal):
-            # Return the corresponding column name
-            return(self.col_names[section])
-
-        # If the vertical header information is requested
-        else:
-            # Return the row number itself
-            return(section)
-
-    # Override data function
-    def data(self, index, role):
-        # If this index is valid
-        if index.isValid():
-            # If a valid role is provided
-            if role in (QC.Qt.DisplayRole, QC.Qt.EditRole):
-                # Obtain the data column belonging to the requested index
-                data_col = self.table_data[:, index.column()]
-
-                # Obtain the requested data point
-                data_point = data_col[index.row()]
-
-                # Convert to proper QVariant
-                data_point = QC.QVariant(self.dtype(data_point))
-
-                # Return it
-                return(data_point)
-
-        # If this index is not valid
-        else:
-            # Return an empty QVariant
-            return(QC.QVariant())
-
-    # Override flags function
-    def flags(self, index):
-        # If this index is valid, this item is editable
-        if index.isValid():
-            return(QC.Qt.ItemIsEnabled |
-                   QC.Qt.ItemIsSelectable |
-                   QC.Qt.ItemIsEditable)
-        # Else, this item is only enabled and selectable
-        else:
-            return(QC.Qt.ItemIsEnabled |
-                   QC.Qt.ItemIsSelectable)
-
-    # Override setData function
-    def setData(self, index, value, role):
-        # If this index is valid and the role is editing
-        if index.isValid() and (role == QC.Qt.EditRole):
-            # Obtain the data column belonging to the requested index
-            data_col = self.table_data[:, index.column()]
-
-            # Set the value
-            data_col[index.row()] = value
-
-            # Emit dataChanged signal
-            self.dataChanged.emit(index, index, [role])
-
-            # Return that operation finished successfully
-            return(True)
-        # Else, return that operation did not finish successfully
-        else:
-            return(False)
-
-    # Override rowCount function
-    def rowCount(self, *args, **kwargs):
-        return(self.table_data.shape[0])
-
-    # Override columnCount function
-    def columnCount(self, *args, **kwargs):
-        return(self.table_data.shape[1])
-
-    # Override insertRows function
-    def insertRows(self, row, count, parent):
-        # Notify other functions that rows are going to be inserted
-        self.beginInsertRows(parent, row, row+count-1)
-
-        # Set axis to 0 for all operations
-        axis = 0
-
-        # If row == -1, set it to current number of rows+1
-        if(row == -1):
-            row = self.rowCount()+1
-
-        # Create an array with zeros of the size required
-        insert_array = np.zeros((count, self.columnCount()), dtype=self.dtype)
-
-        # Insert the array into the current data table
-        self.table_data = np.concatenate([self.table_data[:row],
-                                          insert_array,
-                                          self.table_data[row:]], axis=axis)
-
-        # Notify other functions that rows have been inserted
-        self.endInsertRows()
-
-        # Return that operation was successful
-        return(True)
-
-    # Override insertColumns function
-    def insertColumns(self, col, count, parent):
-        # Set axis to 1 for all operations
-        axis = 1
-
-        # If col == -1, set it to current number of columns+1
-        if(col == -1):
-            col = self.columnCount()+1
-
-        # Notify other functions that columns are going to be inserted
-        self.beginInsertColumns(parent, col, col+count-1)
-
-        # Create an array with zeros of the size required
-        insert_array = np.zeros((self.rowCount(), count), dtype=self.dtype)
-
-        # Insert the array into the current data table
-        self.table_data = np.concatenate([self.table_data[:, :col],
-                                          insert_array,
-                                          self.table_data[:, col:]], axis=axis)
-
-        # Notify other functions that columns have been inserted
-        self.endInsertColumns()
-
-        # Return that operation was successful
-        return(True)
-
-    # This function edits the name of a column
-    # TODO: Whenever this is triggered, draw a lineedit for typing the name
-    # TODO: Additionally, also add an 'auto_rename' bool
-    # When this bool is True, the column is automatically renamed upon column
-    # count changes. It is always set to False if the column has a custom name
+    # This function inserts empty rows into the data column before given row
+    @QC.pyqtSlot()
     @QC.pyqtSlot(int)
-    def editColumnName(self, col):
-        raise NotImplementedError
+    @QC.pyqtSlot(int, int)
+    def insertRows(self, row=-1, count=1):
+        # If row == -1, set it to the current number of rows
+        if(row == -1):
+            row = self._length
 
-    # This function sets the name of a column
-    # TODO: No two columns can have the same name. If attempted, show error
-    @QC.pyqtSlot(int, str, bool)
-    def setColumnName(self, col, name, auto_rename):
-        # Check if the given name not already exists
-        if name in self.col_names and (self.col_names[col] != name):
-            # TODO: Show an error
-            pass
+        # Create an array with zeros of the length required
+        insert_array = np.zeros(count, dtype=self._dtype)
 
-        # Set the column name and auto_rename flag
-        self.col_names[col] = name
-        self.col_flags[col] = auto_rename
+        # Insert the array into this data column
+        self._data = np.concatenate([self._data[:row],
+                                     insert_array,
+                                     self._data[row:]])
 
-    # This function inserts column names
-    @QC.pyqtSlot(QC.QModelIndex, int, int)
-    def insertColumnNames(self, parent, first, last):
-        # Determine the insertion column and the number of insertions
-        col = first
-        count = last-first+1
+        # Set the new length of this data column
+        self._length += count
 
-        # Determine the number of columns currently in the table
-        n_cols = self.columnCount()
+    # This function removes rows from the data column before given row
+    @QC.pyqtSlot()
+    @QC.pyqtSlot(int)
+    @QC.pyqtSlot(int, int)
+    def removeRows(self, row=-1, count=1):
+        # If row == -1, set it to the current number of rows
+        if(row == -1):
+            row = self._length
 
-        # Get the flags of all columns that are affected
-        col_flags = self.col_flags[col:]
+        # Create new array with specified rows removed
+        self._data = np.delete(self._data, slice(row-count, row))
 
-        # Count how many columns have their auto_rename flag set to False
-        n_static = len(self.static_names)
-
-        # Create a list of all column names that could be needed
-        insert_names = [self.to_base_26(i+1) for i in range(n_cols-n_static,
-                                                            n_cols+count)]
-
-        # Remove all static_names from insert_names
-        for name in self.static_names:
-            try:
-                insert_names.remove(name)
-            except ValueError:
-                pass
-
-        # Add the first 'count' of insert_names to col_names
-        self.col_names.extend(list(insert_names)[:count])
-
-        # Add 'count' True to col_flags
-        self.col_flags.extend([True]*count)
-
-        # Loop over all columns that are affected by the insertion
-        for i, flag in enumerate(col_flags, col):
-            # If this column has a static name
-            if not flag:
-                # Shift its name and flag by 'count'
-                self.col_names.insert(i+count, self.col_names.pop(i))
-                self.col_flags.insert(i+count, self.col_flags.pop(i))
+        # Set the new length of this data column
+        self._length -= count

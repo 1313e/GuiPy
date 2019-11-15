@@ -34,13 +34,14 @@ class BaseHeaderView(QW.QHeaderView):
     def init(self, context_menu):
         # Set up default properties
         self.setSectionsClickable(True)
-        self.setSectionsMovable(True)
         self.setHighlightSections(True)
         self.setDropIndicatorShown(True)
         self.setContextMenuPolicy(QC.Qt.CustomContextMenu)
 
         # Set signal handling
         self.customContextMenuRequested.connect(context_menu)
+
+        self.sectionDoubleClicked.connect(print)
 
     # Override mouseClickEvent to select section for left and right clicking
     def mousePressEvent(self, event):
@@ -67,6 +68,7 @@ class HorizontalHeaderView(BaseHeaderView):
 
         # Set up default properties
         self.setSortIndicatorShown(True)
+        self.setSectionsMovable(True)
         self.setSectionResizeMode(self.Interactive)
 
 

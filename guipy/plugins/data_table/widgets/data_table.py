@@ -63,16 +63,46 @@ class DataTableView(QW.QTableView):
         self.setSelectionModel(selection_model)
 
         # Connect signals from parent
-#        self.parent.n_rows_changed.connect(self.setRowCount)
-#        self.parent.n_cols_changed.connect(self.setColumnCount)
+        self.parent.n_rows_changed.connect(self.setRowCount)
+        self.parent.n_cols_changed.connect(self.setColumnCount)
 
     # This function returns the number of columns in the model
     def columnCount(self):
         return(self.model().columnCount())
 
+    # This function sets the number of columns in the model
+    def setColumnCount(self, count):
+        # Calculate the difference between count and columnCount
+        diff = count-self.columnCount()
+
+        # If diff is negative, remove columns from the end
+        if(diff < 0):
+            self.model().removeColumns(count=abs(diff))
+        # If diff is positive, append columns to the end
+        elif(diff > 0):
+            self.model().insertColumns(count=abs(diff))
+        # If diff is zero, do nothing
+        else:
+            pass
+
     # This function returns the number of rows in the model
     def rowCount(self):
         return(self.model().rowCount())
+
+    # This function sets the number of rows in the model
+    def setRowCount(self, count):
+        # Calculate the difference between count and rowCount
+        diff = count-self.rowCount()
+
+        # If diff is negative, remove rows from the end
+        if(diff < 0):
+            self.model().removeRows(count=abs(diff))
+        # If diff is positive, append rows to the end
+        elif(diff > 0):
+            self.model().insertRows(count=abs(diff))
+        # If diff is zero, do nothing
+        else:
+            pass
 
     # This function creates the headers for the data table
     def create_headers(self):
@@ -189,11 +219,12 @@ class DataTableView(QW.QTableView):
         self.v_header_menu = menu
 
     # This function shows the horizontal header context menu
+    # TODO: Figure out how to use the visual index for insertions
     @QC.pyqtSlot(QC.QPoint)
     def show_horizontal_header_context_menu(self, pos):
         # Save which logical column the context menu was requested for
-        self._last_context_col =\
-            self.h_header.visualIndex(self.h_header.logicalIndexAt(pos))
+        self._last_context_col = self.h_header.logicalIndexAt(pos)
+#            self.h_header.visualIndex(self.h_header.logicalIndexAt(pos))
 
         # Show context menu
         self.h_header_menu.popup(QG.QCursor.pos())
@@ -202,8 +233,8 @@ class DataTableView(QW.QTableView):
     @QC.pyqtSlot(QC.QPoint)
     def show_vertical_header_context_menu(self, pos):
         # Save which visual row the context menu was requested for
-        self._last_context_row =\
-            self.v_header.visualIndex(self.v_header.logicalIndexAt(pos))
+        self._last_context_row = self.v_header.logicalIndexAt(pos)
+#            self.v_header.visualIndex(self.v_header.logicalIndexAt(pos))
 
         # Show context menu
         self.v_header_menu.popup(QG.QCursor.pos())
@@ -242,7 +273,7 @@ class DataTableView(QW.QTableView):
             col = self._last_context_col
 
         # Remove column
-        self.model().removeColumn(col)
+        self.model().removeColumn(col+1)
         self.n_cols_changed.emit(self.columnCount())
 
     # This function clears a given column in the data table
@@ -305,7 +336,7 @@ class DataTableView(QW.QTableView):
             row = self._last_context_row
 
         # Remove row
-        self.model().removeRow(row)
+        self.model().removeRow(row+1)
         self.n_rows_changed.emit(self.rowCount())
 
     # This function clears a given row in the data table

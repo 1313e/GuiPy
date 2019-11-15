@@ -59,7 +59,7 @@ class DataTable(BasePluginWidget):
         n_rows_box.setRange(1, 9999999)
         get_modified_box_signal(n_rows_box).connect(self.n_rows_changed)
         n_cols_box = QW_QSpinBox(self)
-        n_cols_box.setRange(1, 676)
+        n_cols_box.setRange(1, 702)
         get_modified_box_signal(n_cols_box).connect(self.n_cols_changed)
 
         # Add spinboxes to dimensions layout
