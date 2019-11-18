@@ -11,7 +11,7 @@ Data Table Selection Model
 # Built-in imports
 
 # Package imports
-from PyQt5 import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 

@@ -13,7 +13,7 @@ import string
 
 # Package imports
 import numpy as np
-from PyQt5 import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 
@@ -47,8 +47,8 @@ class DataTableModel(QC.QAbstractTableModel):
         self.insertColumns(-1, 1, QC.QModelIndex())
 
     # This function returns the data column belonging to a specified name/int
-    @QC.pyqtSlot(int)
-    @QC.pyqtSlot(str)
+    @QC.Slot(int)
+    @QC.Slot(str)
     def dataColumn(self, index):
         """
         Returns the :obj:`~DataTableColumn` object that belongs to the column
@@ -295,13 +295,13 @@ class DataTableModel(QC.QAbstractTableModel):
 
     # This function edits the name of a column
     # TODO: Whenever this is triggered, draw a lineedit for typing the name
-    @QC.pyqtSlot(int)
+    @QC.Slot(int)
     def editColumnName(self, col):
         raise NotImplementedError
 
     # This function sets the name of a column
     # TODO: No two columns can have the same name. If attempted, show error
-    @QC.pyqtSlot(int, str, bool)
+    @QC.Slot(int, str, bool)
     def setColumnName(self, col, name):
         # Check if the given name not already exists
         if name in self.col_names and (self.col_names[col] != name):
@@ -437,15 +437,15 @@ class DataTableColumn(QC.QObject):
         return(result)
 
     # This function clears the entire column and resets it to default values
-    @QC.pyqtSlot()
+    @QC.Slot()
     def clear(self):
         # Clear this column
         self._data[:] = 0
 
     # This function inserts empty rows into the data column before given row
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
-    @QC.pyqtSlot(int, int)
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
     def insertRows(self, row=-1, count=1):
         # If row == -1, set it to the current number of rows
         if(row == -1):
@@ -463,9 +463,9 @@ class DataTableColumn(QC.QObject):
         self._length += count
 
     # This function removes rows from the data column before given row
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
-    @QC.pyqtSlot(int, int)
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
     def removeRows(self, row=-1, count=1):
         # If row == -1, set it to the current number of rows
         if(row == -1):
@@ -478,8 +478,8 @@ class DataTableColumn(QC.QObject):
         self._length -= count
 
     # This function clears rows from the data column
-    @QC.pyqtSlot(int)
-    @QC.pyqtSlot(int, int)
+    @QC.Slot(int)
+    @QC.Slot(int, int)
     def clearRows(self, row, count=1):
         # Set specified rows to 0
         self._data[row:row+count] = 0

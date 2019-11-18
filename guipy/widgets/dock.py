@@ -12,7 +12,7 @@ Provides the base definition of the dock widgets used in *GuiPy*.
 # Built-in imports
 
 # Package imports
-from PyQt5 import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.widgets.base import QW_QDockWidget

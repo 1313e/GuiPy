@@ -13,7 +13,7 @@ Provides the definition of the main window of the *GuiPy* application.
 from textwrap import dedent
 
 # Package imports
-from PyQt5 import QtCore as QC, QtGui as QG, QtWidgets as QW
+from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import __version__, APP_NAME
@@ -169,7 +169,7 @@ class MainWindow(QW.QMainWindow):
         self.plugin_list.append(plugin)
 
     # This function creates a message box with the 'about' information
-    @QC.pyqtSlot()
+    @QC.Slot()
     def about(self):
         """
         Displays a small section with information about the GUI.

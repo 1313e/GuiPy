@@ -11,7 +11,7 @@ Data Table Widget
 # Built-in imports
 
 # Package imports
-from PyQt5 import QtCore as QC, QtGui as QG, QtWidgets as QW
+from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy.plugins.data_table.widgets.headers import (
@@ -33,8 +33,8 @@ __all__ = ['DataTableView']
 # HINT: https://doc.qt.io/qt-5/model-view-programming.html
 class DataTableView(QW.QTableView):
     # Signals
-    n_rows_changed = QC.pyqtSignal(int)
-    n_cols_changed = QC.pyqtSignal(int)
+    n_rows_changed = QC.Signal(int)
+    n_cols_changed = QC.Signal(int)
 
     # Initialize DataTableWidget class
     def __init__(self, parent, *args, **kwargs):
@@ -221,7 +221,7 @@ class DataTableView(QW.QTableView):
 
     # This function shows the horizontal header context menu
     # TODO: Figure out how to use the visual index for insertions
-    @QC.pyqtSlot(QC.QPoint)
+    @QC.Slot(QC.QPoint)
     def show_horizontal_header_context_menu(self, pos):
         # Obtain the logical column the context menu was requested for
         logical_index = self.h_header.logicalIndexAt(pos)
@@ -237,7 +237,7 @@ class DataTableView(QW.QTableView):
         self.h_header_menu.popup(QG.QCursor.pos())
 
     # This function shows the vertical header context menu
-    @QC.pyqtSlot(QC.QPoint)
+    @QC.Slot(QC.QPoint)
     def show_vertical_header_context_menu(self, pos):
         # Obtain the logical row the context menu was requested for
         logical_index = self.v_header.logicalIndexAt(pos)
@@ -253,14 +253,14 @@ class DataTableView(QW.QTableView):
         self.v_header_menu.popup(QG.QCursor.pos())
 
     # This function shows a dialog when a column header is double-clicked
-    @QC.pyqtSlot(int)
+    @QC.Slot(int)
     def show_horizontal_header_dialog(self, col):
         print(col)
 
     # This function inserts columns into the data table before given column
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
-    @QC.pyqtSlot(int, int)
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
     def insert_cols(self, col=None, n_cols=1):
         # Obtain column
         if col is None:
@@ -271,9 +271,9 @@ class DataTableView(QW.QTableView):
         self.n_cols_changed.emit(self.columnCount())
 
     # This function inserts columns into the data table after given column
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
-    @QC.pyqtSlot(int, int)
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
     def insert_cols_after(self, col=None, n_cols=1):
         # Obtain column
         if col is None:
@@ -283,8 +283,8 @@ class DataTableView(QW.QTableView):
         self.insert_cols(col+n_cols, n_cols)
 
     # This function removes a given column in the data table
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
+    @QC.Slot()
+    @QC.Slot(int)
     def remove_col(self, col=None):
         # Obtain column
         if col is None:
@@ -295,8 +295,8 @@ class DataTableView(QW.QTableView):
         self.n_cols_changed.emit(self.columnCount())
 
     # This function clears a given column in the data table
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
+    @QC.Slot()
+    @QC.Slot(int)
     def clear_col(self, col=None):
         # Obtain column
         if col is None:
@@ -306,8 +306,8 @@ class DataTableView(QW.QTableView):
         self.model().clearColumns(col)
 
     # This function hides a given column in the data table
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
+    @QC.Slot()
+    @QC.Slot(int)
     def hide_col(self, col=None):
         # Obtain column
         if col is None:
@@ -317,9 +317,9 @@ class DataTableView(QW.QTableView):
         self.hideColumn(col)
 
     # This function inserts rows into the data table before given row
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
-    @QC.pyqtSlot(int, int)
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
     def insert_rows(self, row=None, n_rows=1):
         # Obtain row
         if row is None:
@@ -330,9 +330,9 @@ class DataTableView(QW.QTableView):
         self.n_rows_changed.emit(self.rowCount())
 
     # This function inserts rows into the data table after given row
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
-    @QC.pyqtSlot(int, int)
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
     def insert_rows_after(self, row=None, n_rows=1):
         # Obtain row
         if row is None:
@@ -342,8 +342,8 @@ class DataTableView(QW.QTableView):
         self.insert_rows(row+n_rows, n_rows)
 
     # This function removes a given row in the data table
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
+    @QC.Slot()
+    @QC.Slot(int)
     def remove_row(self, row=None):
         # Obtain row
         if row is None:
@@ -354,8 +354,8 @@ class DataTableView(QW.QTableView):
         self.n_rows_changed.emit(self.rowCount())
 
     # This function clears a given row in the data table
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
+    @QC.Slot()
+    @QC.Slot(int)
     def clear_row(self, row=None):
         # Obtain row
         if row is None:
@@ -365,8 +365,8 @@ class DataTableView(QW.QTableView):
         self.model().clearRows(row)
 
     # This function hides a given row in the data table
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(int)
+    @QC.Slot()
+    @QC.Slot(int)
     def hide_row(self, row=None):
         # Obtain row
         if row is None:

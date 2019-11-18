@@ -11,7 +11,7 @@ Data Table Plugin
 # Built-in imports
 
 # Package imports
-from PyQt5 import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.plugins.base import BasePluginWidget
@@ -30,8 +30,8 @@ class DataTable(BasePluginWidget):
     TITLE = "Data table"
 
     # Signals
-    n_rows_changed = QC.pyqtSignal(int)
-    n_cols_changed = QC.pyqtSignal(int)
+    n_rows_changed = QC.Signal(int)
+    n_cols_changed = QC.Signal(int)
 
     # Initialize DataTable plugin
     def __init__(self, parent, *args, **kwargs):

@@ -13,7 +13,7 @@ that allow for certain plugins to be standardized.
 # Built-in imports
 
 # Package imports
-from PyQt5 import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.widgets.core import BaseBox
