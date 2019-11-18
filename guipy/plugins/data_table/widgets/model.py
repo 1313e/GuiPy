@@ -37,6 +37,15 @@ class DataTableModel(QC.QAbstractTableModel):
         # Set up model
         self.init(*args, **kwargs)
 
+    # Implement custom closeEvent
+    def closeEvent(self, *args, **kwargs):
+        # Delete all columns in the column list
+        for column in self.column_list:
+            del column
+
+        # Call super event
+        super().closeEvent(*args, **kwargs)
+
     # This function sets up the data table model
     def init(self):
         # Initialize the list of column data arrays
@@ -74,8 +83,8 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Else if index is a str, check what column that is and return it
         elif isinstance(index, str):
-            # Make list with all column names
-            names = [column.name for column in self.column_list]
+            # Make list with all column display names
+            names = [column.display_name for column in self.column_list]
 
             # Return the column belonging to the requested index
             return(self.column_list[names.index(index)])
@@ -88,8 +97,8 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # If the horizontal header information is requested
         if(orientation == QC.Qt.Horizontal):
-            # Return the corresponding column name
-            return(self.column_list[section].name)
+            # Return the corresponding column display name
+            return(self.column_list[section].display_name)
 
         # If the vertical header information is requested
         else:
@@ -185,16 +194,16 @@ class DataTableModel(QC.QAbstractTableModel):
 
     # Override removeRows function
     def removeRows(self, row=-1, count=1, parent=None):
-        # If row == -1, set it to the current number of rows
+        # If row == -1, set it to the current number of rows-1
         if(row == -1):
-            row = self.rowCount()
+            row = self.rowCount()-1
 
         # If parent is None, set it to QC.QModelIndex()
         if parent is None:
             parent = QC.QModelIndex()
 
         # Notify other functions that rows are going to be removed
-        self.beginRemoveRows(parent, row-count, row-1)
+        self.beginRemoveRows(parent, row-count+1, row)
 
         # Remove the rows from all data columns
         for column in self.column_list:
@@ -255,23 +264,23 @@ class DataTableModel(QC.QAbstractTableModel):
 
     # Override removeColumns function
     def removeColumns(self, col=-1, count=1, parent=None):
-        # If col == -1, set it to current number of columns
+        # If col == -1, set it to current number of columns-1
         if(col == -1):
-            col = self.columnCount()
+            col = self.columnCount()-1
 
         # If parent is None, set it to QC.QModelIndex()
         if parent is None:
             parent = QC.QModelIndex()
 
         # Notify other functions that columns are going to be removed
-        self.beginRemoveColumns(parent, col-count, col-1)
+        self.beginRemoveColumns(parent, col-count+1, col)
 
         # Delete as many columns as required
         for _ in range(count):
-            self.column_list.pop(col-1)
+            self.column_list.pop(col-count+1)
 
         # Modify the index of all columns that have now been moved
-        for column in self.column_list[col-count:]:
+        for column in self.column_list[col-count+1:]:
             column._index -= count
 
         # Notify other functions that columns have been removed
@@ -293,20 +302,15 @@ class DataTableModel(QC.QAbstractTableModel):
         # Return that operation was successful
         return(True)
 
-    # This function edits the name of a column
-    # TODO: Whenever this is triggered, draw a lineedit for typing the name
-    @QC.Slot(int)
-    def editColumnName(self, col):
-        raise NotImplementedError
-
     # This function sets the name of a column
     # TODO: No two columns can have the same name. If attempted, show error
-    @QC.Slot(int, str, bool)
+    @QC.Slot(int, str)
     def setColumnName(self, col, name):
-        # Check if the given name not already exists
-        if name in self.col_names and (self.col_names[col] != name):
-            # TODO: Show an error
-            pass
+        # Get the requested column
+        column = self.column_list[col]
+
+        # Set column's name
+        column._name = name
 
 
 # Define class used as a container for data columns in the DataTableModel
@@ -347,9 +351,9 @@ class DataTableColumn(QC.QObject):
 
     # This function sets up the data column
     def init(self):
-        # Set default values for dtype and auto_rename
+        # Set default values for dtype and name
         self._dtype = float
-        self._auto_rename = True
+        self._name = ""
 
         # Initialize data array
         # TODO: Should I use a masked array for this?
@@ -370,7 +374,17 @@ class DataTableColumn(QC.QObject):
     # This property contains the name of this data column
     @property
     def name(self):
-        return(getattr(self, '_name', self.to_base_26(self._index+1)))
+        return(self._name)
+
+    # This property contains the base name of this data column
+    @property
+    def base_name(self):
+        return(self.to_base_26(self._index+1))
+
+    # This property contains the display name of this data column
+    @property
+    def display_name(self):
+        return(self.name if self.name else self.base_name)
 
     # This property contains the logical index of this data column
     @property
@@ -467,12 +481,12 @@ class DataTableColumn(QC.QObject):
     @QC.Slot(int)
     @QC.Slot(int, int)
     def removeRows(self, row=-1, count=1):
-        # If row == -1, set it to the current number of rows
+        # If row == -1, set it to the current number of rows-1
         if(row == -1):
-            row = self._length
+            row = self._length-1
 
         # Create new array with specified rows removed
-        self._data = np.delete(self._data, slice(row-count, row))
+        self._data = np.delete(self._data, slice(row-count+1, row+1))
 
         # Set the new length of this data column
         self._length -= count

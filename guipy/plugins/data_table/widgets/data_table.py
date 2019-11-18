@@ -19,7 +19,8 @@ from guipy.plugins.data_table.widgets.headers import (
 from guipy.plugins.data_table.widgets.model import DataTableModel
 from guipy.plugins.data_table.widgets.selection_model import (
     DataTableSelectionModel)
-from guipy.widgets import QW_QAction, QW_QMenu
+from guipy.widgets import (
+    QW_QAction, QW_QLabel, QW_QMenu, get_box_value, get_modified_box_signal)
 
 # All declaration
 __all__ = ['DataTableView']
@@ -27,8 +28,6 @@ __all__ = ['DataTableView']
 
 # %% CLASS DEFINITIONS
 # Define table view widget for the DataTable plugin
-# TODO: Allow for columns and rows to be inserted and removed
-# TODO: Allow for the column headers to be modified
 # TODO: Save all data in the widget before resizing
 # HINT: https://doc.qt.io/qt-5/model-view-programming.html
 class DataTableView(QW.QTableView):
@@ -150,21 +149,21 @@ class DataTableView(QW.QTableView):
         remove_act = QW_QAction(
             self, "Remove column",
             statustip="Remove this column",
-            triggered=self.remove_col)
+            triggered=self.remove_cols)
         menu.addAction(remove_act)
 
         # Add clear action to menu
         clear_act = QW_QAction(
             self, "Clear column",
             statustip="Clear this column",
-            triggered=self.clear_col)
+            triggered=self.clear_cols)
         menu.addAction(clear_act)
 
         # Add hide action to menu
         hide_act = QW_QAction(
             self, "Hide column",
             statustip="Hide this column",
-            triggered=self.hide_col)
+            triggered=self.hide_cols)
 #        menu.addAction(hide_act)
 
         # Set last requested col to 0
@@ -196,21 +195,21 @@ class DataTableView(QW.QTableView):
         remove_act = QW_QAction(
             self, "Remove row",
             statustip="Remove this row",
-            triggered=self.remove_row)
+            triggered=self.remove_rows)
         menu.addAction(remove_act)
 
         # Add clear action to menu
         clear_act = QW_QAction(
             self, "Clear row",
             statustip="Clear this row",
-            triggered=self.clear_row)
+            triggered=self.clear_rows)
         menu.addAction(clear_act)
 
         # Add hide action to menu
         hide_act = QW_QAction(
             self, "Hide row",
             statustip="Hide this row",
-            triggered=self.hide_row)
+            triggered=self.hide_rows)
 #        menu.addAction(hide_act)
 
         # Set last requested row to 0
@@ -255,7 +254,42 @@ class DataTableView(QW.QTableView):
     # This function shows a dialog when a column header is double-clicked
     @QC.Slot(int)
     def show_horizontal_header_dialog(self, col):
-        print(col)
+        # Get the column that was requested
+        column = self.model().dataColumn(col)
+
+        # Create a dialog object
+        dialog = QW.QDialog(self.h_header)
+        dialog.setWindowModality(QC.Qt.NonModal)
+        dialog.setAttribute(QC.Qt.WA_DeleteOnClose)
+        dialog.setWindowFlags(
+            QC.Qt.Popup)
+
+        # Create a layout
+        layout = QW.QGridLayout()
+        dialog.setLayout(layout)
+
+        # Add a label saying which column this is
+        layout.addWidget(QW_QLabel("Column"), 0, 0)
+        layout.addWidget(QW_QLabel(column.base_name), 0, 1)
+
+        # Add a line-edit to this layout
+        # TODO: Pressing ENTER (or equivalent) closes the pop-up
+        name_box = QW.QLineEdit()
+        name_box.setText(column.name)
+        get_modified_box_signal(name_box).connect(
+            lambda x: self.model().setColumnName(col, x))
+        layout.addWidget(QW_QLabel("Name"), 1, 0)
+        layout.addWidget(name_box, 1, 1)
+
+        # Determine the position of this column header
+        # TODO: Move pop-up box to cover the column header that was clicked
+#        self.h_header.visualRect(col)
+#        self.move(self.h_header.sectionPosition(col))
+
+        # Show the dialog
+        dialog.show()
+
+        # TODO: The requested header automatically updates itself after close
 
     # This function inserts columns into the data table before given column
     @QC.Slot()
@@ -267,7 +301,7 @@ class DataTableView(QW.QTableView):
             col = self._last_context_col
 
         # Insert columns
-        self.model().insertColumn(col)
+        self.model().insertColumns(col, n_cols)
         self.n_cols_changed.emit(self.columnCount())
 
     # This function inserts columns into the data table after given column
@@ -285,36 +319,36 @@ class DataTableView(QW.QTableView):
     # This function removes a given column in the data table
     @QC.Slot()
     @QC.Slot(int)
-    def remove_col(self, col=None):
+    def remove_cols(self, col=None, n_cols=1):
         # Obtain column
         if col is None:
             col = self._last_context_col
 
         # Remove column
-        self.model().removeColumn(col+1)
+        self.model().removeColumns(col, n_cols)
         self.n_cols_changed.emit(self.columnCount())
 
     # This function clears a given column in the data table
     @QC.Slot()
     @QC.Slot(int)
-    def clear_col(self, col=None):
+    def clear_cols(self, col=None, n_cols=1):
         # Obtain column
         if col is None:
             col = self._last_context_col
 
         # Clear column
-        self.model().clearColumns(col)
+        self.model().clearColumns(col, n_cols)
 
     # This function hides a given column in the data table
     @QC.Slot()
     @QC.Slot(int)
-    def hide_col(self, col=None):
+    def hide_cols(self, col=None, n_cols=1):
         # Obtain column
         if col is None:
             col = self._last_context_col
 
         # Hide column
-        self.hideColumn(col)
+        self.model().hideColumns(col, n_cols)
 
     # This function inserts rows into the data table before given row
     @QC.Slot()
@@ -326,7 +360,7 @@ class DataTableView(QW.QTableView):
             row = self._last_context_row
 
         # Insert rows
-        self.model().insertRow(row)
+        self.model().insertRows(row, n_rows)
         self.n_rows_changed.emit(self.rowCount())
 
     # This function inserts rows into the data table after given row
@@ -344,33 +378,33 @@ class DataTableView(QW.QTableView):
     # This function removes a given row in the data table
     @QC.Slot()
     @QC.Slot(int)
-    def remove_row(self, row=None):
+    def remove_rows(self, row=None, n_rows=1):
         # Obtain row
         if row is None:
             row = self._last_context_row
 
         # Remove row
-        self.model().removeRow(row+1)
+        self.model().removeRows(row, n_rows)
         self.n_rows_changed.emit(self.rowCount())
 
     # This function clears a given row in the data table
     @QC.Slot()
     @QC.Slot(int)
-    def clear_row(self, row=None):
+    def clear_rows(self, row=None, n_rows=1):
         # Obtain row
         if row is None:
             row = self._last_context_row
 
         # Clear row
-        self.model().clearRows(row)
+        self.model().clearRows(row, n_rows)
 
     # This function hides a given row in the data table
     @QC.Slot()
     @QC.Slot(int)
-    def hide_row(self, row=None):
+    def hide_rows(self, row=None, n_rows=1):
         # Obtain row
         if row is None:
             row = self._last_context_row
 
         # Hide row
-        self.hideRow(row)
+        self.model().hideRows(row, n_rows)
