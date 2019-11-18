@@ -112,7 +112,8 @@ class DataTableView(QW.QTableView):
         # Create horizontal and vertical headers for the data table widget
         self.h_header = HorizontalHeaderView(
             parent=self,
-            context_menu=self.show_horizontal_header_context_menu)
+            context_menu=self.show_horizontal_header_context_menu,
+            double_clicked=self.show_horizontal_header_dialog)
         self.v_header = VerticalHeaderView(
             parent=self,
             context_menu=self.show_vertical_header_context_menu)
@@ -164,7 +165,7 @@ class DataTableView(QW.QTableView):
             self, "Hide column",
             statustip="Hide this column",
             triggered=self.hide_col)
-        menu.addAction(hide_act)
+#        menu.addAction(hide_act)
 
         # Set last requested col to 0
         self._last_context_col = 0
@@ -210,7 +211,7 @@ class DataTableView(QW.QTableView):
             self, "Hide row",
             statustip="Hide this row",
             triggered=self.hide_row)
-        menu.addAction(hide_act)
+#        menu.addAction(hide_act)
 
         # Set last requested row to 0
         self._last_context_row = 0
@@ -222,9 +223,15 @@ class DataTableView(QW.QTableView):
     # TODO: Figure out how to use the visual index for insertions
     @QC.pyqtSlot(QC.QPoint)
     def show_horizontal_header_context_menu(self, pos):
-        # Save which logical column the context menu was requested for
-        self._last_context_col = self.h_header.logicalIndexAt(pos)
-#            self.h_header.visualIndex(self.h_header.logicalIndexAt(pos))
+        # Obtain the logical column the context menu was requested for
+        logical_index = self.h_header.logicalIndexAt(pos)
+
+        # Determine which visual column this is
+        visual_index = self.h_header.visualIndex(logical_index)
+
+        # Save both indexes
+#        self._last_context_col = (logical_index, visual_index)
+        self._last_context_col = logical_index
 
         # Show context menu
         self.h_header_menu.popup(QG.QCursor.pos())
@@ -232,12 +239,23 @@ class DataTableView(QW.QTableView):
     # This function shows the vertical header context menu
     @QC.pyqtSlot(QC.QPoint)
     def show_vertical_header_context_menu(self, pos):
-        # Save which visual row the context menu was requested for
-        self._last_context_row = self.v_header.logicalIndexAt(pos)
-#            self.v_header.visualIndex(self.v_header.logicalIndexAt(pos))
+        # Obtain the logical row the context menu was requested for
+        logical_index = self.v_header.logicalIndexAt(pos)
+
+        # Determine which visual row this is
+        visual_index = self.v_header.visualIndex(logical_index)
+
+        # Save both indexes
+#        self._last_context_row = (logical_index, visual_index)
+        self._last_context_row = logical_index
 
         # Show context menu
         self.v_header_menu.popup(QG.QCursor.pos())
+
+    # This function shows a dialog when a column header is double-clicked
+    @QC.pyqtSlot(int)
+    def show_horizontal_header_dialog(self, col):
+        print(col)
 
     # This function inserts columns into the data table before given column
     @QC.pyqtSlot()
@@ -284,12 +302,8 @@ class DataTableView(QW.QTableView):
         if col is None:
             col = self._last_context_col
 
-        # Obtain all items in the given column
-        list_items = [self.item(row, col)
-                      for row in range(0, self.rowCount())]
-
         # Clear column
-        self.delete_items(list_items)
+        self.model().clearColumns(col)
 
     # This function hides a given column in the data table
     @QC.pyqtSlot()
@@ -347,12 +361,8 @@ class DataTableView(QW.QTableView):
         if row is None:
             row = self._last_context_row
 
-        # Obtain all items in the given row
-        list_items = [self.item(row, col)
-                      for col in range(0, self.columnCount())]
-
         # Clear row
-        self.delete_items(list_items)
+        self.model().clearRows(row)
 
     # This function hides a given row in the data table
     @QC.pyqtSlot()
@@ -364,17 +374,3 @@ class DataTableView(QW.QTableView):
 
         # Hide row
         self.hideRow(row)
-
-    # This function delete a provided list of items
-    @QC.pyqtSlot()
-    @QC.pyqtSlot(list)
-    def delete_items(self, list_items=None):
-        # Obtain list_items
-        if list_items is None:
-            list_items = self.selectedItems()
-
-        # Delete all items in the given items
-        for list_item in list_items:
-            # If item is not None, remove it
-            if list_item is not None:
-                _ = self.takeItem(list_item.row(), list_item.column())

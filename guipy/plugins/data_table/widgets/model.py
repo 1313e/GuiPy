@@ -40,33 +40,45 @@ class DataTableModel(QC.QAbstractTableModel):
     # This function sets up the data table model
     def init(self):
         # Initialize the list of column data arrays
+        # TODO: Write custom column list that allows for more flexibility
         self.column_list = []
 
         # Add the first column to this list
         self.insertColumns(-1, 1, QC.QModelIndex())
 
-    # This function returns the data column belonging to a specified name
-    # TODO: Fix me
-    def dataColumn(self, name):
+    # This function returns the data column belonging to a specified name/int
+    @QC.pyqtSlot(int)
+    @QC.pyqtSlot(str)
+    def dataColumn(self, index):
         """
         Returns the :obj:`~DataTableColumn` object that belongs to the column
-        with the provided column `name`.
+        with the provided column `index`.
 
         Parameters
         ----------
-        name : str
-            The name of the column whose data is requested.
+        index : int or str
+            If int, the index of the column whose data is requested.
+            If str, the name of this column.
 
         Returns
         -------
         data_column : :obj:`~DataTableColumn`
             The data column that belongs to the column specified by the
-            provided `name`.
+            provided `index`.
 
         """
 
-        # Return the data column belonging to this name
-        return(self.column_list[self.col_names.index(name)])
+        # If index is an int, return the column with that index
+        if isinstance(index, int):
+            return(self.column_list[index])
+
+        # Else if index is a str, check what column that is and return it
+        elif isinstance(index, str):
+            # Make list with all column names
+            names = [column.name for column in self.column_list]
+
+            # Return the column belonging to the requested index
+            return(self.column_list[names.index(index)])
 
     # Override headerData function
     def headerData(self, section, orientation, role):
@@ -142,7 +154,7 @@ class DataTableModel(QC.QAbstractTableModel):
     # Override rowCount function
     def rowCount(self, *args, **kwargs):
         if self.column_list:
-            return(self.column_list[0].length)
+            return(len(self.column_list[0]))
 
     # Override columnCount function
     def columnCount(self, *args, **kwargs):
@@ -190,6 +202,19 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Notify other functions that rows have been removed
         self.endRemoveRows()
+
+        # Return that operation was successful
+        return(True)
+
+    # This function clears given rows
+    def clearRows(self, row, count=1, parent=None):
+        # If parent is None, set it to QC.QModelIndex()
+        if parent is None:
+            parent = QC.QModelIndex()
+
+        # Clear the rows
+        for column in self.column_list:
+            column.clearRows(row, count)
 
         # Return that operation was successful
         return(True)
@@ -255,11 +280,21 @@ class DataTableModel(QC.QAbstractTableModel):
         # Return that operation was successful
         return(True)
 
+    # This function clears given columns
+    def clearColumns(self, col, count=1, parent=None):
+        # If parent is None, set it to QC.QModelIndex()
+        if parent is None:
+            parent = QC.QModelIndex()
+
+        # Clear the columns
+        for column in self.column_list[col:col+count]:
+            column.clear()
+
+        # Return that operation was successful
+        return(True)
+
     # This function edits the name of a column
     # TODO: Whenever this is triggered, draw a lineedit for typing the name
-    # TODO: Additionally, also add an 'auto_rename' bool
-    # When this bool is True, the column is automatically renamed upon column
-    # count changes. It is always set to False if the column has a custom name
     @QC.pyqtSlot(int)
     def editColumnName(self, col):
         raise NotImplementedError
@@ -317,11 +352,16 @@ class DataTableColumn(QC.QObject):
         self._auto_rename = True
 
         # Initialize data array
+        # TODO: Should I use a masked array for this?
         self._data = np.zeros(self._length, dtype=self._dtype)
 
     # Specify the __getitem__ function
     def __getitem__(self, key):
         return(self._data[key])
+
+    # Specify the __len__ function
+    def __len__(self):
+        return(self.length)
 
     # Specify the __setitem__ function
     def __setitem__(self, key, value):
@@ -396,6 +436,12 @@ class DataTableColumn(QC.QObject):
         # Return result
         return(result)
 
+    # This function clears the entire column and resets it to default values
+    @QC.pyqtSlot()
+    def clear(self):
+        # Clear this column
+        self._data[:] = 0
+
     # This function inserts empty rows into the data column before given row
     @QC.pyqtSlot()
     @QC.pyqtSlot(int)
@@ -430,3 +476,10 @@ class DataTableColumn(QC.QObject):
 
         # Set the new length of this data column
         self._length -= count
+
+    # This function clears rows from the data column
+    @QC.pyqtSlot(int)
+    @QC.pyqtSlot(int, int)
+    def clearRows(self, row, count=1):
+        # Set specified rows to 0
+        self._data[row:row+count] = 0
