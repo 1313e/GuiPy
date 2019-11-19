@@ -29,6 +29,12 @@ base_26 = list(string.ascii_uppercase)
 # Define model for the DataTable widget
 # HINT: https://doc.qt.io/qt-5/model-view-programming.html
 class DataTableModel(QC.QAbstractTableModel):
+    # Signals
+    firstColumnInserted = QC.Signal()
+    lastColumnRemoved = QC.Signal()
+    rowCountChanged = QC.Signal(int)
+    columnCountChanged = QC.Signal(int)
+
     # Initialize DataTableModel class
     def __init__(self, parent=None, *args, **kwargs):
         # Call super constructor
@@ -37,23 +43,23 @@ class DataTableModel(QC.QAbstractTableModel):
         # Set up model
         self.init(*args, **kwargs)
 
-    # Implement custom closeEvent
-    def closeEvent(self, *args, **kwargs):
+    # Implement delete function
+    def delete(self):
         # Delete all columns in the column list
-        for column in self.column_list:
-            del column
-
-        # Call super event
-        super().closeEvent(*args, **kwargs)
+        self.removeColumns(count=self.columnCount())
 
     # This function sets up the data table model
     def init(self):
+        # Connect signals
+        self.destroyed.connect(self.delete)
+
         # Initialize the list of column data arrays
         # TODO: Write custom column list that allows for more flexibility
         self.column_list = []
 
-        # Add the first column to this list
-        self.insertColumns(-1, 1, QC.QModelIndex())
+        # Initialize this data table with a 5x5 table
+        self.insertColumns(5)
+        self.insertRows(5)
 
     # This function returns the data column belonging to a specified name/int
     @QC.Slot(int)
@@ -163,14 +169,16 @@ class DataTableModel(QC.QAbstractTableModel):
     # Override rowCount function
     def rowCount(self, *args, **kwargs):
         if self.column_list:
-            return(len(self.column_list[0]))
+            return(self.column_list[0].length)
+        else:
+            return(0)
 
     # Override columnCount function
     def columnCount(self, *args, **kwargs):
         return(len(self.column_list))
 
-    # Override insertRows function
-    def insertRows(self, row=-1, count=1, parent=None):
+    # This function inserts rows before given row
+    def insertRows(self, count=1, row=-1, parent=None):
         # If row == -1, set it to the current number of rows
         if(row == -1):
             row = self.rowCount()
@@ -189,21 +197,24 @@ class DataTableModel(QC.QAbstractTableModel):
         # Notify other functions that rows have been inserted
         self.endInsertRows()
 
+        # Emit rowCountChanged signal
+        self.rowCountChanged.emit(self.rowCount())
+
         # Return that operation was successful
         return(True)
 
-    # Override removeRows function
-    def removeRows(self, row=-1, count=1, parent=None):
-        # If row == -1, set it to the current number of rows-1
+    # This function removes rows starting at given row
+    def removeRows(self, count=1, row=-1, parent=None):
+        # If row == -1, set it to the current number of rows-count
         if(row == -1):
-            row = self.rowCount()-1
+            row = self.rowCount()-count
 
         # If parent is None, set it to QC.QModelIndex()
         if parent is None:
             parent = QC.QModelIndex()
 
         # Notify other functions that rows are going to be removed
-        self.beginRemoveRows(parent, row-count+1, row)
+        self.beginRemoveRows(parent, row, row+count-1)
 
         # Remove the rows from all data columns
         for column in self.column_list:
@@ -212,10 +223,13 @@ class DataTableModel(QC.QAbstractTableModel):
         # Notify other functions that rows have been removed
         self.endRemoveRows()
 
+        # Emit rowCountChanged signal
+        self.rowCountChanged.emit(self.rowCount())
+
         # Return that operation was successful
         return(True)
 
-    # This function clears given rows
+    # This function clears rows starting at given row
     def clearRows(self, row, count=1, parent=None):
         # If parent is None, set it to QC.QModelIndex()
         if parent is None:
@@ -228,8 +242,8 @@ class DataTableModel(QC.QAbstractTableModel):
         # Return that operation was successful
         return(True)
 
-    # Override insertColumns function
-    def insertColumns(self, col=-1, count=1, parent=None):
+    # This function inserts columns before given col
+    def insertColumns(self, count=1, col=-1, parent=None):
         # If col == -1, set it to current number of columns
         if(col == -1):
             col = self.columnCount()
@@ -240,10 +254,6 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Determine the length the new columns must have
         length = self.rowCount()
-
-        # If length is None, no columns currently exist, so set it to 1
-        if length is None:
-            length = 1
 
         # Notify other functions that columns are going to be inserted
         self.beginInsertColumns(parent, col, col+count-1)
@@ -259,37 +269,56 @@ class DataTableModel(QC.QAbstractTableModel):
         # Notify other functions that columns have been inserted
         self.endInsertColumns()
 
+        # Emit columnCountChanged signal
+        self.columnCountChanged.emit(self.columnCount())
+
+        # If columnCount is equal to count, emit firstColumnInserted signal
+        if(self.columnCount() == count):
+            self.firstColumnInserted.emit()
+
         # Return that operation was successful
         return(True)
 
-    # Override removeColumns function
-    def removeColumns(self, col=-1, count=1, parent=None):
-        # If col == -1, set it to current number of columns-1
+    # This function removes columns starting at given col
+    def removeColumns(self, count=1, col=-1, parent=None):
+        # If col == -1, set it to current number of columns-count
         if(col == -1):
-            col = self.columnCount()-1
+            col = self.columnCount()-count
 
         # If parent is None, set it to QC.QModelIndex()
         if parent is None:
             parent = QC.QModelIndex()
 
+        # If count is equal to columnCount, remove all rows first
+        if(self.columnCount() == count):
+            self.removeRows(self.rowCount())
+
         # Notify other functions that columns are going to be removed
-        self.beginRemoveColumns(parent, col-count+1, col)
+        self.beginRemoveColumns(parent, col, col+count-1)
 
         # Delete as many columns as required
-        for _ in range(count):
-            self.column_list.pop(col-count+1)
+        for i in reversed(range(col, col+count)):
+            column = self.column_list.pop(i)
+            column.delete()
 
         # Modify the index of all columns that have now been moved
-        for column in self.column_list[col-count+1:]:
+        for column in self.column_list[col:]:
             column._index -= count
 
         # Notify other functions that columns have been removed
         self.endRemoveColumns()
 
+        # Emit columnCountChanged signal
+        self.columnCountChanged.emit(self.columnCount())
+
+        # If columnCount is equal to 0, emit lastColumnRemoved signal
+        if not self.columnCount():
+            self.lastColumnRemoved.emit()
+
         # Return that operation was successful
         return(True)
 
-    # This function clears given columns
+    # This function clears columns starting at given col
     def clearColumns(self, col, count=1, parent=None):
         # If parent is None, set it to QC.QModelIndex()
         if parent is None:
@@ -370,6 +399,11 @@ class DataTableColumn(QC.QObject):
     # Specify the __setitem__ function
     def __setitem__(self, key, value):
         self._data[key] = value
+
+    # This function is called whenever this column should be deleted
+    def delete(self):
+        # Delete the data array of this column
+        del self._data
 
     # This property contains the name of this data column
     @property
@@ -476,22 +510,22 @@ class DataTableColumn(QC.QObject):
         # Set the new length of this data column
         self._length += count
 
-    # This function removes rows from the data column before given row
+    # This function removes rows from the data column starting at given row
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
     def removeRows(self, row=-1, count=1):
-        # If row == -1, set it to the current number of rows-1
+        # If row == -1, set it to the current number of rows-count
         if(row == -1):
-            row = self._length-1
+            row = self._length-count
 
         # Create new array with specified rows removed
-        self._data = np.delete(self._data, slice(row-count+1, row+1))
+        self._data = np.delete(self._data, slice(row, row+count))
 
         # Set the new length of this data column
         self._length -= count
 
-    # This function clears rows from the data column
+    # This function clears rows from the data column starting at given row
     @QC.Slot(int)
     @QC.Slot(int, int)
     def clearRows(self, row, count=1):

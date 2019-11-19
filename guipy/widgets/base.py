@@ -299,8 +299,11 @@ class QW_QMenu(QW.QMenu):
 
     """
 
-    def __init__(self, parent, title):
-        super().__init__(title, parent)
+    def __init__(self, parent=None, title=None):
+        if title is not None:
+            super().__init__(title, parent)
+        else:
+            super().__init__(parent)
 
 
 # Create custom QToolbar class that swaps the order of inputs
@@ -313,5 +316,8 @@ class QW_QToolBar(QW.QToolBar):
 
     """
 
-    def __init__(self, parent, window_title):
-        super().__init__(window_title, parent)
+    def __init__(self, parent=None, window_title=None):
+        if window_title is not None:
+            super().__init__(window_title, parent)
+        else:
+            super().__init__(parent)

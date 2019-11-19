@@ -42,3 +42,15 @@ class BasePluginWidget(BaseBox, BasePlugin):
     def location(self):
         # Return location if it is defined, or return default if not
         return(getattr(self, 'LOCATION', QC.Qt.LeftDockWidgetArea))
+
+    # Property for top-level menu actions of this plugin widget
+    @property
+    def menu_actions(self):
+        # Return top-level menu actions if it is defined, or return empty dict
+        return(getattr(self, 'MENU_ACTIONS', {}))
+
+    # Property for toolbar actions of this plugin widget
+    @property
+    def toolbar_actions(self):
+        # Return toolbar actions if it is defined, or return empty dict
+        return(getattr(self, 'TOOLBAR_ACTIONS', {}))

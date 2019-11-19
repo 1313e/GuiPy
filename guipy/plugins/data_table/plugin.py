@@ -15,9 +15,8 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.plugins.base import BasePluginWidget
-from guipy.plugins.data_table.widgets import DataTableView
-from guipy.widgets import (
-    QW_QLabel, QW_QSpinBox, get_modified_box_signal, set_box_value)
+from guipy.plugins.data_table.widgets import DataTableWidget
+from guipy.widgets import QW_QAction
 
 # All declaration
 __all__ = ['DataTable']
@@ -28,13 +27,13 @@ __all__ = ['DataTable']
 class DataTable(BasePluginWidget):
     # Properties
     TITLE = "Data table"
-
-    # Signals
-    n_rows_changed = QC.Signal(int)
-    n_cols_changed = QC.Signal(int)
+    MENU_ACTIONS = {
+        'File': []}
+    TOOLBAR_ACTIONS = {
+        'File': []}
 
     # Initialize DataTable plugin
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent=None, *args, **kwargs):
         # Call super constructor
         super().__init__(parent)
 
@@ -45,43 +44,59 @@ class DataTable(BasePluginWidget):
     def init(self):
         # Create a layout
         layout = QW.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        # Create a dimensions layout
-        dimensions_layout = QW.QHBoxLayout()
-        layout.addLayout(dimensions_layout)
+        # Create a tab widget
+        tab_widget = QW.QTabWidget()
+        tab_widget.setElideMode(QC.Qt.ElideNone)
+        tab_widget.setMovable(True)
+        tab_widget.setTabsClosable(True)
+        tab_widget.tabCloseRequested.connect(self.close_tab)
 
-        # Add a label to this layout
-        dimensions_layout.addWidget(QW_QLabel('Dimensions: '))
+        # Add tab widget to layout
+        self.tab_widget = tab_widget
+        layout.addWidget(self.tab_widget)
 
-        # Create two spinboxes for setting n_rows and n_cols
-        n_rows_box = QW_QSpinBox(self)
-        n_rows_box.setRange(1, 9999999)
-        get_modified_box_signal(n_rows_box).connect(self.n_rows_changed)
-        n_cols_box = QW_QSpinBox(self)
-        n_cols_box.setRange(1, 702)
-        get_modified_box_signal(n_cols_box).connect(self.n_cols_changed)
+        # Add new tab action to file menu
+        new_tab_act = QW_QAction(
+            self, '&New table...',
+            shortcut=QC.Qt.CTRL + QC.Qt.Key_N,
+            statustip="New data table",
+            triggered=self.add_tab,
+            role=QW_QAction.ApplicationSpecificRole)
+        self.MENU_ACTIONS['File'].append(new_tab_act)
+        self.TOOLBAR_ACTIONS['File'].append(new_tab_act)
 
-        # Add spinboxes to dimensions layout
-        dimensions_layout.addWidget(n_rows_box)
-        dimensions_layout.addWidget(QW_QLabel('X'))
-        dimensions_layout.addWidget(n_cols_box)
+        # Add a tab to the plugin
+        self.add_tab()
 
-        # Add a stretcher
-        dimensions_layout.addStretch()
+    # Override closeEvent to do automatic clean-up
+    def closeEvent(self, *args, **kwargs):
+        # Close all tabs
+        for index in reversed(range(self.tab_widget.count())):
+            self.close_tab(index)
 
-        # Create the DataTableView object
-        self.data_table = DataTableView(self)
+        # Call super event
+        super().closeEvent(*args, **kwargs)
 
-        # Connect signals from data table
-        self.data_table.n_rows_changed.connect(
-            lambda x: set_box_value(n_rows_box, x))
-        self.data_table.n_cols_changed.connect(
-            lambda x: set_box_value(n_cols_box, x))
+    # This function adds a new data table widget
+    @QC.Slot()
+    def add_tab(self):
+        # Create a DataTableWidget
+        widget = DataTableWidget()
 
-        # Connect signals to data table
-        self.n_rows_changed.connect(self.data_table.setRowCount)
-        self.n_cols_changed.connect(self.data_table.setColumnCount)
+        # Add widget to the tab widget
+        self.tab_widget.addTab(widget, "Table %i" % (self.tab_widget.count()))
 
-        # Add data_table to the layout
-        layout.addWidget(self.data_table)
+    # This function closes a data table widget
+    @QC.Slot(int)
+    def close_tab(self, index):
+        # Obtain the DataTableWidget object associated with this widget
+        widget = self.tab_widget.widget(index)
+
+        # Close this widget
+        widget.close()
+
+        # Remove this widget from the tab widget
+        self.tab_widget.removeTab(index)

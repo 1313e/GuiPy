@@ -74,13 +74,27 @@ class MainWindow(QW.QMainWindow):
 
         # Create menubar
         self.create_menubar()
-        self.menubar.setFocus()
+
+        # Create toolbars
+        self.create_toolbars()
 
         # Set resolution of window
         self.resize(800, 600)
 
         # Add all required plugins
         self.add_plugins()
+
+        # Add all remaining core actions
+        self.add_core_actions()
+
+    # Override closeEvent to automatically close all plugins
+    def closeEvent(self, *args, **kwargs):
+        # Close all plugins in plugin_list
+        for plugin in self.plugin_list:
+            plugin.close()
+
+        # Call super event
+        super().closeEvent(*args, **kwargs)
 
     # This function creates the statusbar in the viewer
     def create_statusbar(self):
@@ -102,25 +116,61 @@ class MainWindow(QW.QMainWindow):
 
         """
 
+        # Make empty dict of menus
+        self.menus = {}
+
         # Obtain menubar
         self.menubar = self.menuBar()
 
         # FILE
         # Create file menu
         file_menu = self.menubar.addMenu('&File')
+        self.menus['File'] = file_menu
 
-        # Add quit action to menu
+        # HELP
+        # Create help menu
+        help_menu = self.menubar.addMenu('&Help')
+        self.menus['Help'] = help_menu
+
+    # This function creates the toolbars in the viewer
+    def create_toolbars(self):
+        """
+        Creates the toolbars of the main window.
+
+        Other widgets can modify these toolbars to add additional actions to
+        it.
+
+        """
+
+        # Make empty dict of toolbars
+        self.toolbars = {}
+
+        # FILE
+        # Create file toolbar
+        file_toolbar = self.addToolBar('File')
+        self.toolbars['File'] = file_toolbar
+
+    # This function adds all core actions to the menubar
+    def add_core_actions(self):
+        """
+        Adds all core *GuiPy* actions to the top-level menubar, which are not
+        related to any plugin or widget.
+
+        """
+
+        # Create dict of actions
+        actions = {
+            'File': [],
+            'Help': []}
+
+        # Add quit action to file menu
         quit_act = QW_QAction(
             self, '&Quit',
             shortcut=QG.QKeySequence.Quit,
             statustip="Quit %s" % (APP_NAME),
             triggered=self.close,
             role=QW_QAction.QuitRole)
-        file_menu.addAction(quit_act)
-
-        # HELP
-        # Create help menu
-        help_menu = self.menubar.addMenu('&Help')
+        actions['File'].append(quit_act)
 
         # Add about action to help menu
         about_act = QW_QAction(
@@ -128,7 +178,7 @@ class MainWindow(QW.QMainWindow):
             statustip="About %s" % (APP_NAME),
             triggered=self.about,
             role=QW_QAction.AboutRole)
-        help_menu.addAction(about_act)
+        actions['Help'].append(about_act)
 
         # Add aboutQt action to help menu
         aboutqt_act = QW_QAction(
@@ -136,12 +186,15 @@ class MainWindow(QW.QMainWindow):
             statustip="About Qt framework",
             triggered=QW.QApplication.aboutQt,
             role=QW_QAction.AboutQtRole)
-        help_menu.addAction(aboutqt_act)
+        actions['Help'].append(aboutqt_act)
+
+        # Add all actions to the top-level menu
+        self.add_menu_actions(actions)
 
     # This function adds all plugins to the main window
     def add_plugins(self):
         """
-        Add all plugins to the main window.
+        Adds all plugins to the main window.
 
         """
 
@@ -167,6 +220,75 @@ class MainWindow(QW.QMainWindow):
 
         # Add plugin to list of all current plugins
         self.plugin_list.append(plugin)
+
+        # Add all menu actions of this plugin to the proper menus
+        self.add_menu_actions(plugin.menu_actions)
+
+        # Add all toolbar actions of this plugin to the proper toolbars
+        self.add_toolbar_actions(plugin.toolbar_actions)
+
+    # This function adds all actions defined in a dict to the proper menus
+    def add_menu_actions(self, actions_dict):
+        """
+        Adds all menu actions defined in the provided `actions_dict` to the
+        associated menus.
+
+        Parameters
+        ----------
+        actions_dict : dict of lists
+            Dict containing the actions that need to be added to what menu.
+
+        """
+
+        # Loop over all menus in actions_dict
+        for menu_name, actions in actions_dict.items():
+            # Obtain the corresponding menu
+            menu = self.menus[menu_name]
+
+            # Loop over all actions that must be added to this menu
+            for action in actions:
+                # If action is None, add a menu separator
+                if action is None:
+                    menu.addSeparator()
+                # Else, if action is a menu, add a new menu
+                elif isinstance(action, QW.QMenu):
+                    menu.addMenu(action)
+                # Else, if action is a string, add a new section
+                elif isinstance(action, str):
+                    menu.addSection(action)
+                # Else, add the action to the menu
+                else:
+                    menu.addAction(action)
+
+            # Add a final separator
+            menu.addSeparator()
+
+    # This function adds all actions defined in a dict to the proper toolbars
+    def add_toolbar_actions(self, actions_dict):
+        """
+        Adds all toolbar actions defined in the provided `actions_dict` to the
+        associated toolbars.
+
+        Parameters
+        ----------
+        actions_dict : dict of lists
+            Dict containing the actions that need to be added to what toolbar.
+
+        """
+
+        # Loop over all toolbars in actions_dict
+        for toolbar_name, actions in actions_dict.items():
+            # Obtain the corresponding toolbar
+            toolbar = self.toolbars[toolbar_name]
+
+            # Loop over all actions that must be added to this toolbar
+            for action in actions:
+                # If action is None, add a toolbar separator
+                if action is None:
+                    toolbar.addSeparator()
+                # Else, add the action to the toolbar
+                else:
+                    toolbar.addAction(action)
 
     # This function creates a message box with the 'about' information
     @QC.Slot()
