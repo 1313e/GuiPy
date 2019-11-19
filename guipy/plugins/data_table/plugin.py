@@ -89,6 +89,9 @@ class DataTable(BasePluginWidget):
         # Add widget to the tab widget
         self.tab_widget.addTab(widget, "Table %i" % (self.tab_widget.count()))
 
+        # Switch focus to the new tab
+        self.tab_widget.setCurrentIndex(self.tab_widget.count()-1)
+
     # This function closes a data table widget
     @QC.Slot(int)
     def close_tab(self, index):
