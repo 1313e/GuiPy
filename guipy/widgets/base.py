@@ -14,12 +14,12 @@ that allow for certain widgets to be standardized.
 from sys import platform
 
 # Package imports
-from qtpy import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # All declaration
 __all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDockWidget', 'QW_QDoubleSpinBox',
-           'QW_QEditableComboBox', 'QW_QLabel', 'QW_QMenu', 'QW_QSpinBox',
-           'QW_QToolBar']
+           'QW_QEditableComboBox', 'QW_QLabel', 'QW_QLineEdit', 'QW_QMenu',
+           'QW_QSpinBox', 'QW_QToolBar']
 
 
 # %% CLASS DEFINITIONS
@@ -166,6 +166,7 @@ class QW_QComboBox(QW.QComboBox):
 
     """
 
+    # Signals
     popup_shown = QC.Signal([int], [str])
     popup_hidden = QC.Signal([int], [str])
 
@@ -237,7 +238,7 @@ class QW_QSpinBox(QW.QSpinBox, QW_QAbstractSpinBox):
     pass
 
 
-# Create custom label class with more signals
+# Create custom QLabel class with more signals
 class QW_QLabel(QW.QLabel):
     """
     Defines the :class:`~QW_QLabel` class.
@@ -247,12 +248,45 @@ class QW_QLabel(QW.QLabel):
 
     """
 
+    # Signals
+    contentsChanged = QC.Signal([str], [QG.QMovie], [QG.QPicture],
+                                [QG.QPixmap])
     mousePressed = QC.Signal()
 
     # Override the mousePressEvent to emit a signal whenever it is triggered
     def mousePressEvent(self, event):
         self.mousePressed.emit()
         event.accept()
+
+    # Override setMovie to emit a signal whenever it is called
+    def setMovie(self, movie):
+        super().setMovie(movie)
+        self.contentsChanged[QG.QMovie].emit(self.movie())
+
+    # Override setNum to emit a signal whenever it is called
+    def setNum(self, num):
+        super().setNum(num)
+        self.contentsChanged[str].emit(self.text())
+
+    # Override setPicture to emit a signal whenever it is called
+    def setPicture(self, picture):
+        super().setPicture(picture)
+        self.contentsChanged[QG.QPicture].emit(self.picture())
+
+    # Override setPixmap to emit a signal whenever it is called
+    def setPixmap(self, pixmap):
+        super().setPixmap(pixmap)
+        self.contentsChanged[QG.QPixmap].emit(self.pixmap())
+
+    # Override setText to emit a signal whenever it is called
+    def setText(self, text):
+        super().setText(text)
+        self.contentsChanged[str].emit(self.text())
+
+
+# Create custom QLineEdit class
+class QW_QLineEdit(QW.QLineEdit):
+    pass
 
 
 # Create custom QMenu class that swaps the order of inputs

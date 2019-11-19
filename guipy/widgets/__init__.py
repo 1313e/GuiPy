@@ -11,10 +11,10 @@ created for *GuiPy*.
 
 # %% IMPORTS
 # Import base modules
-from . import core
-from .core import *
 from . import base
 from .base import *
+from . import core
+from .core import *
 from . import dock
 from .dock import *
 

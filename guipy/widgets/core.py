@@ -13,6 +13,9 @@ definition, which are core to the functioning of all GUI widgets.
 # Package imports
 from qtpy import QtCore as QC, QtWidgets as QW
 
+# GuiPy imports
+from guipy.widgets.base import QW_QLabel
+
 # All declaration
 __all__ = ['BaseBox', 'get_box_value', 'get_modified_box_signal',
            'set_box_value']
@@ -118,6 +121,13 @@ def get_box_value(box):
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         return(box.text())
+    # Labels (QLabel)
+    elif isinstance(box, QW.QLabel):
+        for attr in ['movie', 'picture', 'pixmap']:
+            if getattr(box, attr)() is not None:
+                return(getattr(box, attr)())
+        else:
+            return(box.text())
     # Custom boxes (BaseBox)
     elif isinstance(box, BaseBox):
         return(box.get_box_value())
@@ -146,6 +156,12 @@ def get_modified_box_signal(box):
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         return(box.textChanged)
+    # Labels (QLabel)
+    elif isinstance(box, QW_QLabel):
+        return(box.contentsChanged)
+    elif isinstance(box, QW.QLabel):
+        raise NotImplementedError("Default QW.QLabel has no modified signal "
+                                  "defined. Use QW_QLabel instead!")
     # Custom boxes (BaseBox)
     elif isinstance(box, BaseBox):
         return(box.modified)
@@ -177,6 +193,20 @@ def set_box_value(box, value):
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         box.setText(value)
+    # Labels (QLabel)
+    elif isinstance(box, QW.QLabel):
+        if isinstance(value, str):
+            box.setText(value)
+        elif isinstance(value, (int, float)):
+            box.setNum(value)
+        elif isinstance(value, QW.QMovie):
+            box.setMovie(value)
+        elif isinstance(value, QW.QPicture):
+            box.setPicture(value)
+        elif isinstance(value, QW.QPixmap):
+            box.setPixmap(value)
+        else:
+            raise TypeError("QLabel does not support the given type")
     # Custom boxes (BaseBox)
     elif isinstance(box, BaseBox):
         box.set_box_value(value)

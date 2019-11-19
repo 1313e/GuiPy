@@ -20,7 +20,8 @@ from guipy.plugins.data_table.widgets.model import DataTableModel
 from guipy.plugins.data_table.widgets.selection_model import (
     DataTableSelectionModel)
 from guipy.widgets import (
-    QW_QAction, QW_QLabel, QW_QMenu, get_box_value, get_modified_box_signal)
+    QW_QAction, QW_QLabel, QW_QLineEdit, QW_QMenu, get_box_value,
+    get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['DataTableView']
@@ -35,11 +36,8 @@ class DataTableView(QW.QTableView):
     n_rows_changed = QC.Signal(int)
     n_cols_changed = QC.Signal(int)
 
-    # Initialize DataTableWidget class
+    # Initialize DataTableView class
     def __init__(self, parent, *args, **kwargs):
-        # Save parent plugin
-        self.parent = parent
-
         # Call super constructor
         super().__init__(parent)
 
@@ -60,10 +58,6 @@ class DataTableView(QW.QTableView):
         # Set selection model for the data table widget
         self.selectionModel().deleteLater()
         self.setSelectionModel(selection_model)
-
-        # Connect signals from parent
-        self.parent.n_rows_changed.connect(self.setRowCount)
-        self.parent.n_cols_changed.connect(self.setColumnCount)
 
     # This function returns the number of columns in the model
     def columnCount(self):
@@ -108,11 +102,14 @@ class DataTableView(QW.QTableView):
         # Create context menus for the horizontal and vertical headers
         self.create_header_context_menus()
 
+        # Create popup editor for the horizontal header
+        self.h_header_editor = HorizontalHeaderPopup(self)
+
         # Create horizontal and vertical headers for the data table widget
         self.h_header = HorizontalHeaderView(
             parent=self,
             context_menu=self.show_horizontal_header_context_menu,
-            double_clicked=self.show_horizontal_header_dialog)
+            double_clicked=self.h_header_editor)
         self.v_header = VerticalHeaderView(
             parent=self,
             context_menu=self.show_vertical_header_context_menu)
@@ -251,46 +248,6 @@ class DataTableView(QW.QTableView):
         # Show context menu
         self.v_header_menu.popup(QG.QCursor.pos())
 
-    # This function shows a dialog when a column header is double-clicked
-    @QC.Slot(int)
-    def show_horizontal_header_dialog(self, col):
-        # Get the column that was requested
-        column = self.model().dataColumn(col)
-
-        # Create a dialog object
-        dialog = QW.QDialog(self.h_header)
-        dialog.setWindowModality(QC.Qt.NonModal)
-        dialog.setAttribute(QC.Qt.WA_DeleteOnClose)
-        dialog.setWindowFlags(
-            QC.Qt.Popup)
-
-        # Create a layout
-        layout = QW.QGridLayout()
-        dialog.setLayout(layout)
-
-        # Add a label saying which column this is
-        layout.addWidget(QW_QLabel("Column"), 0, 0)
-        layout.addWidget(QW_QLabel(column.base_name), 0, 1)
-
-        # Add a line-edit to this layout
-        # TODO: Pressing ENTER (or equivalent) closes the pop-up
-        name_box = QW.QLineEdit()
-        name_box.setText(column.name)
-        get_modified_box_signal(name_box).connect(
-            lambda x: self.model().setColumnName(col, x))
-        layout.addWidget(QW_QLabel("Name"), 1, 0)
-        layout.addWidget(name_box, 1, 1)
-
-        # Determine the position of this column header
-        # TODO: Move pop-up box to cover the column header that was clicked
-#        self.h_header.visualRect(col)
-#        self.move(self.h_header.sectionPosition(col))
-
-        # Show the dialog
-        dialog.show()
-
-        # TODO: The requested header automatically updates itself after close
-
     # This function inserts columns into the data table before given column
     @QC.Slot()
     @QC.Slot(int)
@@ -408,3 +365,98 @@ class DataTableView(QW.QTableView):
 
         # Hide row
         self.model().hideRows(row, n_rows)
+
+
+# Define class for showing a popup editor for the horizontal header
+class HorizontalHeaderPopup(QW.QDialog):
+    # Initialize HorizontalHeaderPopup class
+    def __init__(self, data_table_view_obj, *args, **kwargs):
+        # Save provided DataTableView object
+        self.data_table = data_table_view_obj
+
+        # Call super constructor
+        super().__init__(data_table_view_obj)
+
+        # Set up the header editor
+        self.init(*args, **kwargs)
+
+    # This function shows the editor
+    @QC.Slot(int)
+    def __call__(self, col):
+        # Save which column index was requested
+        self.col = col
+
+        # Get the column that was requested
+        column = self.data_table.model().dataColumn(col)
+
+        # Set the base name and name of this column
+        set_box_value(self.base_name_label, column.base_name)
+        set_box_value(self.name_box, column.name)
+
+        # Set keyboard focus to the name_box and select it
+        self.name_box.setFocus(True)
+        self.name_box.selectAll()
+
+        # Show the popup
+        self.show()
+
+    # This function sets up the horizontal header popup editor
+    def init(self):
+        # Install event filter to catch events that should close the popup
+        self.installEventFilter(self)
+
+        # Set dialog flags
+        self.setWindowFlags(
+            QC.Qt.Popup |
+            QC.Qt.FramelessWindowHint)
+
+        # Create a grid layout
+        layout = QW.QGridLayout()
+        self.setLayout(layout)
+
+        # Add a label stating the base name of the column
+        self.base_name_label = QW_QLabel("")
+        self.base_name_label.setAlignment(QC.Qt.AlignCenter)
+        layout.addWidget(self.base_name_label, 0, 0, 1, -1)
+
+        # Create a name line-edit
+        name_box = QW_QLineEdit()
+        get_modified_box_signal(name_box).connect(self.set_column_name)
+
+        # Add it to the layout
+        layout.addWidget(QW_QLabel("Name"), 1, 0)
+        layout.addWidget(name_box, 1, 1)
+        self.name_box = name_box
+
+    # Override eventFilter to filter out clicks, ESC and Enter
+    def eventFilter(self, widget, event):
+        # Check if the event involves anything for which the popup should close
+        if (((event.type() == QC.QEvent.MouseButtonPress) and
+             not self.geometry().contains(event.globalPos())) or
+            ((event.type() == QC.QEvent.KeyPress) and
+             event.key() in (QC.Qt.Key_Escape,
+                             QC.Qt.Key_Enter,
+                             QC.Qt.Key_Return))):
+            # Exit the editor
+            self.hide()
+            self.name_box.setFocus(False)
+            return(True)
+
+        # Else, process events as normal
+        else:
+            return(super().eventFilter(widget, event))
+
+    # Override hideEvent to automatically update the header
+    def hideEvent(self, *args, **kwargs):
+        # Tell data table to update the header of the requested column
+        self.data_table.h_header.headerDataChanged(QC.Qt.Horizontal,
+                                                   self.col, self.col)
+
+        # Call super event
+        super().hideEvent(*args, **kwargs)
+
+    # This function is called whenever it is attempted to set the column name
+    @QC.Slot(str)
+    def set_column_name(self, name):
+        # Set the column name
+        self.data_table.model().setColumnName(self.col, name)
