@@ -18,7 +18,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 # GuiPy imports
 from guipy import __version__, APP_NAME
 from guipy.plugins import DataTable
-from guipy.widgets import BaseDockWidget, QW_QAction
+from guipy.widgets import BaseDockWidget, QW_QAction, QW_QMenu, QW_QToolBar
 
 # All declaration
 __all__ = ['MainWindow']
@@ -72,8 +72,8 @@ class MainWindow(QW.QMainWindow):
         # Create statusbar
         self.create_statusbar()
 
-        # Create menubar
-        self.create_menubar()
+        # Create menus
+        self.create_menus()
 
         # Create toolbars
         self.create_toolbars()
@@ -107,30 +107,94 @@ class MainWindow(QW.QMainWindow):
         # Obtain statusbar
         self.statusbar = self.statusBar()
 
-    # This function creates the menubar in the viewer
-    def create_menubar(self):
+    # This function adds a given menu to the top-level menu
+    def addMenu(self, menu, parent_name=None):
         """
-        Creates the top-level menubar of the main window.
+        Adds a provided `menu` to the top-level menubar and registers it.
 
-        Other widgets can modify this menubar to add additional actions to it.
+        Parameters
+        ----------
+        menu : :obj:`~guipy.widgets.QW_QMenu` object
+            The menu object that must be added to the top-level menubar.
+
+        Optional
+        --------
+        parent_name : str or None. Default: None
+            If str, adds the provided `menu` to the menu with the given
+            `parent_name`.
+            If *None*, adds `menu` to the top-level menubar instead.
 
         """
 
-        # Make empty dict of menus
+        # If parent_name is None, add given menu to the menubar
+        if parent_name is None:
+            self.menuBar().addMenu(menu)
+            self.menus[menu.name] = menu
+
+        # If not, add it to the parent menu with the given name
+        else:
+            self.menus[parent_name].addMenu(menu)
+            self.menus["%s/%s" % (parent_name, menu.name)] = menu
+
+    # This function creates the top-level menus in the viewer
+    def create_menus(self):
+        """
+        Creates the menus in the top-level menubar of the main window.
+
+        Other widgets can modify these menus to add additional actions to it.
+
+        """
+
+        # TOP-LEVEL MENUS
+        # Make empty dict of top-level menus and submenus
         self.menus = {}
+        submenus = {}
 
-        # Obtain menubar
-        self.menubar = self.menuBar()
-
-        # FILE
         # Create file menu
-        file_menu = self.menubar.addMenu('&File')
-        self.menus['File'] = file_menu
+        self.addMenu(QW_QMenu('File', '&File'))
+        submenus['File'] = []
 
-        # HELP
+        # Create view menu
+        self.addMenu(QW_QMenu('View', '&View'))
+        submenus['View'] = []
+
         # Create help menu
-        help_menu = self.menubar.addMenu('&Help')
-        self.menus['Help'] = help_menu
+        self.addMenu(QW_QMenu('Help', '&Help'))
+        submenus['Help'] = []
+
+        # SUBMENUS
+        # Add a docks menu to view menu
+        submenus['View'].append(QW_QMenu('Docks', '&Docks'))
+
+        # Add a separator to view menu
+        submenus['View'].append(None)
+
+        # Add a toolbars menu to view menu
+        submenus['View'].append(QW_QMenu('Toolbars', '&Toolbars'))
+
+        # Add all submenus
+        self.add_menu_actions(submenus)
+
+    # Override addToolBar to register an action for toggling the toolbar
+    def addToolBar(self, toolbar):
+        """
+        Adds a provided `toolbar` to the main window and registers it.
+
+        Parameters
+        ----------
+        toolbar : :obj:`~guipy.widgets.QW_QToolBar` object
+            The toolbar object that must be added to the main window.
+
+        """
+
+        # Call super method
+        super().addToolBar(toolbar)
+
+        # Register toolbar
+        self.toolbars[toolbar.name] = toolbar
+
+        # Add action for toggling the toolbar
+        self.add_menu_actions({'View/Toolbars': [toolbar.toggleViewAction()]})
 
     # This function creates the toolbars in the viewer
     def create_toolbars(self):
@@ -147,8 +211,7 @@ class MainWindow(QW.QMainWindow):
 
         # FILE
         # Create file toolbar
-        file_toolbar = self.addToolBar('File')
-        self.toolbars['File'] = file_toolbar
+        self.addToolBar(QW_QToolBar('File', 'File toolbar'))
 
     # This function adds all core actions to the menubar
     def add_core_actions(self):
@@ -161,8 +224,10 @@ class MainWindow(QW.QMainWindow):
         # Create dict of actions
         actions = {
             'File': [],
+            'View': [],
             'Help': []}
 
+        # FILE MENU
         # Add quit action to file menu
         quit_act = QW_QAction(
             self, '&Quit',
@@ -172,6 +237,7 @@ class MainWindow(QW.QMainWindow):
             role=QW_QAction.QuitRole)
         actions['File'].append(quit_act)
 
+        # HELP MENU
         # Add about action to help menu
         about_act = QW_QAction(
             self, '&About...',
@@ -218,6 +284,9 @@ class MainWindow(QW.QMainWindow):
         # Add dock_widget to the main window
         self.addDockWidget(plugin.location, dock_widget)
 
+        # Add action for toggling the dock widget
+        self.add_menu_actions({'View/Docks': [dock_widget.toggleViewAction()]})
+
         # Add plugin to list of all current plugins
         self.plugin_list.append(plugin)
 
@@ -251,8 +320,8 @@ class MainWindow(QW.QMainWindow):
                 if action is None:
                     menu.addSeparator()
                 # Else, if action is a menu, add a new menu
-                elif isinstance(action, QW.QMenu):
-                    menu.addMenu(action)
+                elif isinstance(action, QW_QMenu):
+                    self.addMenu(action, menu_name)
                 # Else, if action is a string, add a new section
                 elif isinstance(action, str):
                     menu.addSection(action)

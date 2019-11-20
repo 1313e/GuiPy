@@ -289,7 +289,7 @@ class QW_QLineEdit(QW.QLineEdit):
     pass
 
 
-# Create custom QMenu class that swaps the order of inputs
+# Create custom QMenu class
 class QW_QMenu(QW.QMenu):
     """
     Defines the :class:`~QW_QMenu` class.
@@ -299,14 +299,19 @@ class QW_QMenu(QW.QMenu):
 
     """
 
-    def __init__(self, parent=None, title=None):
-        if title is not None:
-            super().__init__(title, parent)
-        else:
-            super().__init__(parent)
+    def __init__(self, name, title=None, parent=None):
+        # Save name
+        self.name = name
+
+        # If title is None, set it to name
+        if title is None:
+            title = name
+
+        # Call super constructor
+        super().__init__(title, parent)
 
 
-# Create custom QToolbar class that swaps the order of inputs
+# Create custom QToolbar class
 class QW_QToolBar(QW.QToolBar):
     """
     Defines the :class:`~QW_QToolBar` class.
@@ -316,8 +321,13 @@ class QW_QToolBar(QW.QToolBar):
 
     """
 
-    def __init__(self, parent=None, window_title=None):
-        if window_title is not None:
-            super().__init__(window_title, parent)
-        else:
-            super().__init__(parent)
+    def __init__(self, name, title=None, parent=None):
+        # Save name
+        self.name = name
+
+        # If title is None, set it to name
+        if title is None:
+            title = name
+
+        # Call super constructor
+        super().__init__(title, parent)

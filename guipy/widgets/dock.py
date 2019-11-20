@@ -24,4 +24,13 @@ __all__ = ['BaseDockWidget']
 # %% CLASS DEFINITIONS
 # Make base class for dock widgets
 class BaseDockWidget(QW_QDockWidget):
-    pass
+    # Signals
+    dockClosed = QC.Signal()
+
+    # Override closeEvent to emit a signal whenever the dock is closed
+    def closeEvent(self, *args, **kwargs):
+        # Emit dockClosed signal
+        self.dockClosed.emit()
+
+        # Call super event
+        super().closeEvent(*args, **kwargs)
