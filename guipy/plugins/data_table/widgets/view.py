@@ -91,13 +91,11 @@ class DataTableView(QW.QTableView):
         # Calculate the difference between count and rowCount
         diff = count-self.rowCount()
 
-        # If diff is negative, remove rows from the end
+        # Extend or shorten the data table model accordingly
         if(diff < 0):
             self.model().removeRows(abs(diff))
-        # If diff is positive, append rows to the end
         elif(diff > 0):
             self.model().insertRows(abs(diff))
-        # If diff is zero, do nothing
         else:
             pass
 

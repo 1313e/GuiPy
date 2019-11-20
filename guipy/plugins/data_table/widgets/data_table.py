@@ -68,33 +68,38 @@ class DataTableWidget(QW.QWidget):
         dimensions_layout.addStretch()
 
         # Create the DataTableView object
-        self.data_table = DataTableView(self)
+        self.view = DataTableView(self)
 
         # Set initial values of the spinboxes
-        set_box_value(n_rows_box, self.data_table.rowCount())
-        set_box_value(n_cols_box, self.data_table.columnCount())
+        set_box_value(n_rows_box, self.view.rowCount())
+        set_box_value(n_cols_box, self.view.columnCount())
 
-        # Connect signals from data table
-        self.data_table.model().rowCountChanged.connect(
+        # Connect signals from data table view
+        self.view.model().rowCountChanged.connect(
             lambda x: set_box_value(n_rows_box, x))
-        self.data_table.model().columnCountChanged.connect(
+        self.view.model().columnCountChanged.connect(
             lambda x: set_box_value(n_cols_box, x))
-        self.data_table.model().lastColumnRemoved.connect(
+        self.view.model().lastColumnRemoved.connect(
             lambda: n_rows_box.setEnabled(False))
-        self.data_table.model().firstColumnInserted.connect(
+        self.view.model().firstColumnInserted.connect(
             lambda: n_rows_box.setEnabled(True))
 
-        # Connect signals to data table
-        self.n_rows_changed.connect(self.data_table.setRowCount)
-        self.n_cols_changed.connect(self.data_table.setColumnCount)
+        # Connect signals to data table view
+        self.n_rows_changed.connect(self.view.setRowCount)
+        self.n_cols_changed.connect(self.view.setColumnCount)
 
         # Add data_table to the layout
-        layout.addWidget(self.data_table)
+        layout.addWidget(self.view)
 
     # Override closeEvent to perform some additional clean-up
     def closeEvent(self, *args, **kwargs):
-        # Close the data table
-        self.data_table.close()
+        # Close the data table view
+        self.view.close()
 
         # Call super event
         super().closeEvent(*args, **kwargs)
+
+    # This property returns the model of the DataTableView in this data table
+    @property
+    def model(self):
+        return(self.view.model())

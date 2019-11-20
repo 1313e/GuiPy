@@ -23,3 +23,6 @@ __all__.extend(headers.__all__)
 __all__.extend(model.__all__)
 __all__.extend(selection_model.__all__)
 __all__.extend(view.__all__)
+
+# Author declaration
+__author__ = "Ellert van der Velden (@1313e)"

@@ -21,3 +21,6 @@ from .data_table.plugin import *
 __all__ = ['base', 'data_table']
 __all__.extend(base.__all__)
 __all__.extend(data_table.plugin.__all__)
+
+# Author declaration
+__author__ = "Ellert van der Velden (@1313e)"

@@ -120,11 +120,8 @@ class DataTableModel(QC.QAbstractTableModel):
                 # Obtain the data column belonging to the requested index
                 data_col = self.column_list[index.column()]
 
-                # Obtain the requested data point
-                data_point = data_col[index.row()]
-
                 # Convert to proper QVariant
-                data_point = QC.QVariant(data_col.dtype(data_point))
+                data_point = QC.QVariant(data_col.item(index.row()))
 
                 # Return it
                 return(data_point)
@@ -192,7 +189,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Insert the rows into all data columns
         for column in self.column_list:
-            column.insertRows(row, count)
+            column.insertRows(count, row)
 
         # Notify other functions that rows have been inserted
         self.endInsertRows()
@@ -218,7 +215,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Remove the rows from all data columns
         for column in self.column_list:
-            column.removeRows(row, count)
+            column.removeRows(count, row)
 
         # Notify other functions that rows have been removed
         self.endRemoveRows()
@@ -260,7 +257,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Create as many columns as required
         for i in range(col, col+count):
-            self.column_list.insert(i, DataTableColumn(self, i, length))
+            self.column_list.insert(i, DataTableColumn(None, length, i, self))
 
         # Modify the index of all columns that have now been moved
         for column in self.column_list[col+count:]:
@@ -353,40 +350,104 @@ class DataTableColumn(QC.QObject):
     """
 
     # Initialize data column
-    def __init__(self, parent, index, length):
+    def __init__(self, data, length, index=0, parent=None):
         """
         Initialize an instance of the :class:`~DataTableColumn` class.
 
         Parameters
         ----------
-        parent : :obj:`~PyQt5.QtWidgets.QWidget` object
-            The widget to use as the parent of this data column.
-        index : int
-            The logical index of this data column.
+        data : 1D :obj:`~numpy.ndarray` object or None
+            The array that must be used to initialize this data column with.
+            If *None*, an empty data column is created instead.
         length : int
             The length (number of rows) requested for this data column.
+            If `data` is not *None* and `length != len(data)`, the array given
+            by `data` will be extended/shortened accordingly.
+
+        Optional
+        --------
+        index : int. Default: 0
+            The logical index of this data column. This is only important if
+            this data column has a parent.
+        parent : :obj:`~PyQt5.QtWidgets.QWidget` object or None. Default: None
+            The widget to use as the parent of this data column.
+            If *None*, this data column has no parent.
 
         """
 
-        # Save provided index and length
+        # Save provided index
         self._index = index
-        self._length = length
 
         # Call super constructor
         super().__init__(parent)
 
         # Set up the data column
-        self.init()
+        self.init(data, length)
 
     # This function sets up the data column
-    def init(self):
-        # Set default values for dtype and name
-        self._dtype = float
+    def init(self, data, length):
+        # Set data column name
         self._name = ""
 
-        # Initialize data array
-        # TODO: Should I use a masked array for this?
-        self._data = np.zeros(self._length, dtype=self._dtype)
+        # If data is None, initialize default array
+        if data is None:
+            # Set default value for dtype
+            self._dtype = np.float64
+
+            # Initialize data array
+            # TODO: Should I use a masked array for this?
+            self._data = np.zeros(length, dtype=self._dtype)
+
+            # Save the length of the array
+            self._length = length
+
+        # If data is not None, act accordingly
+        else:
+            # Make sure that data is a NumPy array
+            data = np.asarray(data)
+
+            # Obtain the dtype of the provided data
+            self._dtype = data.dtype.type
+
+            # Set the data array
+            self._data = data
+
+            # Save the length of the array
+            self._length = len(data)
+
+            # Determine the difference between length and the array length
+            diff = length-self._length
+
+            # Extend or shorten the data array accordingly
+            if(diff < 0):
+                self.removeRows(abs(diff))
+            elif(diff > 0):
+                self.insertRows(abs(diff))
+            else:
+                pass
+
+    # Specify the __repr__ function
+    def __repr__(self):
+        # Make empty list of representations
+        str_repr = []
+
+        # Obtain the representation of the NumPy data array
+        data_repr = str(self._data.tolist())
+        str_repr.append(data_repr)
+
+        # Add length to representation
+        str_repr.append("length=%i" % (self._length))
+
+        # Add index to representation if it has a parent
+        if self.parent() is not None:
+            str_repr.append("index=%i" % (self._index))
+
+        # Combine all together to a string and return representation
+        return("DataTableColumn(%s)" % (", ".join(str_repr)))
+
+    # Specify the __str__ function
+    def __str__(self):
+        return(str(self._data))
 
     # Specify the __getitem__ function
     def __getitem__(self, key):
@@ -394,7 +455,7 @@ class DataTableColumn(QC.QObject):
 
     # Specify the __len__ function
     def __len__(self):
-        return(self.length)
+        return(self._length)
 
     # Specify the __setitem__ function
     def __setitem__(self, key, value):
@@ -439,6 +500,10 @@ class DataTableColumn(QC.QObject):
     @property
     def data(self):
         return(self._data)
+
+    # This function calls the item()-method of the NumPy data array
+    def item(self, *args):
+        return(self._data.item(*args))
 
     # This function converts a value to base-26 using the alphabetical letters
     @staticmethod
@@ -494,7 +559,7 @@ class DataTableColumn(QC.QObject):
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
-    def insertRows(self, row=-1, count=1):
+    def insertRows(self, count=1, row=-1):
         # If row == -1, set it to the current number of rows
         if(row == -1):
             row = self._length
@@ -514,7 +579,7 @@ class DataTableColumn(QC.QObject):
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
-    def removeRows(self, row=-1, count=1):
+    def removeRows(self, count=1, row=-1):
         # If row == -1, set it to the current number of rows-count
         if(row == -1):
             row = self._length-count

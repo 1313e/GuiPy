@@ -15,6 +15,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.plugins.base import BasePluginWidget
+from guipy.plugins.data_table.formatters import export_to_txt
 from guipy.plugins.data_table.widgets import DataTableWidget
 from guipy.widgets import QW_QAction, QW_QMenu
 
@@ -177,10 +178,11 @@ class DataTable(BasePluginWidget):
     @QC.Slot()
     def add_tab(self):
         # Create a DataTableWidget
-        widget = DataTableWidget()
+        data_table = DataTableWidget()
 
-        # Add widget to the tab widget
-        self.tab_widget.addTab(widget, "Table %i" % (self.tab_widget.count()))
+        # Add data_table to the tab widget
+        self.tab_widget.addTab(data_table,
+                               "Table %i" % (self.tab_widget.count()))
 
         # Switch focus to the new tab
         self.tab_widget.setCurrentIndex(self.tab_widget.count()-1)
@@ -188,13 +190,13 @@ class DataTable(BasePluginWidget):
     # This function closes a data table widget
     @QC.Slot(int)
     def close_tab(self, index):
-        # Obtain the DataTableWidget object associated with this widget
-        widget = self.tab_widget.widget(index)
+        # Obtain the DataTableWidget object associated with this index
+        data_table = self.tab_widget.widget(index)
 
-        # Close this widget
-        widget.close()
+        # Close this data_table
+        data_table.close()
 
-        # Remove this widget from the tab widget
+        # Remove this data_table from the tab widget
         self.tab_widget.removeTab(index)
 
     # This function opens a data table widget
@@ -235,27 +237,34 @@ class DataTable(BasePluginWidget):
     # This function exports a data table as a text file
     @QC.Slot()
     def export_as_txt(self):
-        pass
+        # Export the current data table to txt
+        export_to_txt(self.dataTable())
+
 
     # This function returns the data table belonging to a specified int
     @QC.Slot(int)
-    def dataTable(self, index):
+    def dataTable(self, index=None):
         """
-        Returns the :obj:`~DataTableModel` object that belongs to the table
+        Returns the :obj:`~DataTableWidget` object that belongs to the table
         with the provided tab `index`.
 
-        Parameters
-        ----------
-        index : int
+        Optional
+        --------
+        index : int or None. Default: None
             If int, the index of the tab whose table is requested.
+            If *None*, the current table is requested.
 
         Returns
         -------
-        data_table : :obj:`~DataTableModel`
+        data_table : :obj:`~DataTableWidget`
             The data table that belongs to the tab specified by the
             provided `index`.
 
         """
 
-        # Return the data table model with the provided index
-        return(self.tab_widget.widget(index).data_table.model())
+        # If index is None, return current data table widget
+        if index is None:
+            index = self.tab_widget.currentIndex()
+
+        # Return the data table widget with the provided index
+        return(self.tab_widget.widget(index))

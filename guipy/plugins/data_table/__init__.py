@@ -18,3 +18,6 @@ from . import formatters, widgets
 # All declaration
 __all__ = ['formatters', 'plugin', 'widgets']
 __all__.extend(plugin.__all__)
+
+# Author declaration
+__author__ = "Ellert van der Velden (@1313e)"
