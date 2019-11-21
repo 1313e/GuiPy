@@ -17,7 +17,8 @@ import re
 from qtpy import QtWidgets as QW
 
 # GuiPy imports
-
+from guipy.config import tr
+from guipy.widgets import QW_QFileDialog
 
 # All declaration
 __all__ = ['getSaveFileName']
@@ -27,9 +28,14 @@ __all__ = ['getSaveFileName']
 # Define list of all supported file formats
 FORMATS_LIST = [
     "Windows Bitmap (*.bmp)",
+    "Comma-Separated Values (*.csv)",
     "Encapsulated PostScript (*.eps)",
-    "Hierarchical Data Format (*.hdf5 *.hdf4 *.hdf *.h5 *.h4 *he5 *.he2)",
+    "Flexible Image Transport System (*.fits)",
+    "GuiPy Environment File (*.gpy)",
+    "Hierarchical Data Format (*.hdf5 *.hdf4 *.hdf *.h5 *.h4 *.he5 *.he2)",
     "Joint Photographic Experts Group (*.jpg *.jpeg)",
+    "NumPy Binary File (*.npy)",
+    "NumPy Binary Archive (*.npz)",
     "Portable Document Format (*.pdf)",
     "PGF code for LaTeX (*.pgf)",
     "Portable Network Graphics (*.png)",
@@ -40,21 +46,25 @@ FORMATS_LIST = [
     "Portable Pixmap (*.ppm)",
     "Text Document (*.txt)",
     "X11 Bitmap (*.xbm)",
+    "Excel File Format (*.xlsx *.xls)",
     "X11 Pixmap (*.xpm)"]
 
 
 # %% HIDDEN DEFINITIONS
 # This function converts a list of file formats into a dict of file extensions
 def _get_file_exts(formats):
-    # Define empty dict of exts
+    # Define empty dict of exts and names
     exts = {}
+    names = {}
 
     # Loop over all file formats in given formats
     for file_format in formats:
-        # Obtain all extensions for this file format
-        file_exts = re.search(r"[(](.*)[)]", file_format, re.M).group(1)
+        # Use regular expressions to isolate the extensions and name
+        r_str = re.search(r"(.*)[ ][(](.*)[)]", file_format, re.M)
+        file_name = r_str.group(1)
+        file_exts = r_str.group(2)
 
-        # Remove all '*'
+        # Remove all '*.'
         file_exts = file_exts.replace('*.', '')
 
         # Split exts up into a list
@@ -63,13 +73,14 @@ def _get_file_exts(formats):
         # Add all extensions to exts
         for ext in file_exts:
             exts[ext] = file_format
+            names[ext] = file_name
 
-    # Return exts
-    return(exts)
+    # Return exts and names
+    return(exts, names)
 
 
-# Obtain dict of all supported file formats
-FORMATS = _get_file_exts(FORMATS_LIST)
+# Obtain dict of all supported file formats and their names
+FORMATS, FORMAT_NAMES = _get_file_exts(FORMATS_LIST)
 
 
 # %% FUNCTION DEFINITIONS
@@ -115,6 +126,9 @@ def getSaveFileName(parent=None, caption='', basedir=None, filters=None,
     if basedir is None:
         basedir = path.abspath('.')
 
+    # Translate the caption
+    caption = tr(caption)
+
     # Check what filters are given and act accordingly
     if filters is None:
         # If no filters are given, set filters and initial_filter to ''
@@ -157,14 +171,14 @@ def getSaveFileName(parent=None, caption='', basedir=None, filters=None,
 
     # Open the file saving system and return the result
     if options is None:
-        return(QW.QFileDialog.getSaveFileName(
+        return(QW_QFileDialog.getSaveFileName(
             parent=parent,
             caption=caption,
             directory=basedir,
             filter=filters,
             initialFilter=initial_filter))
     else:
-        return(QW.QFileDialog.getSaveFileName(
+        return(QW_QFileDialog.getSaveFileName(
             parent=parent,
             caption=caption,
             directory=basedir,

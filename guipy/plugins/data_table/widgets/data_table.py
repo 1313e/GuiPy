@@ -16,7 +16,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 # GuiPy imports
 from guipy.plugins.data_table.widgets.view import DataTableView
 from guipy.widgets import (
-    QW_QLabel, QW_QSpinBox, get_modified_box_signal, set_box_value)
+    QW_QLabel, QW_QSpinBox, QW_QWidget, get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['DataTableWidget']
@@ -24,7 +24,7 @@ __all__ = ['DataTableWidget']
 
 # %% CLASS DEFINITIONS
 # Define class for the DataTable widget
-class DataTableWidget(QW.QWidget):
+class DataTableWidget(QW_QWidget):
     # Signals
     n_rows_changed = QC.Signal(int)
     n_cols_changed = QC.Signal(int)

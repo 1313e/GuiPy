@@ -16,10 +16,36 @@ from sys import platform
 # Package imports
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
+# GuiPy imports
+from guipy.config import tr
+
 # All declaration
-__all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDockWidget', 'QW_QDoubleSpinBox',
-           'QW_QEditableComboBox', 'QW_QLabel', 'QW_QLineEdit', 'QW_QMenu',
-           'QW_QSpinBox', 'QW_QToolBar']
+__all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDialog', 'QW_QDockWidget',
+           'QW_QDoubleSpinBox', 'QW_QEditableComboBox', 'QW_QFileDialog',
+           'QW_QHeaderView', 'QW_QLabel', 'QW_QLineEdit', 'QW_QMainWindow',
+           'QW_QMenu', 'QW_QMessageBox', 'QW_QSpinBox', 'QW_QTableView',
+           'QW_QTabWidget', 'QW_QToolBar', 'QW_QWidget']
+
+
+# %% BASE CLASS DEFINITION
+# Make subclass of QWidget to provide certain functionality to all widgets
+class QW_QWidget(QW.QWidget):
+    """
+    Defines the :class:`~QW_QWidget` class.
+
+    This class provides default settings and extra options for the
+    :class:`~PyQt5.QtWidgets.QWidget` class and is inherited by all other
+    custom :class:`~PyQt5.QtWidgets.QWidget` classes.
+
+    """
+
+    # Override setStatusTip to auto translate
+    def setStatusTip(self, text):
+        super().setStatusTip(tr(text))
+
+    # Override setToolTip to auto translate
+    def setToolTip(self, text):
+        super().setToolTip(tr(text))
 
 
 # %% CLASS DEFINITIONS
@@ -73,6 +99,9 @@ class QW_QAction(QW.QAction):
 
         """
 
+        # Translate text
+        text = tr(text)
+
         # Call super constructor
         if icon is None:
             super().__init__(text, parent)
@@ -112,6 +141,10 @@ class QW_QAction(QW.QAction):
             If *None*, the statustip is set to `tooltip`.
 
         """
+
+        # Translate tooltip and statustip
+        tooltip = tr(tooltip) if tooltip is not None else None
+        statustip = tr(statustip) if statustip is not None else None
 
         # If shortcut is not None, set it
         if shortcut is not None:
@@ -157,7 +190,7 @@ class QW_QAction(QW.QAction):
 
 
 # Create custom combobox class with more signals
-class QW_QComboBox(QW.QComboBox):
+class QW_QComboBox(QW.QComboBox, QW_QWidget):
     """
     Defines the :class:`~QW_QComboBox` class.
 
@@ -200,13 +233,28 @@ class QW_QEditableComboBox(QW_QComboBox):
         self.completer().setFilterMode(QC.Qt.MatchContains)
 
 
+# Create custom QDialog
+class QW_QDialog(QW.QDialog, QW_QWidget):
+    pass
+
+
 # Create custom QDockWidget
-class QW_QDockWidget(QW.QDockWidget):
+class QW_QDockWidget(QW.QDockWidget, QW_QWidget):
+    pass
+
+
+# Create custom QFileDialog class
+class QW_QFileDialog(QW.QFileDialog, QW_QDialog):
+    pass
+
+
+# Create custom QHeaderView class
+class QW_QHeaderView(QW.QHeaderView, QW_QWidget):
     pass
 
 
 # Create custom QAbstractSpinBox that automatically sets some properties
-class QW_QAbstractSpinBox(QW.QAbstractSpinBox):
+class QW_QAbstractSpinBox(QW.QAbstractSpinBox, QW_QWidget):
     """
     Defines the :class:`~QW_QAbstractSpinBox` class.
 
@@ -239,7 +287,7 @@ class QW_QSpinBox(QW.QSpinBox, QW_QAbstractSpinBox):
 
 
 # Create custom QLabel class with more signals
-class QW_QLabel(QW.QLabel):
+class QW_QLabel(QW.QLabel, QW_QWidget):
     """
     Defines the :class:`~QW_QLabel` class.
 
@@ -252,6 +300,16 @@ class QW_QLabel(QW.QLabel):
     contentsChanged = QC.Signal([str], [QG.QMovie], [QG.QPicture],
                                 [QG.QPixmap])
     mousePressed = QC.Signal()
+
+    def __init__(self, text=None, *args, **kwargs):
+        # Translate text
+        text = tr(text) if text is not None else None
+
+        # Call super constructor
+        if text is None:
+            super().__init__(*args, **kwargs)
+        else:
+            super().__init__(text, *args, **kwargs)
 
     # Override the mousePressEvent to emit a signal whenever it is triggered
     def mousePressEvent(self, event):
@@ -280,17 +338,22 @@ class QW_QLabel(QW.QLabel):
 
     # Override setText to emit a signal whenever it is called
     def setText(self, text):
-        super().setText(text)
+        super().setText(tr(text))
         self.contentsChanged[str].emit(self.text())
 
 
 # Create custom QLineEdit class
-class QW_QLineEdit(QW.QLineEdit):
+class QW_QLineEdit(QW.QLineEdit, QW_QWidget):
+    pass
+
+
+# Create custom QMainWindow class
+class QW_QMainWindow(QW.QMainWindow, QW_QWidget):
     pass
 
 
 # Create custom QMenu class
-class QW_QMenu(QW.QMenu):
+class QW_QMenu(QW.QMenu, QW_QWidget):
     """
     Defines the :class:`~QW_QMenu` class.
 
@@ -308,11 +371,54 @@ class QW_QMenu(QW.QMenu):
             title = name
 
         # Call super constructor
-        super().__init__(title, parent)
+        super().__init__(tr(title), parent)
+
+    # Override addSection to automatically translate the given section name
+    def addSection(self, text, icon=None):
+        # Translate text
+        text = tr(text)
+
+        # Call super method
+        if icon is None:
+            return(super().addSection(text))
+        else:
+            return(super().addSection(icon, text))
+
+
+# Create custom QMessageBox class
+class QW_QMessageBox(QW.QMessageBox, QW_QDialog):
+    pass
+
+
+# Create custom QTableView class
+class QW_QTableView(QW.QTableView, QW_QWidget):
+    pass
+
+
+# Create custom QTabWidget class
+class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
+    """
+    Defines the :class:`~QW_QTabWidget` class.
+
+    This class provides default settings and extra options for the
+    :class:`~PyQt5.QtWidgets.QTabWidget` class.
+
+    """
+
+    # Override addTab to automatically translate the given tab name
+    def addTab(self, widget, text, icon=None):
+        # Translate text
+        text = tr(text)
+
+        # Call super method
+        if icon is None:
+            return(super().addTab(widget, text))
+        else:
+            return(super().addTab(widget, icon, text))
 
 
 # Create custom QToolbar class
-class QW_QToolBar(QW.QToolBar):
+class QW_QToolBar(QW.QToolBar, QW_QWidget):
     """
     Defines the :class:`~QW_QToolBar` class.
 
@@ -330,4 +436,4 @@ class QW_QToolBar(QW.QToolBar):
             title = name
 
         # Call super constructor
-        super().__init__(title, parent)
+        super().__init__(tr(title), parent)

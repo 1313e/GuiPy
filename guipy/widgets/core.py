@@ -4,7 +4,7 @@
 Widgets Core
 ============
 Provides a collection of utility functions and the :class:`~BaseBox` class
-definition, which are core to the functioning of all GUI widgets.
+definition, which are core to the functioning of all widgets.
 
 """
 
@@ -14,7 +14,7 @@ definition, which are core to the functioning of all GUI widgets.
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.widgets.base import QW_QLabel
+from guipy.widgets.base import QW_QLabel, QW_QWidget
 
 # All declaration
 __all__ = ['BaseBox', 'get_box_value', 'get_modified_box_signal',
@@ -24,7 +24,7 @@ __all__ = ['BaseBox', 'get_box_value', 'get_modified_box_signal',
 # %% CLASS DEFINITIONS
 # Make base class for custom boxes
 # As QW.QWidget is a strict class (in C++), this cannot be an ABC
-class BaseBox(QW.QWidget):
+class BaseBox(QW_QWidget):
     """
     Defines the :class:`~BaseBox` base class.
 

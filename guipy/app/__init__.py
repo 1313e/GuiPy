@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-GuiPy Application
-=================
+Application
+===========
 Contains the core application function for using *GuiPy*.
 
 """

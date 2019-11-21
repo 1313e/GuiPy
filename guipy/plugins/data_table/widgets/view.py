@@ -20,8 +20,8 @@ from guipy.plugins.data_table.widgets.model import DataTableModel
 from guipy.plugins.data_table.widgets.selection_model import (
     DataTableSelectionModel)
 from guipy.widgets import (
-    QW_QAction, QW_QLabel, QW_QLineEdit, QW_QMenu, get_box_value,
-    get_modified_box_signal, set_box_value)
+    QW_QAction, QW_QDialog, QW_QLabel, QW_QLineEdit, QW_QMenu, QW_QTableView,
+    get_box_value, get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['DataTableView']
@@ -31,7 +31,7 @@ __all__ = ['DataTableView']
 # Define table view widget for the DataTable plugin
 # TODO: Save all data in the widget before resizing
 # HINT: https://doc.qt.io/qt-5/model-view-programming.html
-class DataTableView(QW.QTableView):
+class DataTableView(QW_QTableView):
     # Initialize DataTableView class
     def __init__(self, parent=None, *args, **kwargs):
         # Call super constructor
@@ -128,7 +128,7 @@ class DataTableView(QW.QTableView):
     # This function creates the horizontal header context menu
     def create_horizontal_header_context_menu(self):
         # Create context menu
-        menu = QW_QMenu(self, 'H_Header')
+        menu = QW_QMenu('H_Header', parent=self)
 
         # Add insert_above action to menu
         insert_above_act = QW_QAction(
@@ -174,7 +174,7 @@ class DataTableView(QW.QTableView):
     # This function creates the vertical header context menu
     def create_vertical_header_context_menu(self):
         # Create context menu
-        menu = QW_QMenu(self, 'V_Header')
+        menu = QW_QMenu('V_Header', parent=self)
 
         # Add insert_above action to menu
         insert_above_act = QW_QAction(
@@ -312,7 +312,7 @@ class DataTableView(QW.QTableView):
 
 
 # Define class for showing a popup editor for the horizontal header
-class HorizontalHeaderPopup(QW.QDialog):
+class HorizontalHeaderPopup(QW_QDialog):
     # Initialize HorizontalHeaderPopup class
     def __init__(self, data_table_view_obj, *args, **kwargs):
         # Save provided DataTableView object

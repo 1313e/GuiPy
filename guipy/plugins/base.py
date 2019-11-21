@@ -16,6 +16,7 @@ that allow for certain plugins to be standardized.
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
+from guipy.config import tr
 from guipy.widgets.core import BaseBox
 
 # All declaration
@@ -30,7 +31,7 @@ class BasePlugin(object):
     def title(self):
         # Return title if it is defined, or raise error if not
         if hasattr(self, 'TITLE'):
-            return(self.TITLE)
+            return(tr(self.TITLE))
         else:
             raise NotImplementedError
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Formatters Base
+Base Formatters
 ===============
 
 
@@ -20,7 +20,7 @@ from guipy.widgets import getSaveFileName
 
 
 # All declaration
-__all__ = ['export_to_txt']
+__all__ = ['export_to_npz']
 
 
 # %% GLOBALS
@@ -30,12 +30,11 @@ __all__ = ['export_to_txt']
 # %% CLASS DEFINITIONS
 
 
-
 # %% FUNCTION DEFINITIONS
-# Define the export to txt function
-def export_to_txt(data_table):
+# Define the export to npz function
+def export_to_npz(data_table):
     """
-    Exports the provided `data_table` to a .txt-file.
+    Exports the provided `data_table` to a .npz-file.
 
     Parameters
     ----------

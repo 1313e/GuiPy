@@ -15,9 +15,10 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.plugins.base import BasePluginWidget
-from guipy.plugins.data_table.formatters import export_to_txt
+from guipy.plugins.data_table.formatters import export_to_npz
 from guipy.plugins.data_table.widgets import DataTableWidget
-from guipy.widgets import QW_QAction, QW_QMenu
+from guipy.widgets import QW_QAction, QW_QMenu, QW_QTabWidget
+from guipy.widgets.utils import FORMAT_NAMES
 
 # All declaration
 __all__ = ['DataTable']
@@ -49,7 +50,7 @@ class DataTable(BasePluginWidget):
         self.setLayout(layout)
 
         # Create a tab widget
-        tab_widget = QW.QTabWidget()
+        tab_widget = QW_QTabWidget()
         tab_widget.setElideMode(QC.Qt.ElideNone)
         tab_widget.setMovable(True)
         tab_widget.setTabsClosable(True)
@@ -155,17 +156,21 @@ class DataTable(BasePluginWidget):
         export_tab_menu = QW_QMenu('Export', '&Export as...')
 
         # Define list with all export-formats
-        formats = [('*.hdf5', 'HDF5'),
-                   ('*.py', 'Python'),
-                   ('*.txt', 'text')]
+        formats = ['npz']
+
+        # Make sure formats is sorted
+        formats.sort()
 
         # For every format, add an action to the export menu
-        for ext, name in formats:
+        for ext in formats:
+            # Obtain name of this file format
+            name = FORMAT_NAMES[ext]
+
             # Create an action for this format
             act = QW_QAction(
-                self, "%s (%s)" % (ext, name),
-                tooltip="Export data table as %s file" % (name),
-                triggered=getattr(self, 'export_as_%s' % (ext[2:])),
+                self, "*.%s (%s)" % (ext, name),
+                tooltip="Export data table as %s" % (name),
+                triggered=getattr(self, 'export_as_%s' % (ext)),
                 role=QW_QAction.ApplicationSpecificRole)
 
             # Add it to the menu
@@ -181,11 +186,11 @@ class DataTable(BasePluginWidget):
         data_table = DataTableWidget()
 
         # Add data_table to the tab widget
-        self.tab_widget.addTab(data_table,
-                               "Table %i" % (self.tab_widget.count()))
+        index = self.tab_widget.addTab(data_table,
+                                       "Table %i" % (self.tab_widget.count()))
 
         # Switch focus to the new tab
-        self.tab_widget.setCurrentIndex(self.tab_widget.count()-1)
+        self.tab_widget.setCurrentIndex(index)
 
     # This function closes a data table widget
     @QC.Slot(int)
@@ -224,22 +229,11 @@ class DataTable(BasePluginWidget):
     def save_all_tabs(self):
         pass
 
-    # This function exports a data table as an HDF5 file
+    # This function exports a data table as a NumPy Binary Archive file
     @QC.Slot()
-    def export_as_hdf5(self):
-        pass
-
-    # This function exports a data table as a Python file
-    @QC.Slot()
-    def export_as_py(self):
-        pass
-
-    # This function exports a data table as a text file
-    @QC.Slot()
-    def export_as_txt(self):
-        # Export the current data table to txt
-        export_to_txt(self.dataTable())
-
+    def export_as_npz(self):
+        # Export the current data table to npz
+        export_to_npz(self.dataTable())
 
     # This function returns the data table belonging to a specified int
     @QC.Slot(int)

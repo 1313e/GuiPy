@@ -17,8 +17,11 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import __version__, APP_NAME
+from guipy.config import tr
 from guipy.plugins import DataTable
-from guipy.widgets import BaseDockWidget, QW_QAction, QW_QMenu, QW_QToolBar
+from guipy.widgets import (
+    BaseDockWidget, QW_QAction, QW_QMainWindow, QW_QMenu, QW_QMessageBox,
+    QW_QToolBar)
 
 # All declaration
 __all__ = ['MainWindow']
@@ -26,7 +29,7 @@ __all__ = ['MainWindow']
 
 # %% CLASS DEFINITIONS
 # Define class for main window
-class MainWindow(QW.QMainWindow):
+class MainWindow(QW_QMainWindow):
     """
     Defines the :class:`~MainWindow` class for *GuiPy*.
 
@@ -381,4 +384,4 @@ class MainWindow(QW.QMainWindow):
                        github=github_repo))
 
         # Create the 'about' dialog
-        QW.QMessageBox.about(self, "About %s" % (APP_NAME), text)
+        QW_QMessageBox.about(self, tr("About %s" % (APP_NAME)), tr(text))
