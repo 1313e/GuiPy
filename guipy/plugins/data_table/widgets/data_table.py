@@ -38,7 +38,7 @@ class DataTableWidget(QW_QWidget):
         self.init(*args, **kwargs)
 
     # This function sets up the data table widget
-    def init(self):
+    def init(self, import_func=None):
         # Create a layout
         layout = QW.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -54,9 +54,11 @@ class DataTableWidget(QW_QWidget):
         # Create two spinboxes for setting n_rows and n_cols
         n_rows_box = QW_QSpinBox(self)
         n_rows_box.setRange(0, 9999999)
+        n_rows_box.setToolTip("Number of rows in this data table")
         get_modified_box_signal(n_rows_box).connect(self.n_rows_changed)
         n_cols_box = QW_QSpinBox(self)
         n_cols_box.setRange(0, 702)
+        n_cols_box.setToolTip("Number of columns in this data table")
         get_modified_box_signal(n_cols_box).connect(self.n_cols_changed)
 
         # Add spinboxes to dimensions layout
@@ -68,7 +70,7 @@ class DataTableWidget(QW_QWidget):
         dimensions_layout.addStretch()
 
         # Create the DataTableView object
-        self.view = DataTableView(self)
+        self.view = DataTableView(self, import_func)
 
         # Set initial values of the spinboxes
         set_box_value(n_rows_box, self.view.rowCount())

@@ -9,16 +9,18 @@ Data Table Plugin
 
 # %% IMPORTS
 # Built-in imports
+from os import path
 
 # Package imports
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.plugins.base import BasePluginWidget
-from guipy.plugins.data_table.formatters import export_to_npz
+from guipy.plugins.data_table.formatters import import_from_npz, export_to_npz
 from guipy.plugins.data_table.widgets import DataTableWidget
-from guipy.widgets import QW_QAction, QW_QMenu, QW_QTabWidget
-from guipy.widgets.utils import FORMAT_NAMES
+from guipy.widgets import (
+    QW_QAction, QW_QMenu, QW_QTabWidget, getOpenFileNames, getSaveFileName)
+from guipy.widgets.utils import FILE_TYPES
 
 # All declaration
 __all__ = ['DataTable']
@@ -95,24 +97,24 @@ class DataTable(BasePluginWidget):
         # Add separator to file menu
         self.MENU_ACTIONS['File'].append(None)
 
-        # Add open tab action to file menu/toolbar
-        open_tab_act = QW_QAction(
+        # Add open tabs action to file menu/toolbar
+        open_tabs_act = QW_QAction(
             self, '&Open...',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_O,
             tooltip="Open data table",
-            triggered=self.open_tab,
+            triggered=self.open_tabs,
             role=QW_QAction.ApplicationSpecificRole)
-        self.MENU_ACTIONS['File'].append(open_tab_act)
-        self.TOOLBAR_ACTIONS['File'].append(open_tab_act)
+        self.MENU_ACTIONS['File'].append(open_tabs_act)
+        self.TOOLBAR_ACTIONS['File'].append(open_tabs_act)
 
-        # Add import tab action to file menu
-        import_tab_act = QW_QAction(
+        # Add import tabs action to file menu
+        import_tabs_act = QW_QAction(
             self, '&Import...',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_I,
             tooltip="Import data table",
-            triggered=self.import_tab,
+            triggered=self.import_tabs,
             role=QW_QAction.ApplicationSpecificRole)
-        self.MENU_ACTIONS['File'].append(import_tab_act)
+        self.MENU_ACTIONS['File'].append(import_tabs_act)
 
         # Add separator to file menu
         self.MENU_ACTIONS['File'].append(None)
@@ -121,7 +123,7 @@ class DataTable(BasePluginWidget):
         save_tab_act = QW_QAction(
             self, '&Save',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_S,
-            tooltip="Save data table",
+            tooltip="Save current data table",
             triggered=self.save_tab,
             role=QW_QAction.ApplicationSpecificRole)
         self.MENU_ACTIONS['File'].append(save_tab_act)
@@ -131,7 +133,7 @@ class DataTable(BasePluginWidget):
         save_as_tab_act = QW_QAction(
             self, 'Save &as...',
             shortcut=QC.Qt.CTRL + QC.Qt.SHIFT + QC.Qt.Key_S,
-            tooltip="Save data table as...",
+            tooltip="Save current data table as...",
             triggered=self.save_as_tab,
             role=QW_QAction.ApplicationSpecificRole)
         self.MENU_ACTIONS['File'].append(save_as_tab_act)
@@ -153,7 +155,7 @@ class DataTable(BasePluginWidget):
     # This function creates the export_tab menu
     def create_export_tab_menu(self):
         # Create the menu
-        export_tab_menu = QW_QMenu('Export', '&Export as...')
+        export_tab_menu = QW_QMenu('Export', '&Export to...')
 
         # Define list with all export-formats
         formats = ['npz']
@@ -163,14 +165,14 @@ class DataTable(BasePluginWidget):
 
         # For every format, add an action to the export menu
         for ext in formats:
-            # Obtain name of this file format
-            name = FORMAT_NAMES[ext]
+            # Obtain type of this file format
+            file_type = FILE_TYPES[ext]
 
             # Create an action for this format
             act = QW_QAction(
-                self, "*.%s (%s)" % (ext, name),
-                tooltip="Export data table as %s" % (name),
-                triggered=getattr(self, 'export_as_%s' % (ext)),
+                self, "*.%s (%s)" % (ext, file_type),
+                tooltip="Export current data table to a .%s-file" % (ext),
+                triggered=getattr(self, 'export_to_%s' % (ext)),
                 role=QW_QAction.ApplicationSpecificRole)
 
             # Add it to the menu
@@ -181,18 +183,22 @@ class DataTable(BasePluginWidget):
 
     # This function adds a new data table widget
     @QC.Slot()
-    def add_tab(self):
-        # Create a DataTableWidget
-        data_table = DataTableWidget()
+    def add_tab(self, name=None, import_func=None):
+        # Create a new DataTableWidget
+        data_table = DataTableWidget(self, import_func)
+
+        # If name is None, set it to default
+        if name is None:
+            name = "table_%i" % (self.tab_widget.count())
 
         # Add data_table to the tab widget
-        index = self.tab_widget.addTab(data_table,
-                                       "Table %i" % (self.tab_widget.count()))
+        index = self.tab_widget.addTab(data_table, name)
 
         # Switch focus to the new tab
         self.tab_widget.setCurrentIndex(index)
 
     # This function closes a data table widget
+    # TODO: Warn the user about closing a tab if it has unsaved changes
     @QC.Slot(int)
     def close_tab(self, index):
         # Obtain the DataTableWidget object associated with this index
@@ -206,13 +212,25 @@ class DataTable(BasePluginWidget):
 
     # This function opens a data table widget
     @QC.Slot()
-    def open_tab(self):
+    def open_tabs(self):
         pass
 
     # This function imports a data table widget
     @QC.Slot()
-    def import_tab(self):
-        pass
+    def import_tabs(self):
+        # Open the file opening system
+        filepaths, _ = getOpenFileNames(
+            parent=self,
+            caption="Import data tables",
+            filters=['npz'])
+
+        # Loop over filepaths and make a tab for every entry
+        for filepath in filepaths:
+            # Obtain the name of this data table
+            name = path.splitext(path.basename(filepath))[0]
+
+            # Add a new tab
+            self.add_tab(name, lambda x: import_from_npz(filepath, x))
 
     # This function saves a data table widget
     @QC.Slot()
@@ -229,11 +247,23 @@ class DataTable(BasePluginWidget):
     def save_all_tabs(self):
         pass
 
-    # This function exports a data table as a NumPy Binary Archive file
+    # This function exports a data table to a NumPy Binary Archive file
     @QC.Slot()
-    def export_as_npz(self):
-        # Export the current data table to npz
-        export_to_npz(self.dataTable())
+    def export_to_npz(self):
+        # Get name of this data table
+        name = self.tabName()
+
+        # Open the file saving system
+        filepath, _ = getSaveFileName(
+            parent=self,
+            caption="Export data table %r to *.npz-file..." % (name),
+            basedir=name+'.npz',
+            filters=['npz'],
+            initial_filter='npz')
+
+        # If filepath is not empty, export data table
+        if filepath:
+            export_to_npz(self.dataTable(), filepath)
 
     # This function returns the data table belonging to a specified int
     @QC.Slot(int)
@@ -250,7 +280,7 @@ class DataTable(BasePluginWidget):
 
         Returns
         -------
-        data_table : :obj:`~DataTableWidget`
+        data_table : :obj:`~DataTableWidget` object
             The data table that belongs to the tab specified by the
             provided `index`.
 
@@ -262,3 +292,29 @@ class DataTable(BasePluginWidget):
 
         # Return the data table widget with the provided index
         return(self.tab_widget.widget(index))
+
+    # This function returns the name of the tab belonging to the specified int
+    @QC.Slot(int)
+    def tabName(self, index=None):
+        """
+        Returns the name of the tab with the provided tab `index`.
+
+        Optional
+        --------
+        index : int or None. Default: None
+            If int, the index of the tab whose name is requested.
+            If *None*, the current tab name is requested.
+
+        Returns
+        -------
+        name : str
+            The name of the tab specified by the provided `index`.
+
+        """
+
+        # If index is None, return current tab name
+        if index is None:
+            index = self.tab_widget.currentIndex()
+
+        # Return the name of the tab with the provided index
+        return(self.tab_widget.tabText(index))

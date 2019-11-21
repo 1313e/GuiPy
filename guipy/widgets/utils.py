@@ -10,10 +10,12 @@ Utility functions to make using certain widgets easier.
 
 # %% IMPORTS
 # Built-in imports
-from os import path
+import os
 import re
+from sys import platform
 
 # Package imports
+from e13tools.utils import docstring_substitute
 from qtpy import QtWidgets as QW
 
 # GuiPy imports
@@ -21,7 +23,7 @@ from guipy.config import tr
 from guipy.widgets import QW_QFileDialog
 
 # All declaration
-__all__ = ['getSaveFileName']
+__all__ = ['getOpenFileName', 'getOpenFileNames', 'getSaveFileName']
 
 
 # %% GLOBALS
@@ -50,81 +52,72 @@ FORMATS_LIST = [
     "X11 Pixmap (*.xpm)"]
 
 
-# %% HIDDEN DEFINITIONS
-# This function converts a list of file formats into a dict of file extensions
-def _get_file_exts(formats):
-    # Define empty dict of exts and names
-    exts = {}
-    names = {}
-
-    # Loop over all file formats in given formats
-    for file_format in formats:
-        # Use regular expressions to isolate the extensions and name
-        r_str = re.search(r"(.*)[ ][(](.*)[)]", file_format, re.M)
-        file_name = r_str.group(1)
-        file_exts = r_str.group(2)
-
-        # Remove all '*.'
-        file_exts = file_exts.replace('*.', '')
-
-        # Split exts up into a list
-        file_exts = file_exts.split()
-
-        # Add all extensions to exts
-        for ext in file_exts:
-            exts[ext] = file_format
-            names[ext] = file_name
-
-    # Return exts and names
-    return(exts, names)
-
-
-# Obtain dict of all supported file formats and their names
-FORMATS, FORMAT_NAMES = _get_file_exts(FORMATS_LIST)
-
-
-# %% FUNCTION DEFINITIONS
-# Define custom getSaveFileName function that automatically applies filters
-def getSaveFileName(parent=None, caption='', basedir=None, filters=None,
-                    initial_filter=None, options=None):
-    """
-    Wrapper for the :func:`~PyQt5.QtWidgets.QFileDialog.getSaveFileName`
-    function, which automatically applies several standard options and makes
-    using filters easier.
-
-    Optional
+# %% DOCSTRINGS
+optional_doc =\
+    """Optional
     --------
     parent : :obj:`~PyQt5.QtWidgets.QWidget` object or None. Default: None
-        The parent to use for creating the save file dialog, or *None* for no
+        The parent to use for creating the file dialog, or *None* for no
         parent.
     caption : str. Default: ''
-        The caption (window title) to use for the save file dialog.
+        The caption (window title) to use for the file dialog.
     basedir : str or None. Default: None
-        The base directory the save file dialog should start in.
+        The base directory the file dialog should start in.
         If *None*, the current directory is used instead.
     filters : list of str or None. Default: None
         List of string extensions to use as the file filters.
         If *None*, no filters are used.
-    initial_filter : str or None. Default: None
+    initial_filter : str. Default: ''
         The string extension that must be used as the initial filter.
-        If `filters` does not contain `initial_filter` or if *None*, no initial
-        filter will be applied.
+        If `filters` is empty, no initial filter will be applied.
+        If `filters` does not contain `initial_filter` or if empty, the initial
+        filter is set to 'All Supported Files'.
     options : :obj:`~PyQt5.QtWidgets.QFileDialog.Options` object or None. \
         Default: None
-        The options to use for this save file dialog, or *None* for no options.
+        The options to use for this file dialog, or *None* for no options."""
 
-    Returns
-    -------
-    filename : str
-        The filename that was chosen by the user.
-    selected_filter : str
-        The filter that was used by the user.
 
-    """
+# %% HIDDEN DEFINITIONS
+# This function converts a list of file formats into a dict of file extensions
+def _get_file_exts(formats_list):
+    # Define empty dict of formats, types and exts
+    formats = {}
+    types = {}
+    exts = {}
 
+    # Loop over all file formats in given formats_list
+    for file_format in formats_list:
+        # Use regular expressions to isolate the extensions and type
+        r_str = re.search(r"(.*)[ ][(](.*)[)]", file_format, re.M)
+        file_type = r_str.group(1)
+        file_exts = r_str.group(2)
+
+        # Remove all '*.'
+        exts_red = file_exts.replace('*.', '')
+
+        # Split exts up into a list
+        exts_red = exts_red.split()
+
+        # Add all extensions to the proper dicts
+        for ext in exts_red:
+            formats[ext] = file_format
+            types[ext] = file_type
+            exts[ext] = file_exts
+
+    # Return format, types and exts
+    return(formats, types, exts)
+
+
+# Obtain dict of all supported file formats, types and extensions
+FILE_FORMATS, FILE_TYPES, FILE_EXTS = _get_file_exts(FORMATS_LIST)
+
+
+# This function processes all arguments provided to a getXXXFileName function
+def _processFileDialogArguments(parent=None, caption='', basedir=None,
+                                filters=None, initial_filter='', options=None):
     # If basedir is None, set it to the current directory
     if basedir is None:
-        basedir = path.abspath('.')
+        basedir = os.getcwd()
 
     # Translate the caption
     caption = tr(caption)
@@ -135,53 +128,143 @@ def getSaveFileName(parent=None, caption='', basedir=None, filters=None,
         filters = ''
         initial_filter = ''
     else:
-        # Loop over all filters and grab their formats
-        filters = [FORMATS.get(file_filter.lower(), '')
+        # Loop over all filters and grab their formats and exts
+        formats = [FILE_FORMATS.get(file_filter.lower(), '')
                    for file_filter in filters]
+        exts = [FILE_EXTS.get(file_filter.lower(), '')
+                for file_filter in filters]
 
         # Remove duplicates by converting to set and back
-        filters = list(set(filters))
+        formats = list(set(formats))
+        exts = list(set(exts))
 
-        # Remove all empty strings from filters
-        if '' in filters:
-            filters.remove('')
+        # Remove all empty strings from formats and exts
+        if '' in formats:
+            formats.remove('')
+        if '' in exts:
+            exts.remove('')
 
-        # Make sure that filters is sorted
-        filters.sort()
+        # Make sure that formats and exts are sorted
+        formats.sort()
+        exts.sort()
 
-        # Add all_files to filters
-        filters.append("All Files (*)")
+        # Combine all exts together to a single string
+        exts = ' '.join(exts)
 
-        # Combine all filters into a single string
-        filters = ';;'.join(filters)
+        # Add 'All Supported Files' to formats
+        formats.append("All Supported Files (%s)" % (exts))
+
+        # Add 'All Files' to formats
+        formats.append("All Files (*)")
+
+        # Combine all formats into a single string
+        filters = ';;'.join(formats)
 
         # Process given initial_filter
-        if initial_filter is None:
-            # If initial_filter is None, set to ''
-            initial_filter = ''
-        elif not initial_filter:
-            # If initial_filter is already '', keep it
-            pass
-        elif initial_filter.lower() in filters:
+        if "*."+initial_filter.lower() in exts.split():
             # If initial_filter is in the filters, set it to the proper format
-            initial_filter = FORMATS[initial_filter.lower()]
+            initial_filter = FILE_FORMATS[initial_filter.lower()]
         else:
-            # Else, the requested filter was not found, thus set it to ''
-            initial_filter = ''
+            # Else, set to 'All Supported Files'
+            initial_filter = formats[-2]
+
+    # Do not use native dialog on Linux, as it is pretty bad
+    if platform.startswith('linux'):
+        if options is None:
+            options = QW_QFileDialog.DontUseNativeDialog
+        else:
+            options = options | QW_QFileDialog.DontUseNativeDialog
+
+    # Create dict with all arguments
+    args_dict = {
+        'parent': parent,
+        'caption': caption,
+        'directory': basedir,
+        'filter': filters,
+        'initialFilter': initial_filter}
+
+    # If options is not None, add it as well
+    if options is not None:
+        args_dict['options'] = options
+
+    # Return args_dict
+    return(args_dict)
+
+
+# %% FUNCTION DEFINITIONS
+# Define custom getOpenFileName function that automatically applies filters
+@docstring_substitute(optional=optional_doc)
+def getOpenFileName(*args, **kwargs):
+    """
+    Wrapper for the :func:`~PyQt5.QtWidgets.QFileDialog.getOpenFileName`
+    function, which automatically applies several standard options and makes
+    using filters easier.
+
+    %(optional)s
+
+    Returns
+    -------
+    filename : str
+        The filename that was chosen by the user.
+    selected_filter : str
+        The filter that was used by the user.
+
+    """
+
+    # Process the input arguments
+    args_dict = _processFileDialogArguments(*args, **kwargs)
+
+    # Open the file opening system and return the result
+    return(QW_QFileDialog.getOpenFileName(**args_dict))
+
+
+# Define custom getOpenFileNames function that automatically applies filters
+@docstring_substitute(optional=optional_doc)
+def getOpenFileNames(*args, **kwargs):
+    """
+    Wrapper for the :func:`~PyQt5.QtWidgets.QFileDialog.getOpenFileNames`
+    function, which automatically applies several standard options and makes
+    using filters easier.
+
+    %(optional)s
+
+    Returns
+    -------
+    filenames : list of str
+        The filenames that were chosen by the user.
+    selected_filter : str
+        The filter that was used by the user.
+
+    """
+
+    # Process the input arguments
+    args_dict = _processFileDialogArguments(*args, **kwargs)
+
+    # Open the file opening system and return the result
+    return(QW_QFileDialog.getOpenFileNames(**args_dict))
+
+
+# Define custom getSaveFileName function that automatically applies filters
+@docstring_substitute(optional=optional_doc)
+def getSaveFileName(*args, **kwargs):
+    """
+    Wrapper for the :func:`~PyQt5.QtWidgets.QFileDialog.getSaveFileName`
+    function, which automatically applies several standard options and makes
+    using filters easier.
+
+    %(optional)s
+
+    Returns
+    -------
+    filename : str
+        The filename that was chosen by the user.
+    selected_filter : str
+        The filter that was used by the user.
+
+    """
+
+    # Process the input arguments
+    args_dict = _processFileDialogArguments(*args, **kwargs)
 
     # Open the file saving system and return the result
-    if options is None:
-        return(QW_QFileDialog.getSaveFileName(
-            parent=parent,
-            caption=caption,
-            directory=basedir,
-            filter=filters,
-            initialFilter=initial_filter))
-    else:
-        return(QW_QFileDialog.getSaveFileName(
-            parent=parent,
-            caption=caption,
-            directory=basedir,
-            filter=filters,
-            initialFilter=initial_filter,
-            options=options))
+    return(QW_QFileDialog.getSaveFileName(**args_dict))

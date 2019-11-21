@@ -406,15 +406,15 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
     """
 
     # Override addTab to automatically translate the given tab name
-    def addTab(self, widget, text, icon=None):
+    def addTab(self, widget, label, icon=None):
         # Translate text
-        text = tr(text)
+        label = tr(label)
 
         # Call super method
         if icon is None:
-            return(super().addTab(widget, text))
+            return(super().addTab(widget, label))
         else:
-            return(super().addTab(widget, icon, text))
+            return(super().addTab(widget, icon, label))
 
 
 # Create custom QToolbar class

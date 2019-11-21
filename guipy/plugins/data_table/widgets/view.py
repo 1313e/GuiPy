@@ -41,12 +41,12 @@ class DataTableView(QW_QTableView):
         self.init(*args, **kwargs)
 
     # This function sets up the data table widget
-    def init(self):
+    def init(self, import_func=None):
         # Create headers
         self.create_headers()
 
         # Set model for the data table widget
-        self.setModel(DataTableModel(self))
+        self.setModel(DataTableModel(self, import_func))
 
         # Create selection model for the data table widget
         selection_model = DataTableSelectionModel(self.model(), self)
@@ -260,7 +260,7 @@ class DataTableView(QW_QTableView):
     @QC.Slot()
     @QC.Slot(int)
     def insert_cols_after(self, n_cols=1):
-        self.insert_cols(n_cols, self._last_context_col+n_cols)
+        self.model().insertColumns(n_cols, self._last_context_col+n_cols)
 
     # This function removes a given column in the data table
     @QC.Slot()
@@ -290,7 +290,7 @@ class DataTableView(QW_QTableView):
     @QC.Slot()
     @QC.Slot(int)
     def insert_rows_after(self, n_rows=1):
-        self.insert_rows(n_rows, self._last_context_row+n_rows)
+        self.model().insertRows(n_rows, self._last_context_row+n_rows)
 
     # This function removes a given row in the data table
     @QC.Slot()

@@ -49,7 +49,11 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Start application
+    # TODO: Figure out why the event loop instantly returns -1 on Windows
     qapp.exec_()
+
+    # Return main window
+    return(main_window)
 
 
 # %% MAIN EXECUTION

@@ -81,14 +81,14 @@ class MainWindow(QW_QMainWindow):
         # Create toolbars
         self.create_toolbars()
 
-        # Set resolution of window
-        self.resize(800, 600)
-
         # Add all required plugins
         self.add_plugins()
 
         # Add all remaining core actions
         self.add_core_actions()
+
+        # Set resolution of window
+        self.resize(800, 600)
 
     # Override closeEvent to automatically close all plugins
     def closeEvent(self, *args, **kwargs):

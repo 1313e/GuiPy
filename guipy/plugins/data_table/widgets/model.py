@@ -49,17 +49,64 @@ class DataTableModel(QC.QAbstractTableModel):
         self.removeColumns(count=self.columnCount())
 
     # This function sets up the data table model
-    def init(self):
+    def init(self, import_func=None):
         # Connect signals
         self.destroyed.connect(self.delete)
+        self.columnsInserted.connect(self.emitColumnsInsertedSignals)
+        self.columnsRemoved.connect(self.emitColumnsRemovedSignals)
+        self.rowsInserted.connect(self.emitRowsInsertedSignals)
+        self.rowsRemoved.connect(self.emitRowsRemovedSignals)
 
-        # Initialize the list of column data arrays
-        # TODO: Write custom column list that allows for more flexibility
-        self.column_list = []
+        # If import_func is None, initialize an empty table
+        if import_func is None:
+            # Initialize the list of column data arrays
+            # TODO: Write custom column list that allows for more flexibility
+            self.column_list = []
 
-        # Initialize this data table with a 5x5 table
-        self.insertColumns(5)
-        self.insertRows(5)
+            # Initialize this data table with a 5x5 table
+            self.insertColumns(5)
+            self.insertRows(5)
+
+        # If import_func is not None, call it to initialize the table
+        else:
+            # Call the function to obtain the list of data columns
+            self.column_list = import_func(self)
+
+            # Notify other functions that columns have been inserted
+            self.beginInsertColumns(QC.QModelIndex(), 0, self.columnCount()-1)
+            self.endInsertColumns()
+
+            # Notify other functions that rows have been inserted
+            self.beginInsertRows(QC.QModelIndex(), 0, self.rowCount()-1)
+            self.endInsertRows()
+
+    # This function emits proper signals when columns have been inserted
+    def emitColumnsInsertedSignals(self, parent, first, last):
+        # Emit columnCountChanged signal
+        self.columnCountChanged.emit(self.columnCount())
+
+        # If first is equal to zero, emit firstColumnInserted signal
+        if not first:
+            self.firstColumnInserted.emit()
+
+    # This function emits proper signals when columns have been removed
+    def emitColumnsRemovedSignals(self, parent, first, last):
+        # Emit columnCountChanged signal
+        self.columnCountChanged.emit(self.columnCount())
+
+        # If columnCount is equal to 0, emit lastColumnRemoved signal
+        if not self.columnCount():
+            self.lastColumnRemoved.emit()
+
+    # This function emits proper signals when rows have been inserted
+    def emitRowsInsertedSignals(self, parent, first, last):
+        # Emit rowCountChanged signal
+        self.rowCountChanged.emit(self.rowCount())
+
+    # This function emits proper signals when rows have been removed
+    def emitRowsRemovedSignals(self, parent, first, last):
+        # Emit rowCountChanged signal
+        self.rowCountChanged.emit(self.rowCount())
 
     # This function returns the data column belonging to a specified name/int
     @QC.Slot(int)
@@ -175,9 +222,9 @@ class DataTableModel(QC.QAbstractTableModel):
         return(len(self.column_list))
 
     # This function inserts rows before given row
-    def insertRows(self, count=1, row=-1, parent=None):
-        # If row == -1, set it to the current number of rows
-        if(row == -1):
+    def insertRows(self, count=1, row=None, parent=None):
+        # If row is None, set it to the current number of rows
+        if row is None:
             row = self.rowCount()
 
         # If parent is None, set it to QC.QModelIndex()
@@ -201,9 +248,9 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function removes rows starting at given row
-    def removeRows(self, count=1, row=-1, parent=None):
-        # If row == -1, set it to the current number of rows-count
-        if(row == -1):
+    def removeRows(self, count=1, row=None, parent=None):
+        # If row is None, set it to the current number of rows-count
+        if row is None:
             row = self.rowCount()-count
 
         # If parent is None, set it to QC.QModelIndex()
@@ -240,9 +287,9 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function inserts columns before given col
-    def insertColumns(self, count=1, col=-1, parent=None):
-        # If col == -1, set it to current number of columns
-        if(col == -1):
+    def insertColumns(self, count=1, col=None, parent=None):
+        # If col is None, set it to current number of columns
+        if col is None:
             col = self.columnCount()
 
         # If parent is None, set it to QC.QModelIndex()
@@ -257,7 +304,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Create as many columns as required
         for i in range(col, col+count):
-            self.column_list.insert(i, DataTableColumn(None, length, i, self))
+            self.column_list.insert(i, DataTableColumn(length, None, i, self))
 
         # Modify the index of all columns that have now been moved
         for column in self.column_list[col+count:]:
@@ -266,20 +313,13 @@ class DataTableModel(QC.QAbstractTableModel):
         # Notify other functions that columns have been inserted
         self.endInsertColumns()
 
-        # Emit columnCountChanged signal
-        self.columnCountChanged.emit(self.columnCount())
-
-        # If columnCount is equal to count, emit firstColumnInserted signal
-        if(self.columnCount() == count):
-            self.firstColumnInserted.emit()
-
         # Return that operation was successful
         return(True)
 
     # This function removes columns starting at given col
-    def removeColumns(self, count=1, col=-1, parent=None):
-        # If col == -1, set it to current number of columns-count
-        if(col == -1):
+    def removeColumns(self, count=1, col=None, parent=None):
+        # If col is None, set it to current number of columns-count
+        if col is None:
             col = self.columnCount()-count
 
         # If parent is None, set it to QC.QModelIndex()
@@ -304,13 +344,6 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Notify other functions that columns have been removed
         self.endRemoveColumns()
-
-        # Emit columnCountChanged signal
-        self.columnCountChanged.emit(self.columnCount())
-
-        # If columnCount is equal to 0, emit lastColumnRemoved signal
-        if not self.columnCount():
-            self.lastColumnRemoved.emit()
 
         # Return that operation was successful
         return(True)
@@ -340,7 +373,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
 
 # Define class used as a container for data columns in the DataTableModel
-class DataTableColumn(QC.QObject):
+class DataTableColumn(object):
     """
     Defines the :class:`~DataTableColumn` class.
 
@@ -350,15 +383,12 @@ class DataTableColumn(QC.QObject):
     """
 
     # Initialize data column
-    def __init__(self, data, length, index=0, parent=None):
+    def __init__(self, length, data=None, index=0, parent=None):
         """
         Initialize an instance of the :class:`~DataTableColumn` class.
 
         Parameters
         ----------
-        data : 1D :obj:`~numpy.ndarray` object or None
-            The array that must be used to initialize this data column with.
-            If *None*, an empty data column is created instead.
         length : int
             The length (number of rows) requested for this data column.
             If `data` is not *None* and `length != len(data)`, the array given
@@ -366,6 +396,9 @@ class DataTableColumn(QC.QObject):
 
         Optional
         --------
+        data : 1D :obj:`~numpy.ndarray` object or None. Default: None
+            The array that must be used to initialize this data column with.
+            If *None*, an empty data column is created instead.
         index : int. Default: 0
             The logical index of this data column. This is only important if
             this data column has a parent.
@@ -375,11 +408,9 @@ class DataTableColumn(QC.QObject):
 
         """
 
-        # Save provided index
+        # Save provided index and parent
         self._index = index
-
-        # Call super constructor
-        super().__init__(parent)
+        self._parent = parent
 
         # Set up the data column
         self.init(data, length)
@@ -439,7 +470,7 @@ class DataTableColumn(QC.QObject):
         str_repr.append("length=%i" % (self._length))
 
         # Add index to representation if it has a parent
-        if self.parent() is not None:
+        if self._parent is not None:
             str_repr.append("index=%i" % (self._index))
 
         # Combine all together to a string and return representation
@@ -480,6 +511,11 @@ class DataTableColumn(QC.QObject):
     @property
     def display_name(self):
         return(self.name if self.name else self.base_name)
+
+    # This property contains the parent of this data column
+    @property
+    def parent(self):
+        return(self._parent)
 
     # This property contains the logical index of this data column
     @property
@@ -559,9 +595,9 @@ class DataTableColumn(QC.QObject):
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
-    def insertRows(self, count=1, row=-1):
-        # If row == -1, set it to the current number of rows
-        if(row == -1):
+    def insertRows(self, count=1, row=None):
+        # If row is None, set it to length
+        if row is None:
             row = self._length
 
         # Create an array with zeros of the length required
@@ -579,10 +615,13 @@ class DataTableColumn(QC.QObject):
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
-    def removeRows(self, count=1, row=-1):
-        # If row == -1, set it to the current number of rows-count
-        if(row == -1):
+    def removeRows(self, count=1, row=None):
+        # If row is None, set it to length-count
+        if row is None:
+            count = min(count, self._length)
             row = self._length-count
+        else:
+            count = min(count, self._length-row)
 
         # Create new array with specified rows removed
         self._data = np.delete(self._data, slice(row, row+count))
