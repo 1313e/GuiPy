@@ -11,45 +11,17 @@ Utility functions to make using certain widgets easier.
 # %% IMPORTS
 # Built-in imports
 import os
-import re
 from sys import platform
 
 # Package imports
 from e13tools.utils import docstring_substitute
-from qtpy import QtWidgets as QW
 
 # GuiPy imports
-from guipy.config import tr
+from guipy.config import FILE_EXTS, FILE_FORMATS, tr
 from guipy.widgets import QW_QFileDialog
 
 # All declaration
 __all__ = ['getOpenFileName', 'getOpenFileNames', 'getSaveFileName']
-
-
-# %% GLOBALS
-# Define list of all supported file formats
-FORMATS_LIST = [
-    "Windows Bitmap (*.bmp)",
-    "Comma-Separated Values (*.csv)",
-    "Encapsulated PostScript (*.eps)",
-    "Flexible Image Transport System (*.fits)",
-    "GuiPy Environment File (*.gpy)",
-    "Hierarchical Data Format (*.hdf5 *.hdf4 *.hdf *.h5 *.h4 *.he5 *.he2)",
-    "Joint Photographic Experts Group (*.jpg *.jpeg)",
-    "NumPy Binary File (*.npy)",
-    "NumPy Binary Archive (*.npz)",
-    "Portable Document Format (*.pdf)",
-    "PGF code for LaTeX (*.pgf)",
-    "Portable Network Graphics (*.png)",
-    "Postscript (*.ps)",
-    "Python Script (*.py)",
-    "Raw RGBA Bitmap (*.raw *.rgba)",
-    "Scalable Vector Graphics (*.svg *.svgz)",
-    "Portable Pixmap (*.ppm)",
-    "Text Document (*.txt)",
-    "X11 Bitmap (*.xbm)",
-    "Excel File Format (*.xlsx *.xls)",
-    "X11 Pixmap (*.xpm)"]
 
 
 # %% DOCSTRINGS
@@ -78,40 +50,6 @@ optional_doc =\
 
 
 # %% HIDDEN DEFINITIONS
-# This function converts a list of file formats into a dict of file extensions
-def _get_file_exts(formats_list):
-    # Define empty dict of formats, types and exts
-    formats = {}
-    types = {}
-    exts = {}
-
-    # Loop over all file formats in given formats_list
-    for file_format in formats_list:
-        # Use regular expressions to isolate the extensions and type
-        r_str = re.search(r"(.*)[ ][(](.*)[)]", file_format, re.M)
-        file_type = r_str.group(1)
-        file_exts = r_str.group(2)
-
-        # Remove all '*.'
-        exts_red = file_exts.replace('*.', '')
-
-        # Split exts up into a list
-        exts_red = exts_red.split()
-
-        # Add all extensions to the proper dicts
-        for ext in exts_red:
-            formats[ext] = file_format
-            types[ext] = file_type
-            exts[ext] = file_exts
-
-    # Return format, types and exts
-    return(formats, types, exts)
-
-
-# Obtain dict of all supported file formats, types and extensions
-FILE_FORMATS, FILE_TYPES, FILE_EXTS = _get_file_exts(FORMATS_LIST)
-
-
 # This function processes all arguments provided to a getXXXFileName function
 def _processFileDialogArguments(parent=None, caption='', basedir=None,
                                 filters=None, initial_filter='', options=None):
@@ -161,7 +99,7 @@ def _processFileDialogArguments(parent=None, caption='', basedir=None,
         filters = ';;'.join(formats)
 
         # Process given initial_filter
-        if "*."+initial_filter.lower() in exts.split():
+        if "*"+initial_filter.lower() in exts.split():
             # If initial_filter is in the filters, set it to the proper format
             initial_filter = FILE_FORMATS[initial_filter.lower()]
         else:

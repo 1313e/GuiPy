@@ -52,9 +52,6 @@ def main():
     # TODO: Figure out why the event loop instantly returns -1 on Windows
     qapp.exec_()
 
-    # Return main window
-    return(main_window)
-
 
 # %% MAIN EXECUTION
 if(__name__ == '__main__'):

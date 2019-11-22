@@ -94,7 +94,7 @@ class DataTableModel(QC.QAbstractTableModel):
         # Emit columnCountChanged signal
         self.columnCountChanged.emit(self.columnCount())
 
-        # If columnCount is equal to 0, emit lastColumnRemoved signal
+        # If columnCount is equal to zero, emit lastColumnRemoved signal
         if not self.columnCount():
             self.lastColumnRemoved.emit()
 

@@ -38,20 +38,22 @@ class BasePlugin(object):
 
 # Define base class for making plugin widgets
 class BasePluginWidget(BaseBox, BasePlugin):
+    # Define class attributes
+    LOCATION = QC.Qt.LeftDockWidgetArea
+    MENU_ACTIONS = {}
+    TOOLBAR_ACTIONS = {}
+
     # Property for location of this plugin widget
     @property
     def location(self):
-        # Return location if it is defined, or return default if not
-        return(getattr(self, 'LOCATION', QC.Qt.LeftDockWidgetArea))
+        return(self.LOCATION)
 
     # Property for top-level menu actions of this plugin widget
     @property
     def menu_actions(self):
-        # Return top-level menu actions if it is defined, or return empty dict
-        return(getattr(self, 'MENU_ACTIONS', {}))
+        return(self.MENU_ACTIONS)
 
     # Property for toolbar actions of this plugin widget
     @property
     def toolbar_actions(self):
-        # Return toolbar actions if it is defined, or return empty dict
-        return(getattr(self, 'TOOLBAR_ACTIONS', {}))
+        return(self.TOOLBAR_ACTIONS)

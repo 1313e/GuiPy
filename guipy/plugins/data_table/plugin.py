@@ -15,12 +15,12 @@ from os import path
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
+from guipy.config import FILE_FILTERS
 from guipy.plugins.base import BasePluginWidget
-from guipy.plugins.data_table.formatters import import_from_npz, export_to_npz
+from guipy.plugins.data_table.formatters import FORMATTERS
 from guipy.plugins.data_table.widgets import DataTableWidget
 from guipy.widgets import (
-    QW_QAction, QW_QMenu, QW_QTabWidget, getOpenFileNames, getSaveFileName)
-from guipy.widgets.utils import FILE_TYPES
+    QW_QAction, QW_QTabWidget, getOpenFileNames, getSaveFileName)
 
 # All declaration
 __all__ = ['DataTable']
@@ -104,17 +104,19 @@ class DataTable(BasePluginWidget):
             tooltip="Open data table",
             triggered=self.open_tabs,
             role=QW_QAction.ApplicationSpecificRole)
+        open_tabs_act.setEnabled(False)
         self.MENU_ACTIONS['File'].append(open_tabs_act)
         self.TOOLBAR_ACTIONS['File'].append(open_tabs_act)
 
-        # Add import tabs action to file menu
+        # Add import tabs action to file menu/toolbar
         import_tabs_act = QW_QAction(
             self, '&Import...',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_I,
-            tooltip="Import data table",
+            tooltip="Import data tables",
             triggered=self.import_tabs,
             role=QW_QAction.ApplicationSpecificRole)
         self.MENU_ACTIONS['File'].append(import_tabs_act)
+        self.TOOLBAR_ACTIONS['File'].append(import_tabs_act)
 
         # Add separator to file menu
         self.MENU_ACTIONS['File'].append(None)
@@ -126,6 +128,7 @@ class DataTable(BasePluginWidget):
             tooltip="Save current data table",
             triggered=self.save_tab,
             role=QW_QAction.ApplicationSpecificRole)
+        save_tab_act.setEnabled(False)
         self.MENU_ACTIONS['File'].append(save_tab_act)
         self.TOOLBAR_ACTIONS['File'].append(save_tab_act)
 
@@ -136,6 +139,7 @@ class DataTable(BasePluginWidget):
             tooltip="Save current data table as...",
             triggered=self.save_as_tab,
             role=QW_QAction.ApplicationSpecificRole)
+        save_as_tab_act.setEnabled(False)
         self.MENU_ACTIONS['File'].append(save_as_tab_act)
 
         # Add save_all tab action to file menu/toolbar
@@ -145,41 +149,19 @@ class DataTable(BasePluginWidget):
             tooltip="Save all data tables",
             triggered=self.save_all_tabs,
             role=QW_QAction.ApplicationSpecificRole)
+        save_all_tabs_act.setEnabled(False)
         self.MENU_ACTIONS['File'].append(save_all_tabs_act)
         self.TOOLBAR_ACTIONS['File'].append(save_all_tabs_act)
 
-        # Add export tab menu to file menu
-        export_tab_menu = self.create_export_tab_menu()
-        self.MENU_ACTIONS['File'].append(export_tab_menu)
-
-    # This function creates the export_tab menu
-    def create_export_tab_menu(self):
-        # Create the menu
-        export_tab_menu = QW_QMenu('Export', '&Export to...')
-
-        # Define list with all export-formats
-        formats = ['npz']
-
-        # Make sure formats is sorted
-        formats.sort()
-
-        # For every format, add an action to the export menu
-        for ext in formats:
-            # Obtain type of this file format
-            file_type = FILE_TYPES[ext]
-
-            # Create an action for this format
-            act = QW_QAction(
-                self, "*.%s (%s)" % (ext, file_type),
-                tooltip="Export current data table to a .%s-file" % (ext),
-                triggered=getattr(self, 'export_to_%s' % (ext)),
-                role=QW_QAction.ApplicationSpecificRole)
-
-            # Add it to the menu
-            export_tab_menu.addAction(act)
-
-        # Return the menu
-        return(export_tab_menu)
+        # Add export tab action to file menu/toolbar
+        export_tab_act = QW_QAction(
+            self, '&Export...',
+            shortcut=QC.Qt.CTRL + QC.Qt.Key_E,
+            tooltip="Export current data table",
+            triggered=self.export_tab,
+            role=QW_QAction.ApplicationSpecificRole)
+        self.MENU_ACTIONS['File'].append(export_tab_act)
+        self.TOOLBAR_ACTIONS['File'].append(export_tab_act)
 
     # This function adds a new data table widget
     @QC.Slot()
@@ -222,15 +204,15 @@ class DataTable(BasePluginWidget):
         filepaths, _ = getOpenFileNames(
             parent=self,
             caption="Import data tables",
-            filters=['npz'])
+            filters=FORMATTERS.keys())
 
         # Loop over filepaths and make a tab for every entry
         for filepath in filepaths:
-            # Obtain the name of this data table
-            name = path.splitext(path.basename(filepath))[0]
+            # Obtain the name and extension of this data table
+            name, ext = path.splitext(path.basename(filepath))
 
             # Add a new tab
-            self.add_tab(name, lambda x: import_from_npz(filepath, x))
+            self.add_tab(name, lambda x: FORMATTERS[ext].importer(filepath, x))
 
     # This function saves a data table widget
     @QC.Slot()
@@ -247,23 +229,38 @@ class DataTable(BasePluginWidget):
     def save_all_tabs(self):
         pass
 
-    # This function exports a data table to a NumPy Binary Archive file
+    # This function exports a data table
     @QC.Slot()
-    def export_to_npz(self):
+    def export_tab(self):
         # Get name of this data table
         name = self.tabName()
 
         # Open the file saving system
-        filepath, _ = getSaveFileName(
+        filepath, selected_filter = getSaveFileName(
             parent=self,
-            caption="Export data table %r to *.npz-file..." % (name),
+            caption="Export data table %r to..." % (name),
             basedir=name+'.npz',
-            filters=['npz'],
-            initial_filter='npz')
+            filters=FORMATTERS.keys())
 
         # If filepath is not empty, export data table
         if filepath:
-            export_to_npz(self.dataTable(), filepath)
+            # Obtain the ext of the filepath
+            ext = path.splitext(filepath)[1]
+
+            # If ext is empty, check what filter was used
+            if not ext:
+                # If "All (Supported) Files" was not used, get ext from filter
+                if not selected_filter.startswith("All "):
+                    ext = FILE_FILTERS[selected_filter]
+                # Else, set it to '.npz'
+                else:
+                    ext = '.npz'
+
+                # Add extension to filepath
+                filepath += ext
+
+            # Export data table
+            FORMATTERS[ext].exporter(self.dataTable(), filepath)
 
     # This function returns the data table belonging to a specified int
     @QC.Slot(int)
