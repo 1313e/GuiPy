@@ -23,8 +23,8 @@ from guipy.config import tr
 __all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDialog', 'QW_QDockWidget',
            'QW_QDoubleSpinBox', 'QW_QEditableComboBox', 'QW_QFileDialog',
            'QW_QHeaderView', 'QW_QLabel', 'QW_QLineEdit', 'QW_QMainWindow',
-           'QW_QMenu', 'QW_QMessageBox', 'QW_QSpinBox', 'QW_QTableView',
-           'QW_QTabWidget', 'QW_QToolBar', 'QW_QWidget']
+           'QW_QMenu', 'QW_QMessageBox', 'QW_QSpinBox', 'QW_QTabBar',
+           'QW_QTableView', 'QW_QTabWidget', 'QW_QToolBar', 'QW_QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -387,6 +387,11 @@ class QW_QMenu(QW.QMenu, QW_QWidget):
 
 # Create custom QMessageBox class
 class QW_QMessageBox(QW.QMessageBox, QW_QDialog):
+    pass
+
+
+# Create custom QTabBar class
+class QW_QTabBar(QW.QTabBar, QW_QWidget):
     pass
 
 
