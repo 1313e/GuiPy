@@ -59,7 +59,6 @@ class DataTable(BasePluginWidget):
         tab_widget.setTabsClosable(True)
 
         # Connect tab widget signals
-        tab_widget.tabBarDoubleClicked.connect(self.open_name_editor)
         tab_widget.tabCloseRequested.connect(self.close_tab)
 
         # Add tab widget to layout
@@ -195,17 +194,6 @@ class DataTable(BasePluginWidget):
 
         # Remove this data_table from the tab widget
         self.tab_widget.removeTab(index)
-
-    # This function allows for a data table widget to be renamed
-    @QC.Slot(int)
-    def open_name_editor(self, index):
-        """
-        Opens the tab name editor for the given tab `index`.
-
-        """
-
-        # Request for this tab's name to be edited
-        self.tab_widget.tabBar().edit_tab_name(index)
 
     # This function opens a data table widget
     @QC.Slot()

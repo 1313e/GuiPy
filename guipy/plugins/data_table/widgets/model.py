@@ -57,6 +57,13 @@ class DataTableModel(QC.QAbstractTableModel):
         self.rowsInserted.connect(self.emitRowsInsertedSignals)
         self.rowsRemoved.connect(self.emitRowsRemovedSignals)
 
+        # Make a look-up dict for dtypes
+        self.dtypes = {
+            np.bool_: 'bool',
+            np.float64: 'float',
+            np.int64: 'int',
+            np.str_: 'str'}
+
         # If import_func is None, initialize an empty table
         if import_func is None:
             # Initialize the list of column data arrays
@@ -361,15 +368,33 @@ class DataTableModel(QC.QAbstractTableModel):
         # Return that operation was successful
         return(True)
 
-    # This function sets the name of a column
+    # This function checks if a given name could be used for a given column
     # TODO: No two columns can have the same name. If attempted, show error
     @QC.Slot(int, str)
+    def checkColumnName(self, col, name):
+        return(True)
+
+    # This function sets the name of a column
+    @QC.Slot(int, str)
     def setColumnName(self, col, name):
+        # Set the column name if it is valid
+        if self.checkColumnName(col, name):
+            # Get the requested column
+            column = self.column_list[col]
+
+            # Set column's name
+            column.name = name
+
+    # This function sets the dtype of a column
+    # TODO: If auto-conversion is not possible, ask user if the column should
+    # be cleared instead
+    @QC.Slot(int, str)
+    def setColumnDataType(self, col, dtype):
         # Get the requested column
         column = self.column_list[col]
 
-        # Set column's name
-        column._name = name
+        # Set column's dtype
+        column.dtype = dtype
 
 
 # Define class used as a container for data columns in the DataTableModel
@@ -502,6 +527,11 @@ class DataTableColumn(object):
     def name(self):
         return(self._name)
 
+    # Property setter for name
+    @name.setter
+    def name(self, name):
+        self._name = name
+
     # This property contains the base name of this data column
     @property
     def base_name(self):
@@ -531,6 +561,21 @@ class DataTableColumn(object):
     @property
     def dtype(self):
         return(self._dtype)
+
+    # Property setter for dtype
+    @dtype.setter
+    def dtype(self, dtype):
+        # Try to convert the current data to an array with the new dtype
+        try:
+            new_data = np.asarray(self._data, dtype)
+        # If this fails, raise error
+        except Exception as error:
+            raise TypeError("Data column %r cannot be converted to dtype %r! "
+                            "(%s)" % (self._name, dtype, error))
+        # If this succeeds, save new array and dtype
+        else:
+            self._data = new_data
+            self._dtype = new_data.dtype.type
 
     # This property contains the data array of this data column
     @property

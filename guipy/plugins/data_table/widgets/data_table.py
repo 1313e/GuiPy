@@ -54,11 +54,13 @@ class DataTableWidget(QW_QWidget):
         # Create two spinboxes for setting n_rows and n_cols
         n_rows_box = QW_QSpinBox(self)
         n_rows_box.setRange(0, 9999999)
-        n_rows_box.setToolTip("Number of rows in this data table")
+        n_rows_box.setToolTip("Number of rows in this data table (max. %i)"
+                              % (n_rows_box.maximum()))
         get_modified_box_signal(n_rows_box).connect(self.n_rows_changed)
         n_cols_box = QW_QSpinBox(self)
         n_cols_box.setRange(0, 702)
-        n_cols_box.setToolTip("Number of columns in this data table")
+        n_cols_box.setToolTip("Number of columns in this data table (max. %i)"
+                              % (n_cols_box.maximum()))
         get_modified_box_signal(n_cols_box).connect(self.n_cols_changed)
 
         # Add spinboxes to dimensions layout

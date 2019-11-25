@@ -40,7 +40,12 @@ class DataTableNameEditor(QW_QLineEdit):
 
         # Obtain the size of the tab
         rect = self.parent().tabRect(index)
-        rect.adjust(1, 1, -1, 0)
+
+        # Adjust lineedit size to perfectly match underlying tab
+        if(index != self.parent().count()-1):
+            rect.adjust(1, 1, 0, -1)
+        else:
+            rect.adjust(1, 1, -1, -1)
 
         # Set size of editor
         self.setFixedSize(rect.size())
@@ -129,6 +134,9 @@ class DataTableTabBar(QW_QTabBar):
 
     # This function sets up the data table tab bar
     def init(self):
+        # Connecting signals
+        self.tabBarDoubleClicked.connect(self.edit_tab_name)
+
         # Initialize a tab name editor
         self.name_editor = DataTableNameEditor(self)
 

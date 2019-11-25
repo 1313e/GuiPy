@@ -20,8 +20,8 @@ from guipy.plugins.data_table.widgets.model import DataTableModel
 from guipy.plugins.data_table.widgets.selection_model import (
     DataTableSelectionModel)
 from guipy.widgets import (
-    QW_QAction, QW_QDialog, QW_QLabel, QW_QLineEdit, QW_QMenu, QW_QTableView,
-    get_box_value, get_modified_box_signal, set_box_value)
+    QW_QAction, QW_QComboBox, QW_QDialog, QW_QLabel, QW_QLineEdit, QW_QMenu,
+    QW_QTableView, get_box_value, get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['DataTableView']
@@ -42,9 +42,6 @@ class DataTableView(QW_QTableView):
 
     # This function sets up the data table widget
     def init(self, import_func=None):
-        # Create headers
-        self.create_headers()
-
         # Set model for the data table widget
         self.setModel(DataTableModel(self, import_func))
 
@@ -54,6 +51,9 @@ class DataTableView(QW_QTableView):
         # Set selection model for the data table widget
         self.selectionModel().deleteLater()
         self.setSelectionModel(selection_model)
+
+        # Create headers
+        self.create_headers()
 
     # Override closeEvent to do automatic clean-up
     def closeEvent(self, *args, **kwargs):
@@ -333,10 +333,14 @@ class HorizontalHeaderPopup(QW_QDialog):
         # Get the column that was requested
         column = self.data_table.model().dataColumn(col)
 
-        # Set the base name and name of this column
+        # Get the dtype of this column
+        dtype = self.data_table.model().dtypes[column.dtype]
+
+        # Set the base name, name and dtype of this column
         base_name = "Column %s" % (column.base_name)
         set_box_value(self.base_name_label, base_name)
         set_box_value(self.name_box, column.name)
+        set_box_value(self.dtype_box, dtype)
 
         # Set keyboard focus to the name_box and select it
         self.name_box.setFocus(True)
@@ -346,6 +350,7 @@ class HorizontalHeaderPopup(QW_QDialog):
         self.show()
 
     # This function sets up the horizontal header popup editor
+    # TODO: Allow for a simple formula to be given for a column?
     def init(self):
         # Install event filter to catch events that should close the popup
         self.installEventFilter(self)
@@ -368,12 +373,23 @@ class HorizontalHeaderPopup(QW_QDialog):
         name_box = QW_QLineEdit()
         name_box.setToolTip("Set a custom name for this column or leave empty "
                             "to use its default name")
-        get_modified_box_signal(name_box).connect(self.set_column_name)
+        get_modified_box_signal(name_box).connect(self.check_column_name)
 
         # Add it to the layout
         layout.addWidget(QW_QLabel("Name"), 1, 0)
         layout.addWidget(name_box, 1, 1)
         self.name_box = name_box
+
+        # Create a dtype combobox
+        dtype_box = QW_QComboBox()
+        dtype_box.setToolTip("Set the data type for this column")
+        dtype_box.addItems(self.data_table.model().dtypes.values())
+        dtype_box.popup_hidden.connect(lambda: name_box.setFocus(True))
+
+        # Add it to the layout
+        layout.addWidget(QW_QLabel("Data type"), 2, 0)
+        layout.addWidget(dtype_box, 2, 1)
+        self.dtype_box = dtype_box
 
     # Override eventFilter to filter out clicks, ESC and Enter
     def eventFilter(self, widget, event):
@@ -395,6 +411,10 @@ class HorizontalHeaderPopup(QW_QDialog):
 
     # Override hideEvent to automatically update the header
     def hideEvent(self, *args, **kwargs):
+        # Set the column name and dtype
+        self.set_column_name(get_box_value(self.name_box))
+        self.set_column_dtype(get_box_value(self.dtype_box))
+
         # Tell data table to update the header of the requested column
         self.data_table.h_header.headerDataChanged(QC.Qt.Horizontal,
                                                    self.col, self.col)
@@ -404,6 +424,18 @@ class HorizontalHeaderPopup(QW_QDialog):
 
     # This function is called whenever it is attempted to set the column name
     @QC.Slot(str)
+    def check_column_name(self, name):
+        # Check if the given column name can be set (duplicates, etc.)
+        self.data_table.model().checkColumnName(self.col, name)
+
+    # This function is called when the column name is being set
+    @QC.Slot(str)
     def set_column_name(self, name):
         # Set the column name
         self.data_table.model().setColumnName(self.col, name)
+
+    # This function is called when the column dtype is being set
+    @QC.Slot(str)
+    def set_column_dtype(self, dtype):
+        # Set the column dtype
+        self.data_table.model().setColumnDataType(self.col, dtype)
