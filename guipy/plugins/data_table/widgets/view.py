@@ -21,7 +21,8 @@ from guipy.plugins.data_table.widgets.selection_model import (
     DataTableSelectionModel)
 from guipy.widgets import (
     QW_QAction, QW_QComboBox, QW_QDialog, QW_QLabel, QW_QLineEdit, QW_QMenu,
-    QW_QTableView, get_box_value, get_modified_box_signal, set_box_value)
+    QW_QTableView, QW_QToolTip, get_box_value, get_modified_box_signal,
+    set_box_value)
 
 # All declaration
 __all__ = ['DataTableView']
@@ -317,6 +318,7 @@ class HorizontalHeaderPopup(QW_QDialog):
     def __init__(self, data_table_view_obj, *args, **kwargs):
         # Save provided DataTableView object
         self.data_table = data_table_view_obj
+        self.model = self.data_table.model()
 
         # Call super constructor
         super().__init__(data_table_view_obj)
@@ -331,16 +333,21 @@ class HorizontalHeaderPopup(QW_QDialog):
         self.col = col
 
         # Get the column that was requested
-        column = self.data_table.model().dataColumn(col)
+        column = self.model.dataColumn(col)
 
         # Get the dtype of this column
-        dtype = self.data_table.model().dtypes[column.dtype]
+        dtype = self.model.dtypes[column.dtype]
 
         # Set the base name, name and dtype of this column
         base_name = "Column %s" % (column.base_name)
         set_box_value(self.base_name_label, base_name)
         set_box_value(self.name_box, column.name)
         set_box_value(self.dtype_box, dtype)
+
+        # Determine the names of all other columns
+        used_column_names = set([col.name for col in self.model.column_list])
+        used_column_names.difference_update(['', column.name])
+        self.used_column_names = used_column_names
 
         # Set keyboard focus to the name_box and select it
         self.name_box.setFocus(True)
@@ -373,7 +380,7 @@ class HorizontalHeaderPopup(QW_QDialog):
         name_box = QW_QLineEdit()
         name_box.setToolTip("Set a custom name for this column or leave empty "
                             "to use its default name")
-        get_modified_box_signal(name_box).connect(self.check_column_name)
+        get_modified_box_signal(name_box).connect(self.column_name_changed)
 
         # Add it to the layout
         layout.addWidget(QW_QLabel("Name"), 1, 0)
@@ -383,7 +390,7 @@ class HorizontalHeaderPopup(QW_QDialog):
         # Create a dtype combobox
         dtype_box = QW_QComboBox()
         dtype_box.setToolTip("Set the data type for this column")
-        dtype_box.addItems(self.data_table.model().dtypes.values())
+        dtype_box.addItems(self.model.dtypes.values())
         dtype_box.popup_hidden.connect(lambda: name_box.setFocus(True))
 
         # Add it to the layout
@@ -422,20 +429,49 @@ class HorizontalHeaderPopup(QW_QDialog):
         # Call super event
         super().hideEvent(*args, **kwargs)
 
-    # This function is called whenever it is attempted to set the column name
+    # This function is called whenever the column name is changed
+    @QC.Slot(str)
+    def column_name_changed(self, name):
+        # Determine the position of the tooltip
+        pos = self.name_box.mapToGlobal(QC.QPoint(self.name_box.rect().left(),
+                                                  self.name_box.height()//2))
+
+        # If this name is not valid, show tooltip with error
+        if not self.check_column_name(name):
+            err_msg = "This name is either invalid or already taken!"
+            QW_QToolTip.showText(pos, err_msg, self.name_box)
+
+        # If it is valid, disable any previous tooltip
+        else:
+            QW_QToolTip.hideText()
+
+    # This function checks if a given name could be used for a given column
+    # TODO: Should I use a QG.QValidator for this?
     @QC.Slot(str)
     def check_column_name(self, name):
-        # Check if the given column name can be set (duplicates, etc.)
-        self.data_table.model().checkColumnName(self.col, name)
+        # If name is empty, it is always valid
+        if not name:
+            return(True)
+
+        # Check if name consists out of one or two capital letters
+        # TODO: This assumes a maximum of 702 columns, decreasing modularity
+        elif name.isalpha() and name.isupper() and (len(name) <= 2):
+            # If so, it is invalid as these are default column names
+            return(False)
+
+        # Check if the name is already used for something else
+        else:
+            return(name not in self.used_column_names)
 
     # This function is called when the column name is being set
     @QC.Slot(str)
     def set_column_name(self, name):
-        # Set the column name
-        self.data_table.model().setColumnName(self.col, name)
+        # Set the column name if valid
+        if self.check_column_name(name):
+            self.model.setColumnName(self.col, name)
 
     # This function is called when the column dtype is being set
     @QC.Slot(str)
     def set_column_dtype(self, dtype):
         # Set the column dtype
-        self.data_table.model().setColumnDataType(self.col, dtype)
+        self.model.setColumnDataType(self.col, dtype)

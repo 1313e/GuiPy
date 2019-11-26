@@ -10,20 +10,23 @@ created for *GuiPy*.
 
 
 # %% IMPORTS
-# Import base modules
-from . import base
+# Import core modules
+from . import base, core
 from .base import *
-from . import core
 from .core import *
-from . import dock, utils
+
+# Import base modules
+from . import dock, exceptions, utils
 from .dock import *
+from .exceptions import *
 from .utils import *
 
 # All declaration
-__all__ = ['base', 'core', 'dock', 'utils']
+__all__ = ['base', 'core', 'dock', 'exceptions', 'utils']
 __all__.extend(base.__all__)
 __all__.extend(core.__all__)
 __all__.extend(dock.__all__)
+__all__.extend(exceptions.__all__)
 __all__.extend(utils.__all__)
 
 # Author declaration

@@ -368,22 +368,14 @@ class DataTableModel(QC.QAbstractTableModel):
         # Return that operation was successful
         return(True)
 
-    # This function checks if a given name could be used for a given column
-    # TODO: No two columns can have the same name. If attempted, show error
-    @QC.Slot(int, str)
-    def checkColumnName(self, col, name):
-        return(True)
-
     # This function sets the name of a column
     @QC.Slot(int, str)
     def setColumnName(self, col, name):
-        # Set the column name if it is valid
-        if self.checkColumnName(col, name):
-            # Get the requested column
-            column = self.column_list[col]
+        # Get the requested column
+        column = self.column_list[col]
 
-            # Set column's name
-            column.name = name
+        # Set column's name
+        column.name = name
 
     # This function sets the dtype of a column
     # TODO: If auto-conversion is not possible, ask user if the column should

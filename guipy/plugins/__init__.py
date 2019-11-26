@@ -9,7 +9,7 @@ Contains the various different plugins that are used in *GuiPy*.
 
 
 # %% IMPORTS
-# Import base modules
+# Import core modules
 from . import base
 from .base import *
 

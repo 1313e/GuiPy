@@ -10,6 +10,7 @@ Provides the definition of the main window of the *GuiPy* application.
 
 # %% IMPORTS
 # Built-in imports
+import sys
 from textwrap import dedent
 
 # Package imports
@@ -21,7 +22,7 @@ from guipy.config import tr
 from guipy.plugins import DataTable
 from guipy.widgets import (
     BaseDockWidget, QW_QAction, QW_QMainWindow, QW_QMenu, QW_QMessageBox,
-    QW_QToolBar)
+    QW_QToolBar, create_exception_handler)
 
 # All declaration
 __all__ = ['MainWindow']
@@ -38,6 +39,10 @@ class MainWindow(QW_QMainWindow):
 
     """
 
+    # Signals
+    exception = QC.Signal()
+
+    # Initialize MainWindow class
     def __init__(self, *args, **kwargs):
         """
         Initialize an instance of the :class:`~MainWindow` class.
@@ -89,6 +94,9 @@ class MainWindow(QW_QMainWindow):
 
         # Set resolution of window
         self.resize(800, 600)
+
+        # Set the exception handler to an internal message window
+        sys.excepthook = create_exception_handler(self)
 
     # Override closeEvent to automatically close all plugins
     def closeEvent(self, *args, **kwargs):

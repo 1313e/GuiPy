@@ -10,7 +10,7 @@ created for *GuiPy*.
 
 
 # %% IMPORTS
-# Import base modules
+# Import core modules
 from . import base
 from .base import *
 

@@ -24,7 +24,8 @@ __all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDialog', 'QW_QDockWidget',
            'QW_QDoubleSpinBox', 'QW_QEditableComboBox', 'QW_QFileDialog',
            'QW_QHeaderView', 'QW_QLabel', 'QW_QLineEdit', 'QW_QMainWindow',
            'QW_QMenu', 'QW_QMessageBox', 'QW_QSpinBox', 'QW_QTabBar',
-           'QW_QTableView', 'QW_QTabWidget', 'QW_QToolBar', 'QW_QWidget']
+           'QW_QTableView', 'QW_QTabWidget', 'QW_QToolBar', 'QW_QToolTip',
+           'QW_QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -442,3 +443,8 @@ class QW_QToolBar(QW.QToolBar, QW_QWidget):
 
         # Call super constructor
         super().__init__(tr(title), parent)
+
+
+# Create custom QToolTip class
+class QW_QToolTip(QW.QToolTip):
+    pass
