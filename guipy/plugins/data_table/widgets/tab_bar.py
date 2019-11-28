@@ -71,7 +71,8 @@ class DataTableNameEditor(QW_QLineEdit):
         # Set dialog flags
         self.setWindowFlags(
             QC.Qt.Popup |
-            QC.Qt.FramelessWindowHint)
+            QC.Qt.FramelessWindowHint |
+            QC.Qt.NoDropShadowWindowHint)
 
         # Turn frame off
         self.setFrame(False)
@@ -112,11 +113,13 @@ class DataTableNameEditor(QW_QLineEdit):
         # Obtain the current text in the lineedit
         name = get_box_value(self)
 
-        # Set the name of the tab indicated with index
-        self.parent().setTabText(self.index, name)
+        # If name is not empty, set name
+        if name:
+            # Set the name of the tab indicated with index
+            self.parent().setTabText(self.index, name)
 
-        # Emit signal of parent
-        self.parent().dataTableNameChanged.emit(self.index, name)
+            # Emit signal of parent
+            self.parent().dataTableNameChanged.emit(self.index, name)
 
 
 # Custom QTabBar definition for the DataTable plugin

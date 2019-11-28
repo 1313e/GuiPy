@@ -48,6 +48,7 @@ def ntr(text):
 
 
 # This function registers a file format
+# TODO: Should the MIME type of the file also be given?
 def register_file_format(file_type, file_exts):
     """
     Registers a provided file format with type `file_type` and associated

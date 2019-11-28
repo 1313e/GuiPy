@@ -75,10 +75,10 @@ class DataTableView(QW_QTableView):
 
         # If diff is negative, remove columns from the end
         if(diff < 0):
-            self.model().removeColumns(abs(diff))
+            self.model().removeColumns(count=abs(diff))
         # If diff is positive, append columns to the end
         elif(diff > 0):
-            self.model().insertColumns(abs(diff))
+            self.model().insertColumns(count=abs(diff))
         # If diff is zero, do nothing
         else:
             pass
@@ -94,9 +94,9 @@ class DataTableView(QW_QTableView):
 
         # Extend or shorten the data table model accordingly
         if(diff < 0):
-            self.model().removeRows(abs(diff))
+            self.model().removeRows(count=abs(diff))
         elif(diff > 0):
-            self.model().insertRows(abs(diff))
+            self.model().insertRows(count=abs(diff))
         else:
             pass
 
@@ -255,61 +255,61 @@ class DataTableView(QW_QTableView):
     @QC.Slot()
     @QC.Slot(int)
     def insert_cols(self, n_cols=1):
-        self.model().insertColumns(n_cols, self._last_context_col)
+        self.model().insertColumns(self._last_context_col, n_cols)
 
     # This function inserts columns into the data table after given column
     @QC.Slot()
     @QC.Slot(int)
     def insert_cols_after(self, n_cols=1):
-        self.model().insertColumns(n_cols, self._last_context_col+n_cols)
+        self.model().insertColumns(self._last_context_col+n_cols, n_cols)
 
     # This function removes a given column in the data table
     @QC.Slot()
     @QC.Slot(int)
     def remove_cols(self, n_cols=1):
-        self.model().removeColumns(n_cols, self._last_context_col)
+        self.model().removeColumns(self._last_context_col, n_cols)
 
     # This function clears a given column in the data table
     @QC.Slot()
     @QC.Slot(int)
     def clear_cols(self, n_cols=1):
-        self.model().clearColumns(n_cols, self._last_context_col)
+        self.model().clearColumns(self._last_context_col, n_cols)
 
     # This function hides a given column in the data table
     @QC.Slot()
     @QC.Slot(int)
     def hide_cols(self, n_cols=1):
-        self.model().hideColumns(n_cols, self._last_context_col)
+        self.model().hideColumns(self._last_context_col, n_cols)
 
     # This function inserts rows into the data table before given row
     @QC.Slot()
     @QC.Slot(int)
     def insert_rows(self, n_rows=1):
-        self.model().insertRows(n_rows, self._last_context_row)
+        self.model().insertRows(self._last_context_row, n_rows)
 
     # This function inserts rows into the data table after given row
     @QC.Slot()
     @QC.Slot(int)
     def insert_rows_after(self, n_rows=1):
-        self.model().insertRows(n_rows, self._last_context_row+n_rows)
+        self.model().insertRows(self._last_context_row+n_rows, n_rows)
 
     # This function removes a given row in the data table
     @QC.Slot()
     @QC.Slot(int)
     def remove_rows(self, n_rows=1):
-        self.model().removeRows(n_rows, self._last_context_row)
+        self.model().removeRows(self._last_context_row, n_rows)
 
     # This function clears a given row in the data table
     @QC.Slot()
     @QC.Slot(int)
     def clear_rows(self, n_rows=1):
-        self.model().clearRows(n_rows, self._last_context_row)
+        self.model().clearRows(self._last_context_row, n_rows)
 
     # This function hides a given row in the data table
     @QC.Slot()
     @QC.Slot(int)
     def hide_rows(self, n_rows=1):
-        self.model().hideRows(n_rows, self._last_context_row)
+        self.model().hideRows(self._last_context_row, n_rows)
 
 
 # Define class for showing a popup editor for the horizontal header
@@ -338,16 +338,17 @@ class HorizontalHeaderPopup(QW_QDialog):
         # Get the dtype of this column
         dtype = self.model.dtypes[column.dtype]
 
-        # Set the base name, name and dtype of this column
-        base_name = "Column %s" % (column.base_name)
-        set_box_value(self.base_name_label, base_name)
-        set_box_value(self.name_box, column.name)
-        set_box_value(self.dtype_box, dtype)
-
         # Determine the names of all other columns
         used_column_names = set([col.name for col in self.model.column_list])
         used_column_names.difference_update(['', column.name])
         self.used_column_names = used_column_names
+
+        # Set the base name, name and dtype of this column
+        base_name = "Column %s" % (column.base_name)
+        set_box_value(self.base_name_label, base_name)
+        set_box_value(self.n_val_box, column.n_val)
+        set_box_value(self.name_box, column.name)
+        set_box_value(self.dtype_box, dtype)
 
         # Set keyboard focus to the name_box and select it
         self.name_box.setFocus(True)
@@ -376,6 +377,15 @@ class HorizontalHeaderPopup(QW_QDialog):
         self.base_name_label.setAlignment(QC.Qt.AlignCenter)
         layout.addWidget(self.base_name_label, 0, 0, 1, -1)
 
+        # Create a n_val label
+        n_val_box = QW_QLabel()
+        n_val_box.setToolTip("Number of values in this column")
+
+        # Add it to the layout
+        layout.addWidget(QW_QLabel("# of values"), 1, 0)
+        layout.addWidget(n_val_box, 1, 1)
+        self.n_val_box = n_val_box
+
         # Create a name line-edit
         name_box = QW_QLineEdit()
         name_box.setToolTip("Set a custom name for this column or leave empty "
@@ -383,8 +393,8 @@ class HorizontalHeaderPopup(QW_QDialog):
         get_modified_box_signal(name_box).connect(self.column_name_changed)
 
         # Add it to the layout
-        layout.addWidget(QW_QLabel("Name"), 1, 0)
-        layout.addWidget(name_box, 1, 1)
+        layout.addWidget(QW_QLabel("Name"), 2, 0)
+        layout.addWidget(name_box, 2, 1)
         self.name_box = name_box
 
         # Create a dtype combobox
@@ -394,8 +404,8 @@ class HorizontalHeaderPopup(QW_QDialog):
         dtype_box.popup_hidden.connect(lambda: name_box.setFocus(True))
 
         # Add it to the layout
-        layout.addWidget(QW_QLabel("Data type"), 2, 0)
-        layout.addWidget(dtype_box, 2, 1)
+        layout.addWidget(QW_QLabel("Data type"), 3, 0)
+        layout.addWidget(dtype_box, 3, 1)
         self.dtype_box = dtype_box
 
     # Override eventFilter to filter out clicks, ESC and Enter

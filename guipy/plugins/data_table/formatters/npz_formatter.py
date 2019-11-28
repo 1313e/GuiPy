@@ -36,8 +36,10 @@ class Formatter(BaseFormatter):
         columns = data_table.model.column_list
 
         # Make a dictionary that contains the data of all columns
-        data_dict = {"(%i, %r)" % (column._index, column._name): column._data
-                     for column in columns}
+        # TODO: Find out how to preserve the mask
+        # Maybe use column._data[~column._data.mask]?
+        data_dict = {"(%i, %r)" % (column._index, column._name):
+                     column._data.data for column in columns}
 
         # Save data table as NumPy Binary Archive
         np.savez(filepath, **data_dict)
@@ -56,13 +58,22 @@ class Formatter(BaseFormatter):
         # Create empty list of data columns
         data_columns = []
 
+        # Determine the length of the biggest data column
+        length = max(map(len, data_dict.values()))
+
         # Loop over all data arrays in data_dict and convert to columns
-        for key, data in data_dict.items():
-            # Convert key to index and name
-            index, name = literal_eval(key)
+        for i, (key, data) in enumerate(data_dict.items()):
+            # Try to convert key to index and name
+            try:
+                index, name = literal_eval(key)
+
+            # If that does not work, use default values
+            except ValueError:
+                index = i
+                name = key
 
             # Create data column
-            column = DataTableColumn(len(data), data, index, parent)
+            column = DataTableColumn(length, data, index, parent)
             column._name = name
 
             # Add created data column to the list

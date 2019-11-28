@@ -11,7 +11,8 @@ definition, which are core to the functioning of all widgets.
 
 # %% IMPORTS
 # Package imports
-from qtpy import QtCore as QC, QtWidgets as QW
+import numpy as np
+from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy.widgets.base import QW_QLabel, QW_QWidget
@@ -197,13 +198,13 @@ def set_box_value(box, value):
     elif isinstance(box, QW.QLabel):
         if isinstance(value, str):
             box.setText(value)
-        elif isinstance(value, (int, float)):
+        elif isinstance(value, (int, float, np.integer, np.floating)):
             box.setNum(value)
-        elif isinstance(value, QW.QMovie):
+        elif isinstance(value, QG.QMovie):
             box.setMovie(value)
-        elif isinstance(value, QW.QPicture):
+        elif isinstance(value, QG.QPicture):
             box.setPicture(value)
-        elif isinstance(value, QW.QPixmap):
+        elif isinstance(value, QG.QPixmap):
             box.setPixmap(value)
         else:
             raise TypeError("QLabel does not support the given type")

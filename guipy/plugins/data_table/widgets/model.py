@@ -28,6 +28,8 @@ base_26 = list(string.ascii_uppercase)
 # %% CLASS DEFINITIONS
 # Define model for the DataTable widget
 # HINT: https://doc.qt.io/qt-5/model-view-programming.html
+# TODO: Implement fetchMore system?
+# TODO: Implement drag/drop system (HINT+#using-drag-and-drop-with-item-views)
 class DataTableModel(QC.QAbstractTableModel):
     # Signals
     firstColumnInserted = QC.Signal()
@@ -44,6 +46,7 @@ class DataTableModel(QC.QAbstractTableModel):
         self.init(*args, **kwargs)
 
     # Implement delete function
+    @QC.Slot()
     def delete(self):
         # Delete all columns in the column list
         self.removeColumns(count=self.columnCount())
@@ -71,8 +74,8 @@ class DataTableModel(QC.QAbstractTableModel):
             self.column_list = []
 
             # Initialize this data table with a 5x5 table
-            self.insertColumns(5)
-            self.insertRows(5)
+            self.insertColumns(count=5)
+            self.insertRows(count=5)
 
         # If import_func is not None, call it to initialize the table
         else:
@@ -88,6 +91,7 @@ class DataTableModel(QC.QAbstractTableModel):
             self.endInsertRows()
 
     # This function emits proper signals when columns have been inserted
+    @QC.Slot(QC.QModelIndex, int, int)
     def emitColumnsInsertedSignals(self, parent, first, last):
         # Emit columnCountChanged signal
         self.columnCountChanged.emit(self.columnCount())
@@ -97,6 +101,7 @@ class DataTableModel(QC.QAbstractTableModel):
             self.firstColumnInserted.emit()
 
     # This function emits proper signals when columns have been removed
+    @QC.Slot(QC.QModelIndex, int, int)
     def emitColumnsRemovedSignals(self, parent, first, last):
         # Emit columnCountChanged signal
         self.columnCountChanged.emit(self.columnCount())
@@ -106,11 +111,13 @@ class DataTableModel(QC.QAbstractTableModel):
             self.lastColumnRemoved.emit()
 
     # This function emits proper signals when rows have been inserted
+    @QC.Slot(QC.QModelIndex, int, int)
     def emitRowsInsertedSignals(self, parent, first, last):
         # Emit rowCountChanged signal
         self.rowCountChanged.emit(self.rowCount())
 
     # This function emits proper signals when rows have been removed
+    @QC.Slot(QC.QModelIndex, int, int)
     def emitRowsRemovedSignals(self, parent, first, last):
         # Emit rowCountChanged signal
         self.rowCountChanged.emit(self.rowCount())
@@ -169,16 +176,28 @@ class DataTableModel(QC.QAbstractTableModel):
     def data(self, index, role):
         # If this index is valid
         if index.isValid():
-            # If a valid role is provided
-            if role in (QC.Qt.DisplayRole, QC.Qt.EditRole):
-                # Obtain the data column belonging to the requested index
-                data_col = self.column_list[index.column()]
+            # Obtain the data point belonging to the requested index
+            data_col = self.column_list[index.column()]
 
-                # Convert to proper QVariant
+            # If a display role is provided
+            if(role == QC.Qt.DisplayRole):
+                # Convert to proper QVariant if not a masked value
+                if data_col[index.row()] is not None:
+                    data_point = QC.QVariant(data_col.item(index.row()))
+                # Else, data point is an empty QVariant
+                else:
+                    data_point = QC.QVariant()
+
+            # If an edit role is provided, return as normal
+            elif(role == QC.Qt.EditRole):
                 data_point = QC.QVariant(data_col.item(index.row()))
 
-                # Return it
-                return(data_point)
+            # All other roles return an empty QVariant
+            else:
+                data_point = QC.QVariant()
+
+            # Return it
+            return(data_point)
 
         # If this index is not valid
         else:
@@ -218,18 +237,36 @@ class DataTableModel(QC.QAbstractTableModel):
             return(False)
 
     # Override rowCount function
-    def rowCount(self, *args, **kwargs):
+    @QC.Slot()
+    @QC.Slot(QC.QModelIndex)
+    def rowCount(self, parent=None):
+        # If parent is None, set it to QC.QModelIndex()
+        if parent is None:
+            parent = QC.QModelIndex()
+
+        # Return row count
         if self.column_list:
             return(self.column_list[0].length)
         else:
             return(0)
 
     # Override columnCount function
-    def columnCount(self, *args, **kwargs):
+    @QC.Slot()
+    @QC.Slot(QC.QModelIndex)
+    def columnCount(self, parent=None):
+        # If parent is None, set it to QC.QModelIndex()
+        if parent is None:
+            parent = QC.QModelIndex()
+
+        # Return column count
         return(len(self.column_list))
 
     # This function inserts rows before given row
-    def insertRows(self, count=1, row=None, parent=None):
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
+    @QC.Slot(int, int, QC.QModelIndex)
+    def insertRows(self, row=None, count=1, parent=None):
         # If row is None, set it to the current number of rows
         if row is None:
             row = self.rowCount()
@@ -243,7 +280,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Insert the rows into all data columns
         for column in self.column_list:
-            column.insertRows(count, row)
+            column.insertRows(row, count)
 
         # Notify other functions that rows have been inserted
         self.endInsertRows()
@@ -255,7 +292,11 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function removes rows starting at given row
-    def removeRows(self, count=1, row=None, parent=None):
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
+    @QC.Slot(int, int, QC.QModelIndex)
+    def removeRows(self, row=None, count=1, parent=None):
         # If row is None, set it to the current number of rows-count
         if row is None:
             row = self.rowCount()-count
@@ -269,7 +310,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # Remove the rows from all data columns
         for column in self.column_list:
-            column.removeRows(count, row)
+            column.removeRows(row, count)
 
         # Notify other functions that rows have been removed
         self.endRemoveRows()
@@ -281,6 +322,9 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function clears rows starting at given row
+    @QC.Slot(int)
+    @QC.Slot(int, int)
+    @QC.Slot(int, int, QC.QModelIndex)
     def clearRows(self, row, count=1, parent=None):
         # If parent is None, set it to QC.QModelIndex()
         if parent is None:
@@ -294,7 +338,11 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function inserts columns before given col
-    def insertColumns(self, count=1, col=None, parent=None):
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
+    @QC.Slot(int, int, QC.QModelIndex)
+    def insertColumns(self, col=None, count=1, parent=None):
         # If col is None, set it to current number of columns
         if col is None:
             col = self.columnCount()
@@ -324,7 +372,11 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function removes columns starting at given col
-    def removeColumns(self, count=1, col=None, parent=None):
+    @QC.Slot()
+    @QC.Slot(int)
+    @QC.Slot(int, int)
+    @QC.Slot(int, int, QC.QModelIndex)
+    def removeColumns(self, col=None, count=1, parent=None):
         # If col is None, set it to current number of columns-count
         if col is None:
             col = self.columnCount()-count
@@ -356,6 +408,9 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function clears columns starting at given col
+    @QC.Slot(int)
+    @QC.Slot(int, int)
+    @QC.Slot(int, int, QC.QModelIndex)
     def clearColumns(self, col, count=1, parent=None):
         # If parent is None, set it to QC.QModelIndex()
         if parent is None:
@@ -443,16 +498,17 @@ class DataTableColumn(object):
             self._dtype = np.float64
 
             # Initialize data array
-            # TODO: Should I use a masked array for this?
-            self._data = np.zeros(length, dtype=self._dtype)
-
-            # Save the length of the array
-            self._length = length
+            self._data = np.ma.asarray(np.zeros(length, dtype=self._dtype))
+            self._data.mask = True
 
         # If data is not None, act accordingly
         else:
-            # Make sure that data is a NumPy array
-            data = np.asarray(data)
+            # Make sure that data is a masked NumPy array
+            data = np.ma.asarray(data)
+
+            # If data has no masked values, make sure that mask is an array
+            if not data.mask:
+                data.mask = False
 
             # Obtain the dtype of the provided data
             self._dtype = data.dtype.type
@@ -460,17 +516,14 @@ class DataTableColumn(object):
             # Set the data array
             self._data = data
 
-            # Save the length of the array
-            self._length = len(data)
-
             # Determine the difference between length and the array length
-            diff = length-self._length
+            diff = length-len(self)
 
             # Extend or shorten the data array accordingly
             if(diff < 0):
-                self.removeRows(abs(diff))
+                self.removeRows(count=abs(diff))
             elif(diff > 0):
-                self.insertRows(abs(diff))
+                self.insertRows(count=abs(diff))
             else:
                 pass
 
@@ -484,7 +537,7 @@ class DataTableColumn(object):
         str_repr.append(data_repr)
 
         # Add length to representation
-        str_repr.append("length=%i" % (self._length))
+        str_repr.append("length=%i" % (len(self)))
 
         # Add index to representation if it has a parent
         if self._parent is not None:
@@ -499,15 +552,17 @@ class DataTableColumn(object):
 
     # Specify the __getitem__ function
     def __getitem__(self, key):
-        return(self._data[key])
+        value = self._data[key]
+        return(value if value is not np.ma.masked else None)
 
     # Specify the __len__ function
     def __len__(self):
-        return(self._length)
+        return(len(self._data))
 
     # Specify the __setitem__ function
     def __setitem__(self, key, value):
         self._data[key] = value
+        self._data.mask[key] = False
 
     # This function is called whenever this column should be deleted
     def delete(self):
@@ -544,10 +599,15 @@ class DataTableColumn(object):
     def index(self):
         return(self._index)
 
+    # This property contains the # of non-masked values of this data column
+    @property
+    def n_val(self):
+        return(sum(~self._data.mask))
+
     # This property contains the length of this data column
     @property
     def length(self):
-        return(self._length)
+        return(len(self))
 
     # This property contains the dtype of this data column
     @property
@@ -559,7 +619,7 @@ class DataTableColumn(object):
     def dtype(self, dtype):
         # Try to convert the current data to an array with the new dtype
         try:
-            new_data = np.asarray(self._data, dtype)
+            new_data = np.ma.asarray(self._data, dtype)
         # If this fails, raise error
         except Exception as error:
             raise TypeError("Data column %r cannot be converted to dtype %r! "
@@ -625,46 +685,43 @@ class DataTableColumn(object):
     # This function clears the entire column and resets it to default values
     @QC.Slot()
     def clear(self):
-        # Clear this column
-        self._data[:] = 0
+        # Clear all rows
+        self.clearRows(0, len(self))
 
     # This function inserts empty rows into the data column before given row
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
-    def insertRows(self, count=1, row=None):
+    def insertRows(self, row=None, count=1):
         # If row is None, set it to length
         if row is None:
-            row = self._length
+            row = len(self)
 
         # Create an array with zeros of the length required
-        insert_array = np.zeros(count, dtype=self._dtype)
+        insert_array = np.ma.asarray(np.zeros(count, dtype=self._dtype))
+        insert_array.mask = True
 
         # Insert the array into this data column
-        self._data = np.concatenate([self._data[:row],
-                                     insert_array,
-                                     self._data[row:]])
-
-        # Set the new length of this data column
-        self._length += count
+        self._data = np.ma.concatenate([self._data[:row],
+                                        insert_array,
+                                        self._data[row:]])
 
     # This function removes rows from the data column starting at given row
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
-    def removeRows(self, count=1, row=None):
+    def removeRows(self, row=None, count=1):
         # If row is None, set it to length-count
         if row is None:
-            count = min(count, self._length)
-            row = self._length-count
+            count = min(count, len(self))
+            row = len(self)-count
         else:
-            count = min(count, self._length-row)
+            count = min(count, len(self)-row)
 
         # Create new array with specified rows removed
-        self._data = np.delete(self._data, slice(row, row+count))
-
-        # Set the new length of this data column
-        self._length -= count
+        mask = np.ones_like(self._data, dtype=bool)
+        mask[slice(row, row+count)] = False
+        self._data = self._data[mask]
 
     # This function clears rows from the data column starting at given row
     @QC.Slot(int)
@@ -672,3 +729,4 @@ class DataTableColumn(object):
     def clearRows(self, row, count=1):
         # Set specified rows to 0
         self._data[row:row+count] = 0
+        self._data.mask[row:row+count] = True
