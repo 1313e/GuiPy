@@ -19,7 +19,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 # GuiPy imports
 from guipy import __version__, APP_NAME
 from guipy.config import tr
-from guipy.plugins import DataTable
+from guipy.plugins import DataTable, Figure
 from guipy.widgets import (
     BaseDockWidget, QW_QAction, QW_QMainWindow, QW_QMenu, QW_QMessageBox,
     QW_QToolBar, create_exception_handler)
@@ -92,8 +92,8 @@ class MainWindow(QW_QMainWindow):
         # Add all remaining core actions
         self.add_core_actions()
 
-        # Set resolution of window
-        self.resize(800, 600)
+        # Maximize the window
+        self.setWindowState(QC.Qt.WindowMaximized)
 
         # Set the exception handler to an internal message window
         sys.excepthook = create_exception_handler(self)
@@ -275,9 +275,14 @@ class MainWindow(QW_QMainWindow):
 
         """
 
-        # Create the DataTable plugin
-        data_table = DataTable(self)
-        self.add_dockwidget(data_table)
+        # Create list with all the plugins required
+        plugins = [
+            DataTable,
+            Figure]
+
+        # Initialize every required plugin
+        for plugin in plugins:
+            self.add_dockwidget(plugin(self))
 
     # This function adds a dock widget to the main window
     def add_dockwidget(self, plugin):
