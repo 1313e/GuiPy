@@ -118,15 +118,9 @@ class DataTableNameEditor(QW_QLineEdit):
             # Set the name of the tab indicated with index
             self.parent().setTabText(self.index, name)
 
-            # Emit signal of parent
-            self.parent().dataTableNameChanged.emit(self.index, name)
-
 
 # Custom QTabBar definition for the DataTable plugin
 class DataTableTabBar(QW_QTabBar):
-    # Signals
-    dataTableNameChanged = QC.Signal([int, str])
-
     # Initialize DataTableTabBar class
     def __init__(self, *args, **kwargs):
         # Call super constructor

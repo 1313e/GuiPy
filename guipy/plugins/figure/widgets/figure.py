@@ -14,8 +14,9 @@ Figure Widget
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.widgets import (
-    QW_QLabel, QW_QSpinBox, QW_QWidget, get_modified_box_signal, set_box_value)
+from guipy.layouts import QW_QVBoxLayout
+from guipy.plugins.figure.widgets.options import FigureOptions
+from guipy.widgets import QW_QWidget
 
 # All declaration
 __all__ = ['FigureWidget']
@@ -25,7 +26,10 @@ __all__ = ['FigureWidget']
 # Define class for the Figure widget
 class FigureWidget(QW_QWidget):
     # Initialize FigureWidget
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, data_table_obj, parent=None, *args, **kwargs):
+        # Save provided data table object
+        self.data_table = data_table_obj
+
         # Call super constructor
         super().__init__(parent)
 
@@ -35,6 +39,9 @@ class FigureWidget(QW_QWidget):
     # This function sets up the figure widget
     def init(self):
         # Create a layout
-        layout = QW.QVBoxLayout()
+        layout = QW_QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+
+        # Create an options box for this figure
+        layout.addWidget(FigureOptions(self.data_table, self))

@@ -446,7 +446,16 @@ class QW_QMessageBox(QW.QMessageBox, QW_QDialog):
 
 # Create custom QTabBar class
 class QW_QTabBar(QW.QTabBar, QW_QWidget):
-    pass
+    # Signals
+    tabNameChanged = QC.Signal([int, str])
+
+    # Override setTabText to emit a signal whenever it is called
+    def setTabText(self, index, name):
+        # Emit signal
+        self.tabNameChanged.emit(index, name)
+
+        # Call super method
+        return(super().setTabText(index, name))
 
 
 # Create custom QTableView class
@@ -464,6 +473,11 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
 
     """
 
+    # Signals
+    tabNameChanged = QC.Signal([int, str])
+    tabWasInserted = QC.Signal([int], [int, str])
+    tabWasRemoved = QC.Signal([int])
+
     # Override addTab to automatically translate the given tab name
     def addTab(self, widget, label, icon=None):
         # Translate text
@@ -474,6 +488,35 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
             return(super().addTab(widget, label))
         else:
             return(super().addTab(widget, icon, label))
+
+    # Override setTabBar to automatically connect some signals
+    def setTabBar(self, tabbar):
+        # Connect the tabNameChanged signals
+        tabbar.tabNameChanged.connect(self.tabNameChanged)
+
+        # Call super method
+        return(super().setTabBar(tabbar))
+
+    # Override tabInserted to emit a signal whenever it is called
+    def tabInserted(self, index):
+        # Emit tabWasInserted signal
+        self.tabWasInserted[int].emit(index)
+        self.tabWasInserted[int, str].emit(index, self.tabText(index))
+
+        # Call super method
+        super().tabInserted(index)
+
+    # Override tabRemoved to emit a signal whenever it is called
+    def tabRemoved(self, index):
+        # Emit tabWasRemoved signal
+        self.tabWasRemoved.emit(index)
+
+        # Call super method
+        super().tabRemoved(index)
+
+    # Define function that returns a list of all tab names
+    def tabNames(self):
+        return(list(map(self.tabText, range(self.count()))))
 
 
 # Create custom QTextEdit class

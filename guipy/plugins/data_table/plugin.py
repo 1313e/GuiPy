@@ -51,7 +51,7 @@ class DataTable(BasePluginWidget):
 
         # Create a tab widget
         tab_widget = QW_QTabWidget()
-        tab_widget.setTabBar(DataTableTabBar(tab_widget))
+        tab_widget.setTabBar(DataTableTabBar())
         tab_widget.setElideMode(QC.Qt.ElideNone)
         tab_widget.setMovable(True)
         tab_widget.setTabsClosable(True)
@@ -95,6 +95,7 @@ class DataTable(BasePluginWidget):
             triggered=self.add_tab,
             role=QW_QAction.ApplicationSpecificRole)
         self.MENU_ACTIONS['File/New'].append(new_tab_act)
+        self.MENU_ACTIONS['File/New'].append(self.add_tab)
 
         # Add open tabs action to file menu/toolbar
         open_tabs_act = QW_QAction(

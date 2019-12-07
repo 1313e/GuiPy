@@ -9,17 +9,15 @@ Figure Plugin
 
 # %% IMPORTS
 # Built-in imports
-from os import path
 
 # Package imports
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.config import FILE_FILTERS
+from guipy.layouts import QW_QVBoxLayout
 from guipy.plugins.base import BasePluginWidget
 from guipy.plugins.figure.widgets import FigureWidget
-from guipy.widgets import (
-    QW_QAction, QW_QTabWidget, getOpenFileNames, getSaveFileName)
+from guipy.widgets import QW_QAction, QW_QTabWidget
 
 # All declaration
 __all__ = ['Figure']
@@ -31,11 +29,12 @@ class Figure(BasePluginWidget):
     # Properties
     TITLE = "Figure"
     LOCATION = QC.Qt.RightDockWidgetArea
-    MENU_ACTIONS = {}
-    TOOLBAR_ACTIONS = {}
 
     # Initialize Figure plugin
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, data_table_obj, parent=None, *args, **kwargs):
+        # Save provided data table object
+        self.data_table = data_table_obj
+
         # Call super constructor
         super().__init__(parent)
 
@@ -45,7 +44,7 @@ class Figure(BasePluginWidget):
     # This function sets up the figure plugin
     def init(self):
         # Create a layout
-        layout = QW.QVBoxLayout()
+        layout = QW_QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
@@ -79,13 +78,25 @@ class Figure(BasePluginWidget):
 
     # This function adds all associated actions to the menus and toolbars
     def add_actions(self):
-        pass
+        # Initialize empty action lists for this plugin
+        self.MENU_ACTIONS = {
+            'File/New': []}
+
+        # Add new figure action to file/new menu
+        # TODO: Should shortcut be CTRL+F? Might clash with expectations
+        new_tab_act = QW_QAction(
+            self, '&Figure',
+            shortcut=QC.Qt.CTRL + QC.Qt.Key_F,
+            tooltip="New figure",
+            triggered=self.add_tab,
+            role=QW_QAction.ApplicationSpecificRole)
+        self.MENU_ACTIONS['File/New'].append(new_tab_act)
 
     # This function adds a new figure widget
     @QC.Slot()
     def add_tab(self, name=None):
         # Create a new FigureWidget
-        figure = FigureWidget(self)
+        figure = FigureWidget(self.data_table, self)
 
         # If name is None, set it to default
         if name is None:

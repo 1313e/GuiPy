@@ -14,6 +14,7 @@ Data Table View
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
+from guipy.layouts import QW_QFormLayout
 from guipy.plugins.data_table.widgets.headers import (
     HorizontalHeaderView, VerticalHeaderView)
 from guipy.plugins.data_table.widgets.model import DataTableModel
@@ -369,7 +370,7 @@ class HorizontalHeaderPopup(QW_QDialog):
             QC.Qt.FramelessWindowHint)
 
         # Create a form layout
-        layout = QW.QFormLayout()
+        layout = QW_QFormLayout()
         self.setLayout(layout)
 
         # Add a label stating the base name of the column

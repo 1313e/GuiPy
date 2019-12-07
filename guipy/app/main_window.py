@@ -290,14 +290,12 @@ class MainWindow(QW_QMainWindow):
 
         """
 
-        # Create list with all the plugins required
-        plugins = [
-            DataTable,
-            Figure]
+        # Initialize the DataTable plugin
+        data_table = DataTable(self)
+        self.add_dockwidget(data_table)
 
-        # Initialize every required plugin
-        for plugin in plugins:
-            self.add_dockwidget(plugin(self))
+        # Initialize the Figure plugin
+        self.add_dockwidget(Figure(data_table, self))
 
     # This function adds a dock widget to the main window
     def add_dockwidget(self, plugin):
@@ -363,9 +361,12 @@ class MainWindow(QW_QMainWindow):
                 # Else, if action is a string, add a new section
                 elif isinstance(action, str):
                     menu.addSection(action)
-                # Else, add the action to the menu
-                else:
+                # Else, if action is an action, add a new action
+                elif isinstance(action, QW.QAction):
                     menu.addAction(action)
+                # Else, set provided function as the default action
+                else:
+                    menu.menuAction().triggered.connect(action)
 
     # This function adds all actions defined in a dict to the proper toolbars
     def add_toolbar_actions(self, actions_dict):
