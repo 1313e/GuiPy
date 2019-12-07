@@ -434,7 +434,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
     # This function sets the dtype of a column
     # TODO: If auto-conversion is not possible, ask user if the column should
-    # be cleared instead
+    # be cleared first instead
     @QC.Slot(int, str)
     def setColumnDataType(self, col, dtype):
         # Get the requested column

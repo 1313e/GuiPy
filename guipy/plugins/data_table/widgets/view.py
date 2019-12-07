@@ -368,22 +368,21 @@ class HorizontalHeaderPopup(QW_QDialog):
             QC.Qt.Popup |
             QC.Qt.FramelessWindowHint)
 
-        # Create a grid layout
-        layout = QW.QGridLayout()
+        # Create a form layout
+        layout = QW.QFormLayout()
         self.setLayout(layout)
 
         # Add a label stating the base name of the column
         self.base_name_label = QW_QLabel("")
         self.base_name_label.setAlignment(QC.Qt.AlignCenter)
-        layout.addWidget(self.base_name_label, 0, 0, 1, -1)
+        layout.addRow(self.base_name_label)
 
         # Create a n_val label
         n_val_box = QW_QLabel()
         n_val_box.setToolTip("Number of values in this column")
 
         # Add it to the layout
-        layout.addWidget(QW_QLabel("# of values"), 1, 0)
-        layout.addWidget(n_val_box, 1, 1)
+        layout.addRow("# of values", n_val_box)
         self.n_val_box = n_val_box
 
         # Create a name line-edit
@@ -393,8 +392,7 @@ class HorizontalHeaderPopup(QW_QDialog):
         get_modified_box_signal(name_box).connect(self.column_name_changed)
 
         # Add it to the layout
-        layout.addWidget(QW_QLabel("Name"), 2, 0)
-        layout.addWidget(name_box, 2, 1)
+        layout.addRow("Name", name_box)
         self.name_box = name_box
 
         # Create a dtype combobox
@@ -404,8 +402,7 @@ class HorizontalHeaderPopup(QW_QDialog):
         dtype_box.popup_hidden.connect(lambda: name_box.setFocus(True))
 
         # Add it to the layout
-        layout.addWidget(QW_QLabel("Data type"), 3, 0)
-        layout.addWidget(dtype_box, 3, 1)
+        layout.addRow("Data type", dtype_box)
         self.dtype_box = dtype_box
 
     # Override eventFilter to filter out clicks, ESC and Enter

@@ -31,10 +31,9 @@ __all__ = ['DataTable']
 class DataTable(BasePluginWidget):
     # Properties
     TITLE = "Data table"
-    MENU_ACTIONS = {
-        'File': []}
-    TOOLBAR_ACTIONS = {
-        'File': []}
+    LOCATION = QC.Qt.LeftDockWidgetArea
+    MENU_ACTIONS = {}
+    TOOLBAR_ACTIONS = {}
 
     # Initialize DataTable plugin
     def __init__(self, parent=None, *args, **kwargs):
@@ -86,6 +85,12 @@ class DataTable(BasePluginWidget):
 
 
         """
+
+        # Initialize empty action lists for this plugin
+        self.MENU_ACTIONS.update({
+            'File': []})
+        self.TOOLBAR_ACTIONS.update({
+            'File': []})
 
         # Add new tab action to file menu/toolbar
         new_tab_act = QW_QAction(

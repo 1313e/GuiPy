@@ -40,8 +40,6 @@ class BasePlugin(object):
 class BasePluginWidget(BaseBox, BasePlugin):
     # Define class attributes
     LOCATION = QC.Qt.LeftDockWidgetArea
-    MENU_ACTIONS = {}
-    TOOLBAR_ACTIONS = {}
 
     # Property for location of this plugin widget
     @property
@@ -51,9 +49,10 @@ class BasePluginWidget(BaseBox, BasePlugin):
     # Property for top-level menu actions of this plugin widget
     @property
     def menu_actions(self):
-        return(self.MENU_ACTIONS)
+        return(self.MENU_ACTIONS if hasattr(self, 'MENU_ACTIONS') else {})
 
     # Property for toolbar actions of this plugin widget
     @property
     def toolbar_actions(self):
-        return(self.TOOLBAR_ACTIONS)
+        return(self.TOOLBAR_ACTIONS if hasattr(self, 'TOOLBAR_ACTIONS')
+               else {})
