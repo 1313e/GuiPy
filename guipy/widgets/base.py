@@ -24,8 +24,8 @@ __all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDialog', 'QW_QDockWidget',
            'QW_QDoubleSpinBox', 'QW_QEditableComboBox', 'QW_QFileDialog',
            'QW_QHeaderView', 'QW_QLabel', 'QW_QLineEdit', 'QW_QMainWindow',
            'QW_QMenu', 'QW_QMessageBox', 'QW_QSpinBox', 'QW_QTabBar',
-           'QW_QTableView', 'QW_QTabWidget', 'QW_QToolBar', 'QW_QToolTip',
-           'QW_QWidget']
+           'QW_QTableView', 'QW_QTabWidget', 'QW_QTextEdit', 'QW_QToolBar',
+           'QW_QToolTip', 'QW_QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -363,7 +363,8 @@ class QW_QMenu(QW.QMenu, QW_QWidget):
 
     """
 
-    def __init__(self, name, title=None, parent=None):
+    def __init__(self, name, title=None, parent=None, *, tooltip=None,
+                 statustip=None):
         # Save name
         self.name = name
 
@@ -373,6 +374,58 @@ class QW_QMenu(QW.QMenu, QW_QWidget):
 
         # Call super constructor
         super().__init__(tr(title), parent)
+
+        # Set all the details
+        self.setDetails(tooltip=tooltip,
+                        statustip=statustip)
+
+    # Make new method that automatically sets ToolTip and StatusTip
+    def setDetails(self, *, tooltip=None, statustip=None):
+        """
+        Uses the provided `tooltip` and `statustip` to set the details of this
+        menu action.
+
+        Parameters
+        ----------
+        tooltip : str or None. Default: None
+            The text that must be set as the tooltip for this menu.
+            If *None*, the tooltip is set to `title`.
+        statustip : str or None. Default: None
+            The text that must be set as the statustip for this menu.
+            If *None*, the statustip is set to `tooltip`.
+
+        """
+
+        # Obtain the action that triggers this menu
+        menu_action = self.menuAction()
+
+        # Translate tooltip and statustip
+        tooltip = tr(tooltip) if tooltip is not None else None
+        statustip = tr(statustip) if statustip is not None else None
+
+        # If tooltip is None, it is set to the menu's name
+        if tooltip is None:
+            tooltip = self.title().replace('&', '')
+
+        # Set tooltip
+        menu_action.setToolTip(tooltip)
+
+        # If statustip is None, it is set to tooltip
+        if statustip is None:
+            statustip = tooltip
+
+        # Set statustip
+        menu_action.setStatusTip(statustip)
+
+    # Override setToolTip to raise an error when used
+    def setToolTip(self, *args, **kwargs):
+        raise AttributeError("Using this method is not allowed! Use "
+                             "'setDetails()' instead!")
+
+    # Override setStatusTip to raise an error when used
+    def setStatusTip(self, *args, **kwargs):
+        raise AttributeError("Using this method is not allowed! Use "
+                             "'setDetails()' instead!")
 
     # Override addSection to automatically translate the given section name
     def addSection(self, text, icon=None):
@@ -423,6 +476,11 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
             return(super().addTab(widget, icon, label))
 
 
+# Create custom QTextEdit class
+class QW_QTextEdit(QW.QTextEdit, QW_QWidget):
+    pass
+
+
 # Create custom QToolbar class
 class QW_QToolBar(QW.QToolBar, QW_QWidget):
     """
@@ -443,6 +501,14 @@ class QW_QToolBar(QW.QToolBar, QW_QWidget):
 
         # Call super constructor
         super().__init__(tr(title), parent)
+
+    # This function retrieves the action of a menu and adds it to the toolbar
+    def addMenu(self, menu):
+        # Obtain the action associated with this menu
+        action = menu.menuAction()
+
+        # Add this action
+        self.addAction(action)
 
 
 # Create custom QToolTip class

@@ -16,7 +16,9 @@ from traceback import format_exception_only, format_tb
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.widgets import QW_QDialog
+from guipy.layouts import QW_QVBoxLayout
+from guipy.widgets import (
+    QW_QDialog, QW_QLabel, QW_QMessageBox, QW_QTextEdit, QW_QWidget)
 
 
 # All declaration
@@ -93,8 +95,8 @@ class ExceptionDialog(QW_QDialog):
             QC.Qt.WindowCloseButtonHint)
 
         # Set the icon of the exception on the left
-        icon_label = QW.QLabel()
-        pixmap = QW.QMessageBox.standardIcon(QW.QMessageBox.Critical)
+        icon_label = QW_QLabel()
+        pixmap = QW_QMessageBox.standardIcon(QW_QMessageBox.Critical)
         icon_label.setPixmap(pixmap)
         grid_layout.addWidget(icon_label, 0, 0, 2, 1, QC.Qt.AlignTop)
 
@@ -105,7 +107,7 @@ class ExceptionDialog(QW_QDialog):
 
         # Set the text of the exception
         exc_str = self.format_exception()
-        exc_label = QW.QLabel(exc_str)
+        exc_label = QW_QLabel(exc_str)
         grid_layout.addWidget(exc_label, 0, 2, 1, 1)
 
         # Create a button box for the buttons
@@ -167,25 +169,22 @@ class ExceptionDialog(QW_QDialog):
         """
 
         # Create a traceback box
-        traceback_box = QW.QWidget(self)
+        traceback_box = QW_QWidget(self)
         traceback_box.setHidden(True)
 
         # Create layout
-        layout = QW.QVBoxLayout()
+        layout = QW_QVBoxLayout()
         layout.setContentsMargins(QC.QMargins())
         traceback_box.setLayout(layout)
 
         # Add a horizontal line to the layout
-        frame = QW.QFrame(traceback_box)
-        frame.setFrameShape(frame.HLine)
-        frame.setFrameShadow(frame.Sunken)
-        layout.addWidget(frame)
+        layout.addSeparator()
 
         # Format the traceback
         tb_str = self.format_traceback()
 
         # Add a textedit to the layout
-        tb_text_box = QW.QTextEdit(traceback_box)
+        tb_text_box = QW_QTextEdit(traceback_box)
         tb_text_box.setMinimumHeight(100)
         tb_text_box.setFocusPolicy(QC.Qt.NoFocus)
         tb_text_box.setReadOnly(True)

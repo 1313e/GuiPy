@@ -14,6 +14,7 @@ Data Table Widget
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
+from guipy.layouts import QW_QHBoxLayout, QW_QVBoxLayout
 from guipy.plugins.data_table.widgets.view import DataTableView
 from guipy.widgets import (
     QW_QLabel, QW_QSpinBox, QW_QWidget, get_modified_box_signal, set_box_value)
@@ -40,12 +41,12 @@ class DataTableWidget(QW_QWidget):
     # This function sets up the data table widget
     def init(self, import_func=None):
         # Create a layout
-        layout = QW.QVBoxLayout()
+        layout = QW_QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         # Create a dimensions layout
-        dimensions_layout = QW.QHBoxLayout()
+        dimensions_layout = QW_QHBoxLayout()
         layout.addLayout(dimensions_layout)
 
         # Add a label to this layout

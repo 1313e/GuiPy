@@ -16,6 +16,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.config import FILE_FILTERS
+from guipy.layouts import QW_QVBoxLayout
 from guipy.plugins.base import BasePluginWidget
 from guipy.plugins.data_table.formatters import FORMATTERS
 from guipy.plugins.data_table.widgets import DataTableTabBar, DataTableWidget
@@ -32,8 +33,6 @@ class DataTable(BasePluginWidget):
     # Properties
     TITLE = "Data table"
     LOCATION = QC.Qt.LeftDockWidgetArea
-    MENU_ACTIONS = {}
-    TOOLBAR_ACTIONS = {}
 
     # Initialize DataTable plugin
     def __init__(self, parent=None, *args, **kwargs):
@@ -46,7 +45,7 @@ class DataTable(BasePluginWidget):
     # This function sets up the data table plugin
     def init(self):
         # Create a layout
-        layout = QW.QVBoxLayout()
+        layout = QW_QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
@@ -81,29 +80,21 @@ class DataTable(BasePluginWidget):
 
     # This function adds all associated actions to the menus and toolbars
     def add_actions(self):
-        """
-
-
-        """
-
         # Initialize empty action lists for this plugin
-        self.MENU_ACTIONS.update({
-            'File': []})
-        self.TOOLBAR_ACTIONS.update({
-            'File': []})
+        self.MENU_ACTIONS = {
+            'File': [],
+            'File/New': []}
+        self.TOOLBAR_ACTIONS = {
+            'File': []}
 
-        # Add new tab action to file menu/toolbar
+        # Add new tab action to file/new menu
         new_tab_act = QW_QAction(
-            self, '&New...',
-            shortcut=QC.Qt.CTRL + QC.Qt.Key_N,
+            self, 'Data &table',
+            shortcut=QC.Qt.CTRL + QC.Qt.Key_T,
             tooltip="New data table",
             triggered=self.add_tab,
             role=QW_QAction.ApplicationSpecificRole)
-        self.MENU_ACTIONS['File'].append(new_tab_act)
-        self.TOOLBAR_ACTIONS['File'].append(new_tab_act)
-
-        # Add separator to file menu
-        self.MENU_ACTIONS['File'].append(None)
+        self.MENU_ACTIONS['File/New'].append(new_tab_act)
 
         # Add open tabs action to file menu/toolbar
         open_tabs_act = QW_QAction(
@@ -170,6 +161,9 @@ class DataTable(BasePluginWidget):
             role=QW_QAction.ApplicationSpecificRole)
         self.MENU_ACTIONS['File'].append(export_tab_act)
         self.TOOLBAR_ACTIONS['File'].append(export_tab_act)
+
+        # Add separator to file menu
+        self.MENU_ACTIONS['File'].append(None)
 
     # This function adds a new data table widget
     @QC.Slot()

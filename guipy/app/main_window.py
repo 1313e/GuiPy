@@ -174,6 +174,12 @@ class MainWindow(QW_QMainWindow):
         submenus['Help'] = []
 
         # SUBMENUS
+        # Add a New menu to file menu
+        submenus['File'].append(QW_QMenu('New', '&New...'))
+
+        # Add a separator to file menu
+        submenus['File'].append(None)
+
         # Add a docks menu to view menu
         submenus['View'].append(QW_QMenu('Docks', '&Docks'))
 
@@ -217,12 +223,21 @@ class MainWindow(QW_QMainWindow):
 
         """
 
-        # Make empty dict of toolbars
+        # Make empty dict of toolbars and actions
         self.toolbars = {}
+        actions = {}
 
         # FILE
         # Create file toolbar
         self.addToolBar(QW_QToolBar('File', 'File toolbar'))
+        actions['File'] = []
+
+        # ACTIONS
+        # Add the File/New menu to the File toolbar
+        actions['File'].append(self.menus['File/New'])
+
+        # Add all actions
+        self.add_toolbar_actions(actions)
 
     # This function adds all core actions to the menubar
     def add_core_actions(self):
@@ -309,6 +324,10 @@ class MainWindow(QW_QMainWindow):
         # Add all menu actions of this plugin to the proper menus
         self.add_menu_actions(plugin.menu_actions)
 
+        # Add all toolbars of this plugin to the main window
+        for toolbar in plugin.toolbars:
+            self.addToolBar(toolbar)
+
         # Add all toolbar actions of this plugin to the proper toolbars
         self.add_toolbar_actions(plugin.toolbar_actions)
 
@@ -328,7 +347,10 @@ class MainWindow(QW_QMainWindow):
         # Loop over all menus in actions_dict
         for menu_name, actions in actions_dict.items():
             # Obtain the corresponding menu
-            menu = self.menus[menu_name]
+            if menu_name is None:
+                menu = self.menuBar()
+            else:
+                menu = self.menus[menu_name]
 
             # Loop over all actions that must be added to this menu
             for action in actions:
@@ -344,9 +366,6 @@ class MainWindow(QW_QMainWindow):
                 # Else, add the action to the menu
                 else:
                     menu.addAction(action)
-
-            # Add a final separator
-            menu.addSeparator()
 
     # This function adds all actions defined in a dict to the proper toolbars
     def add_toolbar_actions(self, actions_dict):
@@ -371,6 +390,12 @@ class MainWindow(QW_QMainWindow):
                 # If action is None, add a toolbar separator
                 if action is None:
                     toolbar.addSeparator()
+                # Else, if action is a menu, add a new menu
+                elif isinstance(action, QW_QMenu):
+                    toolbar.addMenu(action)
+                # Else, if action is a widget, add a new widget
+                elif isinstance(action, QW.QWidget):
+                    toolbar.addWidget(action)
                 # Else, add the action to the toolbar
                 else:
                     toolbar.addAction(action)

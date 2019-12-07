@@ -51,6 +51,11 @@ class BasePluginWidget(BaseBox, BasePlugin):
     def menu_actions(self):
         return(self.MENU_ACTIONS if hasattr(self, 'MENU_ACTIONS') else {})
 
+    # Property for toolbars of this plugin widget
+    @property
+    def toolbars(self):
+        return(self.TOOLBARS if hasattr(self, 'TOOLBARS') else [])
+
     # Property for toolbar actions of this plugin widget
     @property
     def toolbar_actions(self):
