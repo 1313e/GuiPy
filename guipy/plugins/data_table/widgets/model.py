@@ -387,7 +387,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # If count is equal to columnCount, remove all rows first
         if(self.columnCount() == count):
-            self.removeRows(self.rowCount())
+            self.removeRows(None, self.rowCount())
 
         # Notify other functions that columns are going to be removed
         self.beginRemoveColumns(parent, col, col+count-1)
