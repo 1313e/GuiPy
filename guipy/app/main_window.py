@@ -119,33 +119,30 @@ class MainWindow(QW_QMainWindow):
         self.statusbar = self.statusBar()
 
     # This function adds a given menu to the top-level menu
-    def addMenu(self, menu, parent_name=None):
+    def addMenu(self, menu, parent_menu):
         """
-        Adds a provided `menu` to the top-level menubar and registers it.
+        Adds a provided `menu` to the `parent_menu` and registers it.
 
         Parameters
         ----------
         menu : :obj:`~guipy.widgets.QW_QMenu` object
             The menu object that must be added to the top-level menubar.
-
-        Optional
-        --------
-        parent_name : str or None. Default: None
-            If str, adds the provided `menu` to the menu with the given
-            `parent_name`.
-            If *None*, adds `menu` to the top-level menubar instead.
+        parent_menu : :obj:`~guipy.widgets.QW_QMenu` or \
+            :obj:`~PyQt5.QtWidgets.QMenuBar` object
+            The menu(bar) object to which the provided `menu` must be added.
 
         """
 
-        # If parent_name is None, add given menu to the menubar
-        if parent_name is None:
-            self.menuBar().addMenu(menu)
+        # Add menu to the provided parent_menu
+        parent_menu.addMenu(menu)
+
+        # If parent_menu is the menubar, register menu as top-level
+        if parent_menu is self.menuBar():
             self.menus[menu.name] = menu
 
-        # If not, add it to the parent menu with the given name
+        # Else, add it to the parent menu with the given name
         else:
-            self.menus[parent_name].addMenu(menu)
-            self.menus["%s/%s" % (parent_name, menu.name)] = menu
+            self.menus["%s/%s" % (parent_menu.name, menu.name)] = menu
 
     # This function creates the top-level menus in the viewer
     def create_menus(self):
@@ -157,40 +154,40 @@ class MainWindow(QW_QMainWindow):
         """
 
         # TOP-LEVEL MENUS
-        # Make empty dict of top-level menus and submenus
+        # Make empty dict of top-level menus and actions
         self.menus = {}
-        submenus = {}
+        actions = {None: []}
 
         # Create file menu
-        self.addMenu(QW_QMenu('File', '&File'))
-        submenus['File'] = []
+        actions[None].append(QW_QMenu('File', '&File'))
+        actions['File'] = []
 
         # Create view menu
-        self.addMenu(QW_QMenu('View', '&View'))
-        submenus['View'] = []
+        actions[None].append(QW_QMenu('View', '&View'))
+        actions['View'] = []
 
         # Create help menu
-        self.addMenu(QW_QMenu('Help', '&Help'))
-        submenus['Help'] = []
+        actions[None].append(QW_QMenu('Help', '&Help'))
+        actions['Help'] = []
 
         # SUBMENUS
         # Add a New menu to file menu
-        submenus['File'].append(QW_QMenu('New', '&New...'))
+        actions['File'].append(QW_QMenu('New', '&New...'))
 
         # Add a separator to file menu
-        submenus['File'].append(None)
+        actions['File'].append(None)
 
         # Add a docks menu to view menu
-        submenus['View'].append(QW_QMenu('Docks', '&Docks'))
+        actions['View'].append(QW_QMenu('Docks', '&Docks'))
 
         # Add a separator to view menu
-        submenus['View'].append(None)
+        actions['View'].append(None)
 
         # Add a toolbars menu to view menu
-        submenus['View'].append(QW_QMenu('Toolbars', '&Toolbars'))
+        actions['View'].append(QW_QMenu('Toolbars', '&Toolbars'))
 
-        # Add all submenus
-        self.add_menu_actions(submenus)
+        # Add all menus and actions
+        self.add_menu_actions(actions)
 
     # Override addToolBar to register an action for toggling the toolbar
     def addToolBar(self, toolbar):
@@ -340,6 +337,25 @@ class MainWindow(QW_QMainWindow):
         actions_dict : dict of lists
             Dict containing the actions that need to be added to what menu.
 
+        Dict variables
+        --------------
+        keyword : str or None
+            String specifying to which menu all associated actions should be
+            added. If *None*, the actions are added to the top-level menubar
+            instead.
+        actions : list of {None; :obj:`~guipy.widgets.QW_QMenu`; str; \
+                           :obj:`~PyQt5.QtWidgets.QAction`; \
+                           :obj:`~PyQt5.QtCore.Slot`}
+            A list containing all actions that must be added to the menu
+            specified with `keyword`.
+            If *None*, a separator is added.
+            If :obj:`~guipy.widgets.QW_QMenu` object, the given menu is added
+            and registered.
+            If str, a section with the given name is added.
+            If :obj:`~PyQt5.QtWidgets.QAction`, the given action is added.
+            If :obj:`~PyQt5.QtCore.Slot`, the given slot is connected to the
+            menu's action's :attr:`~PyQt5.QtWidgets.QAction.triggered` signal.
+
         """
 
         # Loop over all menus in actions_dict
@@ -357,7 +373,7 @@ class MainWindow(QW_QMainWindow):
                     menu.addSeparator()
                 # Else, if action is a menu, add a new menu
                 elif isinstance(action, QW_QMenu):
-                    self.addMenu(action, menu_name)
+                    self.addMenu(action, menu)
                 # Else, if action is a string, add a new section
                 elif isinstance(action, str):
                     menu.addSection(action)
@@ -378,6 +394,22 @@ class MainWindow(QW_QMainWindow):
         ----------
         actions_dict : dict of lists
             Dict containing the actions that need to be added to what toolbar.
+
+        Dict variables
+        --------------
+        keyword : str
+            String specifying to which toolbar all associated actions should be
+            added.
+        actions : list of {None; :obj:`~guipy.widgets.QW_QMenu`; \
+                           :obj:`~PyQt5.QtWidgets.QWidget`; \
+                           :obj:`~PyQt5.QtWidgets.QAction`}
+            A list containing all actions that must be added to the toolbar
+            specified with `keyword`.
+            If *None*, a separator is added.
+            If :obj:`~guipy.widgets.QW_QMenu` object, the action of the given
+            menu is added.
+            If :obj:`~PyQt5.QtWidgets.QWidget`, the given widget is added.
+            If :obj:`~PyQt5.QtWidgets.QAction`, the given action is added.
 
         """
 

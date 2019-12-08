@@ -207,7 +207,7 @@ class ExceptionDialog(QW_QDialog):
         """
 
         # Toggle the visibility of the traceback box
-        self.tb_box.setHidden(not self.tb_box.isHidden())
+        self.tb_box.setVisible(self.tb_box.isHidden())
         self.tb_but.setText(self.tb_labels[self.tb_box.isHidden()])
 
         # Update the size of the message box
