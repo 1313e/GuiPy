@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Data Table Tab Bar
-==================
+Tab Bars
+========
 
 """
 
@@ -17,12 +17,42 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from guipy.widgets import QW_QLineEdit, QW_QTabBar, get_box_value
 
 # All declaration
-__all__ = ['DataTableNameEditor', 'DataTableTabBar']
+__all__ = ['EditableTabBar', 'TabNameEditor']
 
 
 # %% CLASS DEFINITIONS
-# Custom QLineEdit used for renaming a data table
-class DataTableNameEditor(QW_QLineEdit):
+# Custom QTabBar definition that allows for tab names to be edited
+class EditableTabBar(QW_QTabBar):
+    # Initialize EditableTabBar class
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+        # Set up the tab bar
+        self.init()
+
+    # This function sets up the editable tab bar
+    def init(self):
+        # Connecting signals
+        self.tabBarDoubleClicked.connect(self.edit_tab_name)
+
+        # Initialize a tab name editor
+        self.name_editor = TabNameEditor(self)
+
+    # This function edits the name of a tab
+    @QC.Slot(int)
+    def edit_tab_name(self, index):
+        """
+        Edits the name of the tab given by the provided `index`.
+
+        """
+
+        # Open tab name editor
+        self.name_editor(index)
+
+
+# Custom QLineEdit used for renaming a tab
+class TabNameEditor(QW_QLineEdit):
     def __init__(self, *args, **kwargs):
         # Call super constructor
         super().__init__(*args, **kwargs)
@@ -106,7 +136,7 @@ class DataTableNameEditor(QW_QLineEdit):
     def set_tab_name(self):
         """
         Sets the name of the tab that was being edited when this
-        :obj:`~DataTableNameEditor` was called.
+        :obj:`~TabNameEditor` was called.
 
         """
 
@@ -117,33 +147,3 @@ class DataTableNameEditor(QW_QLineEdit):
         if name:
             # Set the name of the tab indicated with index
             self.parent().setTabText(self.index, name)
-
-
-# Custom QTabBar definition for the DataTable plugin
-class DataTableTabBar(QW_QTabBar):
-    # Initialize DataTableTabBar class
-    def __init__(self, *args, **kwargs):
-        # Call super constructor
-        super().__init__(*args, **kwargs)
-
-        # Set up the tab bar
-        self.init()
-
-    # This function sets up the data table tab bar
-    def init(self):
-        # Connecting signals
-        self.tabBarDoubleClicked.connect(self.edit_tab_name)
-
-        # Initialize a tab name editor
-        self.name_editor = DataTableNameEditor(self)
-
-    # This function edits the name of a data table tab
-    @QC.Slot(int)
-    def edit_tab_name(self, index):
-        """
-        Edits the name of the data table tab given by the provided `index`.
-
-        """
-
-        # Open tab name editor
-        self.name_editor(index)

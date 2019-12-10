@@ -19,9 +19,10 @@ from guipy.config import FILE_FILTERS
 from guipy.layouts import QW_QVBoxLayout
 from guipy.plugins.base import BasePluginWidget
 from guipy.plugins.data_table.formatters import FORMATTERS
-from guipy.plugins.data_table.widgets import DataTableTabBar, DataTableWidget
+from guipy.plugins.data_table.widgets import DataTableWidget
 from guipy.widgets import (
-    QW_QAction, QW_QTabWidget, getOpenFileNames, getSaveFileName)
+    EditableTabBar, QW_QAction, QW_QTabWidget, getOpenFileNames,
+    getSaveFileName)
 
 # All declaration
 __all__ = ['DataTable']
@@ -51,7 +52,7 @@ class DataTable(BasePluginWidget):
 
         # Create a tab widget
         tab_widget = QW_QTabWidget()
-        tab_widget.setTabBar(DataTableTabBar())
+        tab_widget.setTabBar(EditableTabBar())
         tab_widget.setElideMode(QC.Qt.ElideNone)
         tab_widget.setMovable(True)
         tab_widget.setTabsClosable(True)

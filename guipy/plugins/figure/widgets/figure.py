@@ -43,11 +43,11 @@ class FigureWidget(QW_QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        # Add a dummy widget
-        layout.addWidget(QW_QWidget())
+        # Create an options box for this figure and add it
+        layout.addWidget(FigureOptions(self.data_table, self))
 
         # Add a separator
         layout.addSeparator()
 
-        # Create an options box for this figure and add it
-        layout.addWidget(FigureOptions(self.data_table, self))
+        # Add a dummy widget
+        layout.addWidget(QW_QWidget())

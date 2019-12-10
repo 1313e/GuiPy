@@ -44,7 +44,7 @@ class FigureOptions(QW_QWidget):
 
         # Initialize options dialog
         self.options_dialog = FigureOptionsDialog(self)
-        self.labels = ['>>> Figure options...', '<<< Figure options...']
+        self.labels = ['>>> Figure &options...', '<<< Figure &options...']
 
         # Create main layout
         layout = QW_QHBoxLayout()
@@ -62,7 +62,8 @@ class FigureOptions(QW_QWidget):
         # Create combobox with available data tables
         tables_box = QW_QComboBox()
         tables_box.addItems(self.tab_widget.tabNames())
-        table_label = QW_QLabel("Data table: ")
+        table_label = QW_QLabel("Data &table: ")
+        table_label.setBuddy(tables_box)
         table_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         self.tables_box = tables_box
         layout.addWidget(table_label)
@@ -75,7 +76,8 @@ class FigureOptions(QW_QWidget):
 
         # Create combobox with available plot types
         types_box = QW_QComboBox()
-        plot_label = QW_QLabel("Plot type: ")
+        plot_label = QW_QLabel("&Plot type: ")
+        plot_label.setBuddy(types_box)
         plot_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         self.types_box = types_box
         layout.addWidget(plot_label)
@@ -108,6 +110,9 @@ class FigureOptionsDialog(QW_QDialog):
 
     # This function sets up the figure options dialog
     def init(self):
+        # Install event filter
+        self.installEventFilter(self)
+
         # Set dialog properties
         self.setWindowFlags(
             QC.Qt.Dialog |
@@ -140,12 +145,12 @@ class FigureOptionsDialog(QW_QDialog):
         # Call super event
         super().showEvent(event)
 
-        # Determine the position of the bottom left corner of the figure dock
-        dock_pos = self.figure_options.rect().bottomLeft()
+        # Determine the position of the top left corner of the figure dock
+        dock_pos = self.figure_options.rect().topLeft()
 
         # Determine the size of this dialog
         size = self.size()
-        size = QC.QPoint(size.width(), size.height())
+        size = QC.QPoint(size.width(), 0)
 
         # Determine position of top left corner
         dialog_pos = self.figure_options.mapToGlobal(dock_pos-size)
@@ -155,3 +160,16 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Move the dialog there
         self.move(dialog_pos)
+
+    # Override eventFilter to filter out clicks, ESC and Enter
+    def eventFilter(self, widget, event):
+        # Check if the event involves anything for which the popup should close
+        if((event.type() == QC.QEvent.KeyPress) and
+           event.key() in (QC.Qt.Key_Escape,)):
+            # Toggle the options dialog
+            self.figure_options.toggle_options_dialog()
+            return(True)
+
+        # Else, process events as normal
+        else:
+            return(super().eventFilter(widget, event))

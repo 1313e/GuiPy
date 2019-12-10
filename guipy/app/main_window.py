@@ -10,10 +10,13 @@ Provides the definition of the main window of the *GuiPy* application.
 
 # %% IMPORTS
 # Built-in imports
+import platform
+from struct import calcsize
 import sys
 from textwrap import dedent
 
 # Package imports
+import qtpy
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
@@ -449,10 +452,19 @@ class MainWindow(QW_QMainWindow):
             <b><a href="{github}">{name}</a> v{version}</b><br>
             Copyright &copy; 2019 Ellert van der Velden<br>
             Distributed under the
-            <a href="{github}/raw/master/LICENSE">BSD-3 License</a>.
+            <a href="{github}/raw/master/LICENSE">BSD-3 License</a>.<br>
+            <br>
+            {os_name} {os_release} | Python {python_version} {memsize}-bit |
+            Qt {Qt_version} | PyQt5 {PyQt5_version}
             """.format(name=APP_NAME,
                        version=__version__,
-                       github=github_repo))
+                       github=github_repo,
+                       os_name=platform.system(),
+                       os_release=platform.release(),
+                       python_version=platform.python_version(),
+                       memsize=calcsize('P')*8,
+                       Qt_version=qtpy.QT_VERSION,
+                       PyQt5_version=qtpy.PYQT_VERSION))
 
         # Create the 'about' dialog
         QW_QMessageBox.about(self, tr("About %s" % (APP_NAME)), tr(text))

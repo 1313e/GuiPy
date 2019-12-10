@@ -17,7 +17,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 from guipy.layouts import QW_QVBoxLayout
 from guipy.plugins.base import BasePluginWidget
 from guipy.plugins.figure.widgets import FigureWidget
-from guipy.widgets import QW_QAction, QW_QTabWidget
+from guipy.widgets import EditableTabBar, QW_QAction, QW_QTabWidget
 
 # All declaration
 __all__ = ['Figure']
@@ -50,6 +50,7 @@ class Figure(BasePluginWidget):
 
         # Create a tab widget
         tab_widget = QW_QTabWidget()
+        tab_widget.setTabBar(EditableTabBar())
         tab_widget.setElideMode(QC.Qt.ElideNone)
         tab_widget.setMovable(True)
         tab_widget.setTabsClosable(True)

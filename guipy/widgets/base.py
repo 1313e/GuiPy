@@ -21,11 +21,11 @@ from guipy.config import tr
 
 # All declaration
 __all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDialog', 'QW_QDockWidget',
-           'QW_QDoubleSpinBox', 'QW_QEditableComboBox', 'QW_QFileDialog',
-           'QW_QHeaderView', 'QW_QLabel', 'QW_QLineEdit', 'QW_QMainWindow',
-           'QW_QMenu', 'QW_QMessageBox', 'QW_QPushButton', 'QW_QSpinBox',
-           'QW_QTabBar', 'QW_QTableView', 'QW_QTabWidget', 'QW_QTextEdit',
-           'QW_QToolBar', 'QW_QToolTip', 'QW_QWidget']
+           'QW_QDoubleSpinBox', 'QW_QFileDialog', 'QW_QHeaderView',
+           'QW_QLabel', 'QW_QLineEdit', 'QW_QMainWindow', 'QW_QMenu',
+           'QW_QMessageBox', 'QW_QPushButton', 'QW_QSpinBox', 'QW_QTabBar',
+           'QW_QTableView', 'QW_QTabWidget', 'QW_QTextEdit', 'QW_QToolBar',
+           'QW_QToolTip', 'QW_QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -217,29 +217,13 @@ class QW_QComboBox(QW.QComboBox, QW_QWidget):
         return(super().hidePopup(*args, **kwargs))
 
 
-# Create custom QComboBox class that is editable
-class QW_QEditableComboBox(QW_QComboBox):
-    """
-    Defines the :class:`~QW_QEditableComboBox` class.
-
-    This class makes the :class:`~QW_QComboBox` class editable.
-
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setEditable(True)
-        self.setInsertPolicy(self.NoInsert)
-        self.completer().setCompletionMode(QW.QCompleter.PopupCompletion)
-        self.completer().setFilterMode(QC.Qt.MatchContains)
-
-
 # Create custom QDialog
 class QW_QDialog(QW.QDialog, QW_QWidget):
     pass
 
 
 # Create custom QDockWidget
+# TODO: Add a context menu button to all dockwidgets by default?
 class QW_QDockWidget(QW.QDockWidget, QW_QWidget):
     pass
 
@@ -469,6 +453,7 @@ class QW_QTableView(QW.QTableView, QW_QWidget):
 
 
 # Create custom QTabWidget class
+# TODO: Add a 'tab browser' menu button to all tab widgets by default?
 class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
     """
     Defines the :class:`~QW_QTabWidget` class.
