@@ -13,6 +13,7 @@ Starts the *GuiPy* application.
 import signal
 
 # Package imports
+import matplotlib.pyplot as plt
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
@@ -47,6 +48,9 @@ def main():
 
     # Replace KeyboardInterrupt error by system's default handler
     signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+    # Set MPL's backend to 'Agg'
+    plt.switch_backend('Agg')
 
     # Start application
     # TODO: Figure out why the event loop instantly returns -1 on Windows

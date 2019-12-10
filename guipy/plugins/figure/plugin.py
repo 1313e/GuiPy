@@ -97,7 +97,7 @@ class Figure(BasePluginWidget):
     @QC.Slot()
     def add_tab(self, name=None):
         # Create a new FigureWidget
-        figure = FigureWidget(self.data_table, self)
+        figure = FigureWidget(self.data_table, self.tab_widget.count(), self)
 
         # If name is None, set it to default
         if name is None:
