@@ -12,7 +12,6 @@ Figure Widget
 
 # Package imports
 import matplotlib.pyplot as plt
-import numpy as np
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
@@ -49,22 +48,19 @@ class FigureWidget(QW_QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        # Create an options box for this figure and add it
-        layout.addWidget(FigureOptions(self.data_table, self))
-
-        # Add a separator
-        layout.addSeparator()
-
         # Initialize figure
         self.figure, self.canvas, self.manager, self.toolbar =\
             self.create_figure()
 
+        # Create an options box for this figure and add it
+        layout.addWidget(FigureOptions(self.data_table, self.figure, self))
+
+        # Add a separator
+        layout.addSeparator()
+
         # Add figure canvas and toolbar to layout
         layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)
-
-        # For now, make a test plot
-        self.figure.gca().plot(np.linspace(1, 10))
 
     # This function creates and returns a figure
     def create_figure(self):

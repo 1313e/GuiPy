@@ -340,7 +340,7 @@ class HorizontalHeaderPopup(QW_QDialog):
         dtype = self.model.dtypes[column.dtype]
 
         # Determine the names of all other columns
-        used_column_names = set([col.name for col in self.model.column_list])
+        used_column_names = set(self.model.columnNames())
         used_column_names.difference_update(['', column.name])
         self.used_column_names = used_column_names
 

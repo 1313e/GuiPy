@@ -104,7 +104,7 @@ class BaseBox(QW_QWidget):
 
 # %% FUNCTION DEFINITIONS
 # This function gets the value of a provided box
-def get_box_value(box):
+def get_box_value(box, *args):
     """
     Retrieves the value of the provided widget `box` and returns it.
 
@@ -113,12 +113,15 @@ def get_box_value(box):
     # Values (QAbstractSpinBox)
     if isinstance(box, QW.QAbstractSpinBox):
         return(box.value())
-    # Bools (QAbstractButton)
+    # Bools/Buttons (QAbstractButton)
     elif isinstance(box, QW.QAbstractButton):
-        return(box.isChecked())
+        if box.isCheckable() and str not in args:
+            return(box.isChecked())
+        else:
+            return(box.text())
     # Items (QComboBox)
     elif isinstance(box, QW.QComboBox):
-        return(box.currentText())
+        return(box.currentIndex() if int in args else box.currentText())
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         return(box.text())
@@ -138,7 +141,7 @@ def get_box_value(box):
 
 
 # This function gets the emitted signal when a provided box is modified
-def get_modified_box_signal(box):
+def get_modified_box_signal(box, *args):
     """
     Retrieves the default modified signal of the provided widget `box` and
     returns it.
@@ -148,12 +151,13 @@ def get_modified_box_signal(box):
     # Values (QAbstractSpinBox)
     if isinstance(box, QW.QAbstractSpinBox):
         return(box.valueChanged)
-    # Bools (QAbstractButton)
+    # Bools/Buttons (QAbstractButton)
     elif isinstance(box, QW.QAbstractButton):
         return(box.toggled if box.isCheckable() else box.clicked)
     # Items (QComboBox)
     elif isinstance(box, QW.QComboBox):
-        return(box.currentTextChanged)
+        return(box.currentIndexChanged if int in args else
+               box.currentTextChanged)
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         return(box.textChanged)
@@ -172,7 +176,7 @@ def get_modified_box_signal(box):
 
 
 # This function sets the value of a provided box
-def set_box_value(box, value):
+def set_box_value(box, value, *args):
     """
     Sets the value of the provided widget `box` to `value`.
 
@@ -181,16 +185,23 @@ def set_box_value(box, value):
     # Values (QAbstractSpinBox)
     if isinstance(box, QW.QAbstractSpinBox):
         box.setValue(value)
-    # Bools (QAbstractButton)
+    # Bools/Buttons (QAbstractButton)
     elif isinstance(box, QW.QAbstractButton):
-        box.setChecked(value)
+        if box.isCheckable() and str not in args:
+            box.setChecked(value)
+        else:
+            box.setText(value)
     # Items (QComboBox)
     elif isinstance(box, QW.QComboBox):
-        index = box.findText(value)
-        if(index != -1):
-            box.setCurrentIndex(index)
+        if int not in args:
+            index = box.findText(value)
+            if(index != -1):
+                box.setCurrentIndex(index)
+            else:
+                box.setCurrentText(value)
         else:
-            box.setCurrentText(value)
+            box.setCurrentIndex(value)
+
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         box.setText(value)

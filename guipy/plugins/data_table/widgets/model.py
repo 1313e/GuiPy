@@ -156,6 +156,40 @@ class DataTableModel(QC.QAbstractTableModel):
             # Return the column belonging to the requested index
             return(self.column_list[names.index(index)])
 
+    # This function returns a list with all data column names
+    @QC.Slot()
+    def columnNames(self):
+        """
+        Returns a list with the names of all :obj:`~DataTableColumn` objects
+        stored in this model.
+
+        Returns
+        -------
+        names : list of str
+            List with names of all data columns.
+
+        """
+
+        # Return list of data column names
+        return([column.name for column in self.column_list])
+
+    # This function returns a list with all data column display names
+    @QC.Slot()
+    def columnDisplayNames(self):
+        """
+        Returns a list with the display names of all :obj:`~DataTableColumn`
+        objects stored in this model.
+
+        Returns
+        -------
+        display_names : list of str
+            List with display names of all data columns.
+
+        """
+
+        # Return list of data column display names
+        return([column.display_name for column in self.column_list])
+
     # Override headerData function
     def headerData(self, section, orientation, role):
         # If role is not DisplayRole, return empty QVariant

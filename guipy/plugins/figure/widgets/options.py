@@ -16,7 +16,8 @@ from qtpy import QtCore as QC, QtWidgets as QW
 # GuiPy imports
 from guipy.layouts import QW_QGridLayout, QW_QHBoxLayout, QW_QVBoxLayout
 from guipy.widgets import (
-    QW_QDialog, QW_QComboBox, QW_QLabel, QW_QPushButton, QW_QWidget)
+    QW_QDialog, QW_QComboBox, QW_QLabel, QW_QPushButton, QW_QWidget,
+    get_box_value, get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['FigureOptions']
@@ -24,12 +25,14 @@ __all__ = ['FigureOptions']
 
 # %% CLASS DEFINITIONS
 # Define class for the Figure options widget
+# TODO: Combine this class with the FigureToolbar
 class FigureOptions(QW_QWidget):
     # Initialize FigureOptions
-    def __init__(self, data_table_obj, parent=None, *args, **kwargs):
+    def __init__(self, data_table_obj, figure, parent=None, *args, **kwargs):
         # Save provided data table object
         self.data_table = data_table_obj
         self.tab_widget = self.data_table.tab_widget
+        self.figure = figure
 
         # Call super constructor
         super().__init__(parent)
@@ -53,8 +56,8 @@ class FigureOptions(QW_QWidget):
 
         # Create button for showing/hiding extra options
         dialog_but = QW_QPushButton()
-        dialog_but.setText(self.labels[self.options_dialog.isHidden()])
-        dialog_but.clicked.connect(self.toggle_options_dialog)
+        set_box_value(dialog_but, self.labels[self.options_dialog.isHidden()])
+        get_modified_box_signal(dialog_but).connect(self.toggle_options_dialog)
         dialog_but.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         layout.addWidget(dialog_but)
         self.dialog_but = dialog_but
@@ -76,6 +79,7 @@ class FigureOptions(QW_QWidget):
 
         # Create combobox with available plot types
         types_box = QW_QComboBox()
+        types_box.addItems(['2D line'])
         plot_label = QW_QLabel("&Plot type: ")
         plot_label.setBuddy(types_box)
         plot_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
@@ -88,7 +92,8 @@ class FigureOptions(QW_QWidget):
     def toggle_options_dialog(self):
         # Toggle the options dialog
         self.options_dialog.setVisible(self.options_dialog.isHidden())
-        self.dialog_but.setText(self.labels[self.options_dialog.isHidden()])
+        set_box_value(self.dialog_but,
+                      self.labels[self.options_dialog.isHidden()])
 
         # Toggle the comboboxes
         self.tables_box.setEnabled(self.options_dialog.isHidden())
@@ -101,6 +106,7 @@ class FigureOptionsDialog(QW_QDialog):
     def __init__(self, figure_options_obj, *args, **kwargs):
         # Save provided FigureOptions object
         self.figure_options = figure_options_obj
+        self.figure = figure_options_obj.figure
 
         # Call super constructor
         super().__init__(figure_options_obj)
@@ -124,12 +130,8 @@ class FigureOptionsDialog(QW_QDialog):
         self.setLayout(layout)
 
         # Add a grid layout to it
-        grid_layout = QW_QGridLayout()
-        layout.addLayout(grid_layout)
-
-        # Add a dummy widgets to the grid layout for testing
-        grid_layout.addWidget(QW_QLabel("Test"), 0, 0)
-        grid_layout.addWidget(QW_QComboBox(), 1, 0)
+        self.grid_layout = self.create_options_grid(0)
+        layout.addLayout(self.grid_layout)
 
         # Add stretch
         layout.addStretch()
@@ -138,7 +140,66 @@ class FigureOptionsDialog(QW_QDialog):
         button_box = QW.QDialogButtonBox()
         layout.addWidget(button_box)
         close_but = button_box.addButton(button_box.Close)
-        close_but.clicked.connect(self.figure_options.toggle_options_dialog)
+        get_modified_box_signal(close_but).connect(
+            self.figure_options.toggle_options_dialog)
+
+    # This function creates the options grid for the selected plot type
+    def create_options_grid(self, index=None):
+        # If index is None, obtain the currently selected data table index
+        if index is None:
+            index = get_box_value(self.figure_options.tables_box, int)
+
+        # Obtain the data table associated with this index
+        data_table = self.figure_options.data_table.dataTable(index)
+        self.data_table = data_table
+
+        # Create grid layout
+        grid_layout = QW_QGridLayout()
+
+        # NOTE: Heavy testing here
+        # Add combobox for selecting the data for the x-axis
+        x_data_box = QW_QComboBox()
+        x_data_box.addItems(data_table.model.columnDisplayNames())
+        get_modified_box_signal(x_data_box).connect(self.draw_line)
+        grid_layout.addWidget(QW_QLabel("x-data: "), 0, 0)
+        grid_layout.addWidget(x_data_box, 0, 1)
+        self.x_data_box = x_data_box
+
+        # Add combobox for selecting the data for the y-axis
+        y_data_box = QW_QComboBox()
+        y_data_box.addItems(data_table.model.columnDisplayNames())
+        get_modified_box_signal(y_data_box).connect(self.draw_line)
+        grid_layout.addWidget(QW_QLabel("y-data: "), 1, 0)
+        grid_layout.addWidget(y_data_box, 1, 1)
+        self.y_data_box = y_data_box
+
+        # Save that currently no line exists
+        self.line = None
+
+        # Return grid_layout
+        return(grid_layout)
+
+    # This function draws the 2D line plot
+    @QC.Slot()
+    def draw_line(self):
+        # Obtain the x and y columns
+        xcol = self.data_table.model.dataColumn(get_box_value(self.x_data_box))
+        ycol = self.data_table.model.dataColumn(get_box_value(self.y_data_box))
+
+        # Obtain the axis object of this figure
+        axis = self.figure.gca()
+
+        # If the current saved line is not already in the figure, make one
+        if self.line not in axis.lines:
+            self.line = axis.plot(xcol, ycol)[0]
+        else:
+            self.line.set_xdata(xcol)
+            self.line.set_ydata(ycol)
+
+        # Update the figure
+        axis.relim()
+        axis.autoscale_view(True, True, True)
+        self.figure.canvas.draw()
 
     # Override showEvent to show the dialog in the proper location
     def showEvent(self, event):
