@@ -10,6 +10,10 @@ configurations in *GuiPy*.
 
 
 # %% IMPORTS
+# Package imports
+from sortedcontainers import SortedDict as sdict
+
+
 # All declaration
 __all__ = ['FILE_EXTS', 'FILE_FILTERS', 'FILE_FORMATS', 'FILE_TYPES', 'ntr',
            'register_file_format', 'tr']
@@ -17,10 +21,10 @@ __all__ = ['FILE_EXTS', 'FILE_FILTERS', 'FILE_FORMATS', 'FILE_TYPES', 'ntr',
 
 # %% GLOBALS
 # Define dicts of file extensions, filters, formats and types
-FILE_EXTS = {}
-FILE_FILTERS = {}
-FILE_FORMATS = {}
-FILE_TYPES = {}
+FILE_EXTS = sdict()
+FILE_FILTERS = sdict()
+FILE_FORMATS = sdict()
+FILE_TYPES = sdict()
 
 
 # %% FUNCTION DEFINITIONS

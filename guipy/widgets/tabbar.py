@@ -24,12 +24,12 @@ __all__ = ['EditableTabBar', 'TabNameEditor']
 # Custom QTabBar definition that allows for tab names to be edited
 class EditableTabBar(QW_QTabBar):
     # Initialize EditableTabBar class
-    def __init__(self, *args, **kwargs):
+    def __init__(self, parent=None, *args, **kwargs):
         # Call super constructor
-        super().__init__(*args, **kwargs)
+        super().__init__(parent)
 
         # Set up the tab bar
-        self.init()
+        self.init(*args, **kwargs)
 
     # This function sets up the editable tab bar
     def init(self):
@@ -53,12 +53,15 @@ class EditableTabBar(QW_QTabBar):
 
 # Custom QLineEdit used for renaming a tab
 class TabNameEditor(QW_QLineEdit):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, tabbar_obj, *args, **kwargs):
+        # Save provided tabbar_obj
+        self.tabbar = tabbar_obj
+
         # Call super constructor
-        super().__init__(*args, **kwargs)
+        super().__init__(tabbar_obj)
 
         # Set up name editor
-        self.init()
+        self.init(*args, **kwargs)
 
     # This function allows a specified tab's name to be edited
     def __call__(self, index):
@@ -69,10 +72,10 @@ class TabNameEditor(QW_QLineEdit):
         self.setFocus(True)
 
         # Obtain the size of the tab
-        rect = self.parent().tabRect(index)
+        rect = self.tabbar.tabRect(index)
 
         # Adjust lineedit size to perfectly match underlying tab
-        if(index != self.parent().count()-1):
+        if(index != self.tabbar.count()-1):
             rect.adjust(1, 1, 0, -1)
         else:
             rect.adjust(1, 1, -1, -1)
@@ -81,10 +84,10 @@ class TabNameEditor(QW_QLineEdit):
         self.setFixedSize(rect.size())
 
         # Move the editor on top of the tab
-        self.move(self.parent().mapToGlobal(rect.topLeft()))
+        self.move(self.tabbar.mapToGlobal(rect.topLeft()))
 
         # Obtain the name of the tab
-        name = self.parent().tabText(index)
+        name = self.tabbar.tabText(index)
 
         # Set the current name in the editor and select it
         self.setText(name)
@@ -146,4 +149,4 @@ class TabNameEditor(QW_QLineEdit):
         # If name is not empty, set name
         if name:
             # Set the name of the tab indicated with index
-            self.parent().setTabText(self.index, name)
+            self.tabbar.setTabText(self.index, name)

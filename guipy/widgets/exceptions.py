@@ -16,7 +16,7 @@ from traceback import format_exception_only, format_tb
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import QW_QVBoxLayout
+from guipy.layouts import QW_QGridLayout, QW_QVBoxLayout
 from guipy.widgets import (
     QW_QDialog, QW_QLabel, QW_QMessageBox, QW_QTextEdit, QW_QWidget)
 
@@ -79,7 +79,7 @@ class ExceptionDialog(QW_QDialog):
         """
 
         # Create a window layout
-        grid_layout = QW.QGridLayout(self)
+        grid_layout = QW_QGridLayout(self)
         grid_layout.setColumnStretch(2, 1)
         grid_layout.setRowStretch(3, 1)
 
