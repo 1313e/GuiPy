@@ -21,11 +21,11 @@ from guipy.config import tr
 
 # All declaration
 __all__ = ['QW_QAction', 'QW_QComboBox', 'QW_QDialog', 'QW_QDockWidget',
-           'QW_QDoubleSpinBox', 'QW_QFileDialog', 'QW_QHeaderView',
-           'QW_QLabel', 'QW_QLineEdit', 'QW_QMainWindow', 'QW_QMenu',
-           'QW_QMessageBox', 'QW_QPushButton', 'QW_QSpinBox', 'QW_QTabBar',
-           'QW_QTableView', 'QW_QTabWidget', 'QW_QTextEdit', 'QW_QToolBar',
-           'QW_QToolTip', 'QW_QWidget']
+           'QW_QDoubleSpinBox', 'QW_QFileDialog', 'QW_QGroupBox',
+           'QW_QHeaderView', 'QW_QLabel', 'QW_QLineEdit', 'QW_QMainWindow',
+           'QW_QMenu', 'QW_QMessageBox', 'QW_QPushButton', 'QW_QSpinBox',
+           'QW_QTabBar', 'QW_QTableView', 'QW_QTabWidget', 'QW_QTextEdit',
+           'QW_QToolBar', 'QW_QToolTip', 'QW_QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -230,6 +230,11 @@ class QW_QDockWidget(QW.QDockWidget, QW_QWidget):
 
 # Create custom QFileDialog class
 class QW_QFileDialog(QW.QFileDialog, QW_QDialog):
+    pass
+
+
+# Create custom QGroupBox class
+class QW_QGroupBox(QW.QGroupBox, QW_QDialog):
     pass
 
 

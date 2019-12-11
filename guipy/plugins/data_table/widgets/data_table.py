@@ -17,7 +17,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 from guipy.layouts import QW_QHBoxLayout, QW_QVBoxLayout
 from guipy.plugins.data_table.widgets.view import DataTableView
 from guipy.widgets import (
-    QW_QLabel, QW_QSpinBox, QW_QWidget, get_modified_box_signal, set_box_value)
+    DualSpinBox, QW_QLabel, QW_QWidget, get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['DataTableWidget']
@@ -52,22 +52,18 @@ class DataTableWidget(QW_QWidget):
         # Add a label to this layout
         dimensions_layout.addWidget(QW_QLabel('Dimensions: '))
 
-        # Create two spinboxes for setting n_rows and n_cols
-        n_rows_box = QW_QSpinBox(self)
+        # Create dual spinbox for setting n_rows and n_cols
+        dimensions_box = DualSpinBox((int, int), "X")
+        dimensions_layout.addWidget(dimensions_box)
+        n_rows_box, n_cols_box = dimensions_box[:]
         n_rows_box.setRange(0, 9999999)
         n_rows_box.setToolTip("Number of rows in this data table (max. %i)"
                               % (n_rows_box.maximum()))
         get_modified_box_signal(n_rows_box).connect(self.n_rows_changed)
-        n_cols_box = QW_QSpinBox(self)
         n_cols_box.setRange(0, 702)
         n_cols_box.setToolTip("Number of columns in this data table (max. %i)"
                               % (n_cols_box.maximum()))
         get_modified_box_signal(n_cols_box).connect(self.n_cols_changed)
-
-        # Add spinboxes to dimensions layout
-        dimensions_layout.addWidget(n_rows_box)
-        dimensions_layout.addWidget(QW_QLabel('X'))
-        dimensions_layout.addWidget(n_cols_box)
 
         # Add a stretcher
         dimensions_layout.addStretch()

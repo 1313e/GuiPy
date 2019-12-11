@@ -542,7 +542,7 @@ class ColorMapBox(BaseBox):
         """
 
         # Make a tuple with terrible colormaps
-        bad_cmaps = ('gist_ncar', 'gist_rainbow', 'gist_stern', 'jet',
+        bad_cmaps = ('gist_ncar', 'gist_rainbow', 'gist_stern', 'hsv', 'jet',
                      'nipy_spectral')
 
         # If a terrible colormap is selected, show error message

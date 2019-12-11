@@ -15,6 +15,7 @@ from sys import platform
 
 # Package imports
 from e13tools.utils import docstring_substitute
+from sortedcontainers import SortedSet as sset
 
 # GuiPy imports
 from guipy.config import FILE_EXTS, FILE_FORMATS, tr
@@ -67,14 +68,10 @@ def _processFileDialogArguments(parent=None, caption='', basedir=None,
         initial_filter = ''
     else:
         # Loop over all filters and grab their formats and exts
-        formats = [FILE_FORMATS.get(file_filter.lower(), '')
-                   for file_filter in filters]
-        exts = [FILE_EXTS.get(file_filter.lower(), '')
-                for file_filter in filters]
-
-        # Remove duplicates by converting to set and back
-        formats = list(set(formats))
-        exts = list(set(exts))
+        formats = sset({FILE_FORMATS.get(file_filter.lower(), '')
+                       for file_filter in filters})
+        exts = sset({FILE_EXTS.get(file_filter.lower(), '')
+                    for file_filter in filters})
 
         # Remove all empty strings from formats and exts
         if '' in formats:
@@ -82,12 +79,11 @@ def _processFileDialogArguments(parent=None, caption='', basedir=None,
         if '' in exts:
             exts.remove('')
 
-        # Make sure that formats and exts are sorted
-        formats.sort()
-        exts.sort()
-
         # Combine all exts together to a single string
         exts = ' '.join(exts)
+
+        # Convert formats to a list
+        formats = list(formats)
 
         # Add 'All Supported Files' to formats
         formats.append("All Supported Files (%s)" % (exts))
