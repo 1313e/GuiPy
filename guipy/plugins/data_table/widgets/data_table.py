@@ -41,9 +41,8 @@ class DataTableWidget(QW_QWidget):
     # This function sets up the data table widget
     def init(self, import_func=None):
         # Create a layout
-        layout = QW_QVBoxLayout()
+        layout = QW_QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
 
         # Create a dimensions layout
         dimensions_layout = QW_QHBoxLayout()

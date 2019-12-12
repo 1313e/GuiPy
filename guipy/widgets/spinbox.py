@@ -17,7 +17,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 from guipy.layouts import QW_QHBoxLayout
 from guipy.widgets import (
     BaseBox, QW_QDoubleSpinBox, QW_QLabel, QW_QSpinBox, get_box_value,
-    set_box_value)
+    get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['DualSpinBox']
@@ -31,6 +31,11 @@ class DualSpinBox(BaseBox):
 
     """
 
+    # Signals
+    modified = QC.Signal([], [int, int], [int, float], [float, int],
+                         [float, float])
+
+    # Initialize the DualSpinBox class
     def __init__(self, types=(int, int), sep=None, parent=None, *args,
                  **kwargs):
         """
@@ -85,6 +90,9 @@ class DualSpinBox(BaseBox):
 
         """
 
+        # Save provided types
+        self.types = types
+
         # Create the box_layout
         box_layout = QW_QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
@@ -92,11 +100,13 @@ class DualSpinBox(BaseBox):
         # Create two spinboxes with the provided types
         # LEFT
         left_box = QW_QSpinBox() if types[0] is int else QW_QDoubleSpinBox()
+        get_modified_box_signal(left_box).connect(self.emit_modified_signal)
         box_layout.addWidget(left_box)
         self.left_box = left_box
 
         # RIGHT
         right_box = QW_QSpinBox() if types[1] is int else QW_QDoubleSpinBox()
+        get_modified_box_signal(right_box).connect(self.emit_modified_signal)
         box_layout.addWidget(right_box)
         self.right_box = right_box
 
@@ -105,6 +115,14 @@ class DualSpinBox(BaseBox):
             sep_label = QW_QLabel(sep)
             sep_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
             box_layout.insertWidget(1, sep_label)
+
+    # This function emits an extra modified signal
+    @QC.Slot()
+    def emit_modified_signal(self):
+        # Emit modified signal with proper types
+        self.modified[self.types[0], self.types[1]].emit(
+            get_box_value(self.left_box),
+            get_box_value(self.right_box))
 
     # This function retrieves a value of this special box
     def get_box_value(self):
@@ -119,7 +137,7 @@ class DualSpinBox(BaseBox):
 
         """
 
-        return((get_box_value(self.left_box), get_box_value(self.right_box)))
+        return(get_box_value(self.left_box), get_box_value(self.right_box))
 
     # This function sets the value of this special box
     def set_box_value(self, value):

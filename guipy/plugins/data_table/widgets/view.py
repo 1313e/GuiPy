@@ -370,8 +370,7 @@ class HorizontalHeaderPopup(QW_QDialog):
             QC.Qt.FramelessWindowHint)
 
         # Create a form layout
-        layout = QW_QFormLayout()
-        self.setLayout(layout)
+        layout = QW_QFormLayout(self)
 
         # Add a label stating the base name of the column
         self.base_name_label = QW_QLabel("")

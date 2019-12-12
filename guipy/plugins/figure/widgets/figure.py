@@ -44,9 +44,8 @@ class FigureWidget(QW_QWidget):
     # This function sets up the figure widget
     def init(self):
         # Create a layout
-        layout = QW_QVBoxLayout()
+        layout = QW_QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
 
         # Initialize figure
         self.figure, self.canvas, self.manager, self.toolbar =\
@@ -65,7 +64,7 @@ class FigureWidget(QW_QWidget):
     # This function creates and returns a figure
     def create_figure(self):
         # Create a figure instance
-        figure = plt.Figure(tight_layout=True)
+        figure = plt.Figure()
 
         # Create a canvas for this figure
         canvas = FigureCanvas(figure)

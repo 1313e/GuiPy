@@ -44,9 +44,8 @@ class Figure(BasePluginWidget):
     # This function sets up the figure plugin
     def init(self):
         # Create a layout
-        layout = QW_QVBoxLayout()
+        layout = QW_QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
 
         # Create a tab widget
         tab_widget = QW_QTabWidget()

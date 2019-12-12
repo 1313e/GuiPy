@@ -113,18 +113,22 @@ def get_box_value(box, *args):
     # Values (QAbstractSpinBox)
     if isinstance(box, QW.QAbstractSpinBox):
         return(box.value())
+
     # Bools/Buttons (QAbstractButton)
     elif isinstance(box, QW.QAbstractButton):
         if box.isCheckable() and str not in args:
             return(box.isChecked())
         else:
             return(box.text())
+
     # Items (QComboBox)
     elif isinstance(box, QW.QComboBox):
         return(box.currentIndex() if int in args else box.currentText())
+
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         return(box.text())
+
     # Labels (QLabel)
     elif isinstance(box, QW.QLabel):
         for attr in ['movie', 'picture', 'pixmap']:
@@ -132,9 +136,11 @@ def get_box_value(box, *args):
                 return(getattr(box, attr)())
         else:
             return(box.text())
+
     # Custom boxes (BaseBox)
     elif isinstance(box, BaseBox):
-        return(box.get_box_value())
+        return(box.get_box_value(*args))
+
     # If none applies, raise error
     else:
         raise NotImplementedError("Custom boxes must be a subclass of BaseBox")
@@ -151,32 +157,38 @@ def get_modified_box_signal(box, *args):
     # Values (QAbstractSpinBox)
     if isinstance(box, QW.QAbstractSpinBox):
         return(box.valueChanged)
+
     # Bools/Buttons (QAbstractButton)
     elif isinstance(box, QW.QAbstractButton):
         return(box.toggled if box.isCheckable() else box.clicked)
+
     # Items (QComboBox)
     elif isinstance(box, QW.QComboBox):
         return(box.currentIndexChanged if int in args else
                box.currentTextChanged)
+
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         return(box.textChanged)
+
     # Labels (QLabel)
     elif isinstance(box, QW_QLabel):
         return(box.contentsChanged)
     elif isinstance(box, QW.QLabel):
         raise NotImplementedError("Default QW.QLabel has no modified signal "
                                   "defined. Use QW_QLabel instead!")
+
     # Custom boxes (BaseBox)
     elif isinstance(box, BaseBox):
         return(box.modified)
+
     # If none applies, raise error
     else:
         raise NotImplementedError("Custom boxes must be a subclass of BaseBox")
 
 
 # This function sets the value of a provided box
-def set_box_value(box, value, *args):
+def set_box_value(box, value):
     """
     Sets the value of the provided widget `box` to `value`.
 
@@ -185,26 +197,29 @@ def set_box_value(box, value, *args):
     # Values (QAbstractSpinBox)
     if isinstance(box, QW.QAbstractSpinBox):
         box.setValue(value)
+
     # Bools/Buttons (QAbstractButton)
     elif isinstance(box, QW.QAbstractButton):
-        if box.isCheckable() and str not in args:
-            box.setChecked(value)
-        else:
+        if isinstance(value, str):
             box.setText(value)
+        else:
+            box.setChecked(value)
+
     # Items (QComboBox)
     elif isinstance(box, QW.QComboBox):
-        if int not in args:
+        if isinstance(value, int):
+            box.setCurrentIndex(value)
+        else:
             index = box.findText(value)
             if(index != -1):
                 box.setCurrentIndex(index)
             else:
                 box.setCurrentText(value)
-        else:
-            box.setCurrentIndex(value)
 
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         box.setText(value)
+
     # Labels (QLabel)
     elif isinstance(box, QW.QLabel):
         if isinstance(value, str):
@@ -219,9 +234,11 @@ def set_box_value(box, value, *args):
             box.setPixmap(value)
         else:
             raise TypeError("QLabel does not support the given type")
+
     # Custom boxes (BaseBox)
     elif isinstance(box, BaseBox):
         box.set_box_value(value)
+
     # If none applies, raise error
     else:
         raise NotImplementedError("Custom boxes must be a subclass of BaseBox")

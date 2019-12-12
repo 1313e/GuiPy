@@ -169,13 +169,12 @@ class ExceptionDialog(QW_QDialog):
         """
 
         # Create a traceback box
-        traceback_box = QW_QWidget(self)
+        traceback_box = QW_QWidget()
         traceback_box.setHidden(True)
 
         # Create layout
-        layout = QW_QVBoxLayout()
-        layout.setContentsMargins(QC.QMargins())
-        traceback_box.setLayout(layout)
+        layout = QW_QVBoxLayout(traceback_box)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         # Add a horizontal line to the layout
         layout.addSeparator()
