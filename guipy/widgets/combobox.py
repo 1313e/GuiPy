@@ -16,8 +16,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 # GuiPy imports
 from guipy.layouts import QW_QHBoxLayout
 from guipy.widgets import (
-    BaseBox, QW_QComboBox, QW_QLabel, get_box_value, get_modified_box_signal,
-    set_box_value)
+    BaseBox, QW_QComboBox, QW_QLabel, get_box_value, set_box_value)
 
 # All declaration
 __all__ = ['DualComboBox', 'EditableComboBox']
@@ -97,13 +96,11 @@ class DualComboBox(BaseBox):
         # Create two comboboxes with the provided editability
         # LEFT
         left_box = EditableComboBox() if editable[0] else QW_QComboBox()
-        get_modified_box_signal(left_box).connect(self.emit_modified_signal)
         box_layout.addWidget(left_box)
         self.left_box = left_box
 
         # RIGHT
         right_box = EditableComboBox() if editable[1] else QW_QComboBox()
-        get_modified_box_signal(right_box).connect(self.emit_modified_signal)
         box_layout.addWidget(right_box)
         self.right_box = right_box
 
@@ -113,9 +110,9 @@ class DualComboBox(BaseBox):
             sep_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
             box_layout.insertWidget(1, sep_label)
 
-    # This function emits an extra modified signal
+    # This function is automatically called whenever 'modified' is emitted
     @QC.Slot()
-    def emit_modified_signal(self):
+    def modified_signal_slot(self):
         # Emit modified signal with proper types
         for types in [(int, int), (int, str), (str, int), (str, str)]:
             self.modified[types[0], types[1]].emit(

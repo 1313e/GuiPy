@@ -38,6 +38,15 @@ class BaseBox(QW_QWidget):
     # Define modified signal
     modified = QC.Signal()
 
+    # Initialize the BaseBox class
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+        # If the 'modified_signal_slot' slot is available, connect it
+        if hasattr(self, 'modified_signal_slot'):
+            self.modified.connect(self.modified_signal_slot)
+
     # Override childEvent to connect signals if child has a modified signal
     def childEvent(self, event):
         """

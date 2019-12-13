@@ -24,7 +24,8 @@ from sortedcontainers import SortedDict as sdict, SortedSet as sset
 # GuiPy imports
 from guipy.layouts import QW_QHBoxLayout
 from guipy.widgets import (
-    BaseBox, QW_QComboBox, QW_QLabel, get_box_value, set_box_value)
+    BaseBox, QW_QComboBox, QW_QLabel, get_box_value, get_modified_box_signal,
+    set_box_value)
 from guipy.widgets.combobox import EditableComboBox
 
 # All declaration
@@ -38,6 +39,9 @@ class ColorBox(BaseBox):
     Defines the :class:`~ColorBox` class.
 
     """
+
+    # Signals
+    modified = QC.Signal([], [str])
 
     def __init__(self, parent=None, *args, **kwargs):
         """
@@ -143,7 +147,8 @@ class ColorBox(BaseBox):
         color_box.setToolTip("Select or type (in HEX) the color")
         color_box.highlighted[str].connect(self.set_color_label)
         color_box.popup_hidden[str].connect(self.set_color_label)
-        color_box.currentTextChanged.connect(self.set_color)
+        get_modified_box_signal(color_box, str).connect(self.set_color)
+        get_modified_box_signal(color_box, str).connect(self.modified[str])
         return(color_box)
 
     # This function converts an MPL color to a QColor
@@ -398,6 +403,9 @@ class ColorMapBox(BaseBox):
 
     """
 
+    # Signals
+    modified = QC.Signal([], [str])
+
     def __init__(self, parent=None, *args, **kwargs):
         """
         Initialize an instance of the :class:`~ColorMapBox` class.
@@ -468,7 +476,8 @@ class ColorMapBox(BaseBox):
         # Set remaining properties
         set_box_value(cmaps_box, rcParams['image.cmap'])
         cmaps_box.setIconSize(QC.QSize(*cmap_size))
-        cmaps_box.currentTextChanged.connect(self.cmap_selected)
+        get_modified_box_signal(cmaps_box, str).connect(self.cmap_selected)
+        get_modified_box_signal(cmaps_box, str).connect(self.modified[str])
 
         # Add cmaps_box to layout
         box_layout.addWidget(cmaps_box)
