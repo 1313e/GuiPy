@@ -120,7 +120,7 @@ class DualComboBox(BaseBox):
                 get_box_value(self.right_box, types[1]))
 
     # This function retrieves a value of this special box
-    def get_box_value(self, value_sig=None):
+    def get_box_value(self, *value_sig):
         """
         Returns the current values of this dual combobox as a tuple.
 
@@ -132,7 +132,8 @@ class DualComboBox(BaseBox):
 
         """
 
-        if isinstance(value_sig, (tuple, list)):
+        # If value_sig contains more than 1 element, use them separately
+        if(len(value_sig) > 1):
             return(get_box_value(self.left_box, value_sig[0]),
                    get_box_value(self.left_box, value_sig[1]))
         else:
