@@ -355,7 +355,7 @@ class ColorBox(BaseBox):
         return(default_flag)
 
     # This function retrieves a value of this special box
-    def get_box_value(self):
+    def get_box_value(self, *args, **kwargs):
         """
         Returns the current (valid) color value of the color combobox.
 
@@ -367,7 +367,7 @@ class ColorBox(BaseBox):
         """
 
         # Obtain the value
-        color = get_box_value(self.color_combobox)
+        color = get_box_value(self.color_combobox, *args, **kwargs)
 
         # Try to convert this to QColor
         try:
@@ -571,7 +571,7 @@ class ColorMapBox(BaseBox):
                 self, "%s WARNING" % (cmap.upper()), err_msg)
 
     # This function retrieves a value of this special box
-    def get_box_value(self):
+    def get_box_value(self, *args, **kwargs):
         """
         Returns the current colormap of the colormap box.
 
@@ -583,7 +583,7 @@ class ColorMapBox(BaseBox):
         """
 
         # Obtain the value
-        colormap = get_box_value(self.cmaps_box)
+        colormap = get_box_value(self.cmaps_box, *args, **kwargs)
 
         # Convert to matplotlib colormap
         cmap = cm.get_cmap(colormap)
@@ -592,19 +592,19 @@ class ColorMapBox(BaseBox):
         return(cmap)
 
     # This function sets the value of this special box
-    def set_box_value(self, cmap):
+    def set_box_value(self, value):
         """
-        Sets the current colormap to `cmap`.
+        Sets the current colormap to `value`.
 
         Parameters
         ----------
-        cmap : :obj:`~matplotlib.colors.Colormap` object
+        value : :obj:`~matplotlib.colors.Colormap` object
             The colormap that must be used for this colormap box.
 
         """
 
         # Obtain the name of the provided colormap
-        name = cmap.name
+        name = value.name
 
         # Set this as the current colormap
         set_box_value(self.cmaps_box, name)

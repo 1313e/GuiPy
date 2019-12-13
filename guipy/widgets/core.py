@@ -93,7 +93,7 @@ class BaseBox(QW_QWidget):
         signal.connect(self.modified)
 
     # Define get_box_value method
-    def get_box_value(self):
+    def get_box_value(self, value_sig=None):
         """
         Obtain the value of this widget and return it.
 
@@ -113,9 +113,27 @@ class BaseBox(QW_QWidget):
 
 # %% FUNCTION DEFINITIONS
 # This function gets the value of a provided box
-def get_box_value(box, *args):
+def get_box_value(box, value_sig=None):
     """
     Retrieves the value of the provided widget `box` and returns it.
+
+    Parameters
+    ----------
+    box : :obj:`~PyQt5.QtWidgets.QWidget` object
+        The widget whose value must be returned.
+
+    Optional
+    --------
+    value_sig : type, tuple of type or None. Default: None
+        The signature of the value of `box` that must be returned.
+        If *None* or invalid, the default value is returned.
+        If `box` is an instance of :class:`~BaseBox`, this argument is passed
+        to :meth:`~BaseBox.get_box_value`.
+
+    Returns
+    -------
+    box_value : obj
+        The value of the requested `box`.
 
     """
 
@@ -125,14 +143,14 @@ def get_box_value(box, *args):
 
     # Bools/Buttons (QAbstractButton)
     elif isinstance(box, QW.QAbstractButton):
-        if box.isCheckable() and str not in args:
+        if box.isCheckable() and value_sig is not str:
             return(box.isChecked())
         else:
             return(box.text())
 
     # Items (QComboBox)
     elif isinstance(box, QW.QComboBox):
-        return(box.currentIndex() if int in args else box.currentText())
+        return(box.currentIndex() if value_sig is int else box.currentText())
 
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
@@ -148,7 +166,7 @@ def get_box_value(box, *args):
 
     # Custom boxes (BaseBox)
     elif isinstance(box, BaseBox):
-        return(box.get_box_value(*args))
+        return(box.get_box_value(value_sig))
 
     # If none applies, raise error
     else:
@@ -156,10 +174,30 @@ def get_box_value(box, *args):
 
 
 # This function gets the emitted signal when a provided box is modified
-def get_modified_box_signal(box, *args):
+def get_modified_box_signal(box, signal_sig=None):
     """
-    Retrieves the default modified signal of the provided widget `box` and
-    returns it.
+    Retrieves a signal of the provided widget `box` that indicates that `box`
+    has been modified and returns it.
+
+    Parameters
+    ----------
+    box : :obj:`~PyQt5.QtWidgets.QWidget` object
+        The widget whose modified signal must be retrieved.
+
+    Optional
+    --------
+    signal_sig : type, tuple of type or None. Default: None
+        The signature of the modified signal that is requested.
+        If *None* or invalid, the default modified signal is returned.
+        If `box` is an instance of :class:`~BaseBox`, this argument has no
+        effect.
+
+    Returns
+    -------
+    modified_signal : :obj:`~PyQt5.QtCore.pyqtBoundSignal` object
+        The requested modified signal of `box`.
+        If `box` is an instance of :class:`~BaseBox`, this is always
+        :attr:`~BaseBox.modified`.
 
     """
 
@@ -173,7 +211,7 @@ def get_modified_box_signal(box, *args):
 
     # Items (QComboBox)
     elif isinstance(box, QW.QComboBox):
-        return(box.currentIndexChanged if int in args else
+        return(box.currentIndexChanged if signal_sig is int else
                box.currentTextChanged)
 
     # Strings (QLineEdit)
@@ -200,6 +238,15 @@ def get_modified_box_signal(box, *args):
 def set_box_value(box, value):
     """
     Sets the value of the provided widget `box` to `value`.
+
+    Parameters
+    ----------
+    box : :obj:`~PyQt5.QtWidgets.QWidget` object
+        The widget whose value must be set.
+    value : obj
+        The value that must be set in the provided `box`.
+        If `box` is an instance of :class:`~BaseBox`, this argument is passed
+        to :meth:`~BaseBox.set_box_value`.
 
     """
 

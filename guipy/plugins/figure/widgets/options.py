@@ -490,7 +490,7 @@ class DataColumnBox(DualComboBox):
             self.columns_box.removeItem(i)
 
     # This function retrieves the data table and column currently selected
-    def get_box_value(self):
+    def get_box_value(self, *args, **kwargs):
         """
         Returns the currently selected data table and its associated column.
 

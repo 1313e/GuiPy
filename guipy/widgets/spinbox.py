@@ -123,7 +123,7 @@ class DualSpinBox(BaseBox):
             get_box_value(self.right_box))
 
     # This function retrieves a value of this special box
-    def get_box_value(self):
+    def get_box_value(self, *args, **kwargs):
         """
         Returns the current values of this dual spinbox as a tuple.
 
@@ -135,7 +135,8 @@ class DualSpinBox(BaseBox):
 
         """
 
-        return(get_box_value(self.left_box), get_box_value(self.right_box))
+        return(get_box_value(self.left_box, *args, **kwargs),
+               get_box_value(self.right_box, *args, **kwargs))
 
     # This function sets the value of this special box
     def set_box_value(self, value):
