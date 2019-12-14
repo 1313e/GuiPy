@@ -11,6 +11,9 @@ Figure Options
 # Built-in imports
 
 # Package imports
+import matplotlib as mpl
+from matplotlib import rcParams
+from matplotlib.lines import lineMarkers, lineStyles
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
@@ -172,19 +175,40 @@ class FigureOptionsDialog(QW_QDialog):
         x_label_box = QW_QLineEdit()
         get_modified_box_signal(x_label_box).connect(self.axis.set_xlabel)
         x_axis_layout.addRow("&Label", x_label_box)
+        self.x_label_box = x_label_box
+
+        # Make layout for setting the range on the x-axis
+        x_range_layout = QW_QHBoxLayout()
+        x_range_layout.setContentsMargins(0, 0, 0, 0)
 
         # Make a box for setting the range on the x-axis
         x_range_box = DualSpinBox((float, float), r"<html>&le; X &le;</html>")
         x_min_box, x_max_box = x_range_box[:]
         x_min_box.setRange(-9999999, 9999999)
         x_max_box.setRange(-9999999, 9999999)
-        x_axis_layout.addRow("Range", x_range_box)
+        x_range_box.setEnabled(False)
 
         # Connect signals for x_range_box
         get_modified_box_signal(x_range_box)[float, float].connect(
-            self.axis.set_xlim)
+            lambda *args: self.axis.set_xlim(*args, auto=None))
         self.axis.callbacks.connect(
             'xlim_changed', lambda x: set_box_value(x_range_box, x.get_xlim()))
+
+        # Make a checkbox for enabling/disabling the use of this range
+        x_range_flag = QW_QCheckBox()
+        x_range_flag.setToolTip("Enable/disable the use of a manual X-axis "
+                                "range.")
+        set_box_value(x_range_flag, False)
+
+        # Connect signals for x_range_flag
+        get_modified_box_signal(x_range_flag).connect(x_range_box.setEnabled)
+        get_modified_box_signal(x_range_flag).connect(
+            lambda x: self.axis.set_autoscalex_on(not x))
+
+        # Add everything together
+        x_range_layout.addWidget(x_range_flag)
+        x_range_layout.addWidget(x_range_box)
+        x_axis_layout.addRow("Range", x_range_layout)
 
         # Make a box for setting the scale on the x-axis
         x_scale_box = QW_QComboBox()
@@ -202,19 +226,40 @@ class FigureOptionsDialog(QW_QDialog):
         y_label_box = QW_QLineEdit()
         get_modified_box_signal(y_label_box).connect(self.axis.set_ylabel)
         y_axis_layout.addRow("Label", y_label_box)
+        self.y_label_box = y_label_box
+
+        # Make layout for setting the range on the y-axis
+        y_range_layout = QW_QHBoxLayout()
+        y_range_layout.setContentsMargins(0, 0, 0, 0)
 
         # Make a box for setting the range on the y-axis
         y_range_box = DualSpinBox((float, float), r"<html>&le; Y &le;</html>")
         y_min_box, y_max_box = y_range_box[:]
         y_min_box.setRange(-9999999, 9999999)
         y_max_box.setRange(-9999999, 9999999)
-        y_axis_layout.addRow("Range", y_range_box)
+        y_range_box.setEnabled(False)
 
         # Connect signals for y_range_box
         get_modified_box_signal(y_range_box)[float, float].connect(
-            self.axis.set_ylim)
+            lambda *args: self.axis.set_ylim(*args, auto=None))
         self.axis.callbacks.connect(
             'ylim_changed', lambda y: set_box_value(y_range_box, y.get_ylim()))
+
+        # Make a checkbox for enabling/disabling the use of this range
+        y_range_flag = QW_QCheckBox()
+        y_range_flag.setToolTip("Enable/disable the use of a manual Y-axis "
+                                "range.")
+        set_box_value(y_range_flag, False)
+
+        # Connect signals for y_range_flag
+        get_modified_box_signal(y_range_flag).connect(y_range_box.setEnabled)
+        get_modified_box_signal(y_range_flag).connect(
+            lambda y: self.axis.set_autoscaley_on(not y))
+
+        # Add everything together
+        y_range_layout.addWidget(y_range_flag)
+        y_range_layout.addWidget(y_range_box)
+        y_axis_layout.addRow("Range", y_range_layout)
 
         # Make a box for setting the scale on the y-axis
         y_scale_box = QW_QComboBox()
@@ -224,13 +269,33 @@ class FigureOptionsDialog(QW_QDialog):
 
         # PROPS
         # Create a group box for figure properties
-        props_group = QW_QGroupBox("Props")
+        props_group = QW_QGroupBox("Properties")
         layout.addRow(props_group)
         props_layout = QW_QFormLayout(props_group)
 
-        # Make a checkbox for using a tight layout
-        tight_layout_box = QW_QCheckBox("Tight layout")
-        props_layout.addWidget(tight_layout_box)
+        # Make a layout for using a legend
+        legend_layout = QW_QHBoxLayout()
+        legend_layout.setContentsMargins(0, 0, 0, 0)
+        props_layout.addRow(legend_layout)
+
+        # Make a checkbox for using a legend
+        legend_flag = QW_QCheckBox("Legend")
+        set_box_value(legend_flag, False)
+        legend_layout.addWidget(legend_flag)
+        self.legend_flag = legend_flag
+
+        # Make a combobox for choosing the location of the legend
+        legend_loc_box = QW_QComboBox()
+        legend_loc_box.addItems(mpl.legend.Legend.codes.keys())
+        set_box_value(legend_loc_box, rcParams['legend.loc'])
+        legend_loc_box.setEnabled(False)
+        legend_layout.addWidget(legend_loc_box)
+        self.legend_loc_box = legend_loc_box
+
+        # Connect signals
+        get_modified_box_signal(legend_flag).connect(legend_loc_box.setEnabled)
+        get_modified_box_signal(legend_flag).connect(self.set_legend)
+        get_modified_box_signal(legend_loc_box).connect(self.set_legend)
 
         # Return tab
         return(tab, "Figure")
@@ -251,7 +316,9 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Make a lineedit for setting the label of the plot
         data_label_box = QW_QLineEdit()
+        get_modified_box_signal(data_label_box).connect(self.set_line_label)
         data_layout.addRow("Label", data_label_box)
+        self.data_label_box = data_label_box
 
         # Make a combobox for setting the x-axis data
         x_data_box = DataColumnBox(self.figure_options.data_table_plugin)
@@ -274,18 +341,22 @@ class FigureOptionsDialog(QW_QDialog):
         line_layout = QW_QFormLayout(line_group)
 
         # Make a combobox for setting the line style
-        line_style_box = QW_QComboBox()
+        line_style_box = self.create_linestyle_box()
+        get_modified_box_signal(line_style_box).connect(self.update_line)
         line_layout.addRow("Style", line_style_box)
+        self.line_style_box = line_style_box
 
         # Make a spinbox for setting the line width
-        line_width_box = QW_QDoubleSpinBox()
-        line_width_box.setRange(0, 9999999)
-        line_width_box.setSuffix(" pts")
+        line_width_box = self.create_linewidth_box()
+        get_modified_box_signal(line_width_box).connect(self.update_line)
         line_layout.addRow("Width", line_width_box)
+        self.line_width_box = line_width_box
 
         # Make a colorbox for setting the line color
         line_color_box = ColorBox()
+        get_modified_box_signal(line_color_box).connect(self.update_line)
         line_layout.addRow("Color", line_color_box)
+        self.line_color_box = line_color_box
 
         # MARKER
         # Create a group box for setting the marker properties of the plot
@@ -294,18 +365,22 @@ class FigureOptionsDialog(QW_QDialog):
         marker_layout = QW_QFormLayout(marker_group)
 
         # Make a combobox for setting the marker style
-        marker_style_box = QW_QComboBox()
+        marker_style_box = self.create_markerstyle_box()
+        get_modified_box_signal(marker_style_box).connect(self.update_line)
         marker_layout.addRow("Style", marker_style_box)
+        self.marker_style_box = marker_style_box
 
         # Make a spinbox for setting the marker size
-        marker_size_box = QW_QDoubleSpinBox()
-        marker_size_box.setRange(0, 9999999)
-        marker_size_box.setSuffix(" pts")
+        marker_size_box = self.create_markersize_box()
+        get_modified_box_signal(marker_size_box).connect(self.update_line)
         marker_layout.addRow("Size", marker_size_box)
+        self.marker_size_box = marker_size_box
 
         # Make a colorbox for setting the marker color
         marker_color_box = ColorBox()
+        get_modified_box_signal(marker_color_box).connect(self.update_line)
         marker_layout.addRow("Color", marker_color_box)
+        self.marker_color_box = marker_color_box
 
         # Return tab
         return(tab, "Plots")
@@ -325,9 +400,14 @@ class FigureOptionsDialog(QW_QDialog):
         if xcol is None or ycol is None:
             return
 
+        # If xcol and ycol are not the same shape, return
+        if(len(xcol) != len(ycol)):
+            return
+
         # If the current saved line is not already in the figure, make one
         if self.line not in self.axis.lines:
             self.line = self.axis.plot(xcol, ycol)[0]
+            self.set_line_label()
         else:
             self.line.set_xdata(xcol)
             self.line.set_ydata(ycol)
@@ -335,13 +415,52 @@ class FigureOptionsDialog(QW_QDialog):
         # Refresh figure
         self.refresh_figure()
 
+    # This function updates the 2D line plot
+    @QC.Slot()
+    def update_line(self):
+        # Update line style, width and color
+        self.line.set_linestyle(get_box_value(self.line_style_box))
+        self.line.set_linewidth(get_box_value(self.line_width_box))
+        self.line.set_color(get_box_value(self.line_color_box))
+
+        # Update marker style, size and color
+        self.line.set_marker(get_box_value(self.marker_style_box))
+        self.line.set_markersize(get_box_value(self.marker_size_box))
+        self.line.set_markeredgecolor(get_box_value(self.marker_color_box))
+        self.line.set_markerfacecolor(get_box_value(self.marker_color_box))
+
     # This function refreshes the figure
     @QC.Slot()
     def refresh_figure(self):
         # Update the figure
+        if self.axis.legend_ is not None:
+            self.set_legend()
         self.axis.relim()
-        self.axis.autoscale_view(True, True, True)
+        self.axis.autoscale_view(None, True, True)
         self.figure.canvas.draw()
+
+    # This function sets the legend of the figure
+    @QC.Slot()
+    def set_legend(self):
+        # Obtain the legend_flag
+        flag = get_box_value(self.legend_flag)
+
+        # If flag is True, create a legend
+        if flag:
+            self.axis.legend(loc=get_box_value(self.legend_loc_box))
+
+        # Else, remove the current one
+        else:
+            self.axis.legend_.remove()
+
+    # This function sets the label of a line
+    @QC.Slot()
+    def set_line_label(self):
+        # If line currently exists, set its label and update legend
+        if self.line is not None:
+            self.line.set_label(get_box_value(self.data_label_box))
+            if self.axis.legend_ is not None:
+                self.set_legend()
 
     # Override showEvent to show the dialog in the proper location
     def showEvent(self, event):
@@ -376,6 +495,59 @@ class FigureOptionsDialog(QW_QDialog):
         # Else, process events as normal
         else:
             return(super().eventFilter(widget, event))
+
+    # This function creates a linestyle box
+    def create_linestyle_box(self):
+        # Obtain list with all supported linestyles
+        linestyles_lst = [(key, value[6:]) for key, value in lineStyles.items()
+                          if value != '_draw_nothing']
+        linestyles_lst.sort(key=lambda x: x[0])
+
+        # Make combobox for linestyles
+        linestyle_box = QW_QComboBox()
+        for i, (linestyle, tooltip) in enumerate(linestyles_lst):
+            linestyle_box.addItem(linestyle)
+            linestyle_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
+        set_box_value(linestyle_box, rcParams['lines.linestyle'])
+        linestyle_box.setToolTip("Linestyle to be used for this plot")
+        return(linestyle_box)
+
+    # This function creates a linewidth box
+    def create_linewidth_box(self):
+        # Make a double spinbox for linewidth
+        linewidth_box = QW_QDoubleSpinBox()
+        linewidth_box.setRange(0, 9999999)
+        linewidth_box.setSuffix(" pts")
+        set_box_value(linewidth_box, rcParams['lines.linewidth'])
+        linewidth_box.setToolTip("Width of the plotted line")
+        return(linewidth_box)
+
+    # This function creates a marker box
+    def create_markerstyle_box(self):
+        # Obtain list with all supported markers
+        markers_lst = [(key, value) for key, value in lineMarkers.items()
+                       if(value != 'nothing' and isinstance(key, str))]
+        markers_lst.append(('', 'nothing'))
+        markers_lst.sort(key=lambda x: x[0])
+
+        # Make combobox for markers
+        marker_box = QW_QComboBox()
+        for i, (marker, tooltip) in enumerate(markers_lst):
+            marker_box.addItem(marker)
+            marker_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
+        set_box_value(marker_box, rcParams['lines.marker'])
+        marker_box.setToolTip("Marker to be used for this plot")
+        return(marker_box)
+
+    # This function creates a markersize box
+    def create_markersize_box(self):
+        # Make a double spinbox for markersize
+        markersize_box = QW_QDoubleSpinBox()
+        markersize_box.setRange(0, 9999999)
+        markersize_box.setSuffix(" pts")
+        markersize_box.setToolTip("Size of the plotted markers")
+        set_box_value(markersize_box, rcParams['lines.markersize'])
+        return(markersize_box)
 
 
 # Create custom class for setting the data column used in plots
