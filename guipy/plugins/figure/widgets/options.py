@@ -14,16 +14,17 @@ Figure Options
 import matplotlib as mpl
 from matplotlib import rcParams
 from matplotlib.lines import lineMarkers, lineStyles
-from qtpy import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy.layouts import (
     QW_QFormLayout, QW_QGridLayout, QW_QHBoxLayout, QW_QVBoxLayout)
 from guipy.widgets import (
-    ColorBox, DualComboBox, DualSpinBox, QW_QCheckBox, QW_QComboBox,
+    BaseBox, ColorBox, DualComboBox, DualSpinBox, QW_QCheckBox, QW_QComboBox,
     QW_QDialog, QW_QDoubleSpinBox, QW_QGroupBox, QW_QLabel, QW_QLineEdit,
-    QW_QPushButton, QW_QTabWidget, QW_QWidget, get_box_value,
-    get_modified_box_signal, set_box_value)
+    QW_QMessageBox, QW_QPushButton, QW_QStackedWidget, QW_QTabWidget,
+    QW_QToolButton, QW_QWidget, get_box_value, get_modified_box_signal,
+    set_box_value)
 
 # All declaration
 __all__ = ['FigureOptions']
@@ -32,6 +33,8 @@ __all__ = ['FigureOptions']
 # %% CLASS DEFINITIONS
 # Define class for the Figure options widget
 # TODO: Combine this class with the FigureToolbar
+# TODO: Allow for individual plots to be toggled (toggled QGroupBox?)
+# TODO: Write custom QGroupBox that can have a QComboBox as its title?
 class FigureOptions(QW_QWidget):
     # Initialize FigureOptions
     def __init__(self, data_table_plugin_obj, figure, parent=None, *args,
@@ -72,7 +75,7 @@ class FigureOptions(QW_QWidget):
         refresh_but = QW_QPushButton("Refresh")
         refresh_but.setShortcut(QC.Qt.Key_F5)
         get_modified_box_signal(refresh_but).connect(
-            self.options_dialog.draw_line)
+            self.options_dialog.refresh_figure)
         refresh_but.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         layout.addWidget(refresh_but)
 
@@ -82,13 +85,14 @@ class FigureOptions(QW_QWidget):
     # This function toggles the options dialog
     @QC.Slot()
     def toggle_options_dialog(self):
-        # Refresh the figure
-        self.options_dialog.refresh_figure()
-
         # Toggle the options dialog
         self.options_dialog.setVisible(self.options_dialog.isHidden())
         set_box_value(self.dialog_but,
                       self.labels[self.options_dialog.isHidden()])
+
+        # Refresh the figure if the dialog was closed
+        if self.options_dialog.isHidden():
+            self.options_dialog.refresh_figure()
 
 
 # Define class for the Figure options dialog
@@ -145,10 +149,6 @@ class FigureOptionsDialog(QW_QDialog):
         # Add plots tab
         tab_widget.addTab(*self.create_plots_tab())
 
-        # Save that currently no line exists and draw the start line
-        self.line = None
-        self.draw_line()
-
         # Return layout
         return(tab_widget)
 
@@ -174,7 +174,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Make a box for setting the label on the x-axis
         x_label_box = QW_QLineEdit()
         get_modified_box_signal(x_label_box).connect(self.axis.set_xlabel)
-        x_axis_layout.addRow("&Label", x_label_box)
+        x_axis_layout.addRow("Label", x_label_box)
         self.x_label_box = x_label_box
 
         # Make layout for setting the range on the x-axis
@@ -182,6 +182,7 @@ class FigureOptionsDialog(QW_QDialog):
         x_range_layout.setContentsMargins(0, 0, 0, 0)
 
         # Make a box for setting the range on the x-axis
+        # TODO: Maybe use dual lineedits instead to eliminate range problem?
         x_range_box = DualSpinBox((float, float), r"<html>&le; X &le;</html>")
         x_min_box, x_max_box = x_range_box[:]
         x_min_box.setRange(-9999999, 9999999)
@@ -308,6 +309,186 @@ class FigureOptionsDialog(QW_QDialog):
         # Create layout
         layout = QW_QFormLayout(tab)
 
+        # PLOT
+        # Create a plot picker layout
+        plot_layout = QW_QHBoxLayout()
+        layout.addRow(plot_layout)
+
+        # Create a combobox for choosing an existing plot
+        self.plot_entries = QW_QComboBox()
+        self.plot_entries.setToolTip("Select the plot entry you wish to edit")
+        plot_layout.addWidget(self.plot_entries)
+
+        # Add a toolbutton for deleting this plot entry
+        del_but = QW_QToolButton()
+        del_but.setToolTip("Delete this plot entry")
+        get_modified_box_signal(del_but).connect(self.remove_plot)
+        plot_layout.addWidget(del_but)
+
+        # If this theme has a 'remove' icon, use it
+        if QG.QIcon.hasThemeIcon('remove'):
+            del_but.setIcon(QG.QIcon.fromTheme('remove'))
+        # Else, use a simple cross
+        else:
+            del_but.setText('X')
+
+        # Add a toolbutton for adding a new plot entry
+        add_but = QW_QToolButton()
+        add_but.setToolTip("Add new plot entry")
+        get_modified_box_signal(add_but).connect(self.add_plot)
+        plot_layout.addWidget(add_but)
+
+        # If this theme has a 'add' icon, use it
+        if QG.QIcon.hasThemeIcon('add'):
+            add_but.setIcon(QG.QIcon.fromTheme('add'))
+        # Else, use a simple plus
+        else:
+            add_but.setText('+')
+
+        # Add a separator
+        layout.addSeparator()
+
+        # Add a stacked widget here for dividing the plots
+        self.plot_pages = QW_QStackedWidget()
+        get_modified_box_signal(self.plot_entries, int).connect(
+            self.plot_pages.setCurrentIndex)
+        layout.addRow(self.plot_pages)
+
+        # Return tab
+        return(tab, "Plots")
+
+    # This function adds a plot entry
+    @QC.Slot()
+    def add_plot(self):
+        # Obtain index of this plot entry
+        index = self.plot_entries.count()
+
+        # Obtain name
+        name = "plot_%i" % (index)
+
+        # Create plot entry box
+        plot_entry_box = PlotEntryBox(name, self.figure_options)
+
+        # Connect signals
+        plot_entry_box.labelChanged.connect(
+            lambda x: self.plot_entries.setItemText(index, x))
+
+        # Add it to the plot_entries and plot_pages
+        self.plot_entries.addItem(name)
+        self.plot_pages.addWidget(plot_entry_box)
+
+        # Set the shown entry to the new entry
+        set_box_value(self.plot_entries, index)
+
+    # This function removes a plot entry
+    @QC.Slot()
+    def remove_plot(self):
+        # Obtain the index and widget of the currently shown plot entry
+        index = get_box_value(self.plot_entries, int)
+        name = get_box_value(self.plot_entries, str)
+        widget = self.plot_pages.currentWidget()
+
+        # If index is -1, return
+        if(index == -1):
+            return
+
+        # Show a warning message asking if the user really wants to remove it
+        button_clicked = QW_QMessageBox.warning(
+            self, "WARNING: Delete plot",
+            ("Are you sure you want to delete the plot with label <b>%s</b>? "
+             "(<i>Note: This action is irreversible!</i>)" % (name)),
+            QW_QMessageBox.Yes | QW_QMessageBox.No, QW_QMessageBox.No)
+
+        # Remove the entry and page at this index if the user answered 'yes'
+        if(button_clicked == QW_QMessageBox.Yes):
+            self.plot_entries.removeItem(index)
+            self.plot_pages.removeWidget(widget)
+            widget.close()
+            del widget
+
+    # Override showEvent to show the dialog in the proper location
+    def showEvent(self, event):
+        # Call super event
+        super().showEvent(event)
+
+        # Determine the position of the top left corner of the figure dock
+        dock_pos = self.figure_options.rect().topLeft()
+
+        # Determine the size of this dialog
+        size = self.size()
+        size = QC.QPoint(size.width(), 0)
+
+        # Determine position of top left corner
+        dialog_pos = self.figure_options.mapToGlobal(dock_pos-size)
+
+        # Move it slightly to give some spacing
+        dialog_pos.setX(dialog_pos.x()-12)
+
+        # Move the dialog there
+        self.move(dialog_pos)
+
+    # Override eventFilter to filter out clicks, ESC and Enter
+    def eventFilter(self, widget, event):
+        # Check if the event involves anything for which the popup should close
+        if((event.type() == QC.QEvent.KeyPress) and
+           event.key() in (QC.Qt.Key_Escape,)):
+            # Toggle the options dialog
+            self.figure_options.toggle_options_dialog()
+            return(True)
+
+        # Else, process events as normal
+        else:
+            return(super().eventFilter(widget, event))
+
+    # This function refreshes the figure
+    @QC.Slot()
+    def refresh_figure(self):
+        # Update the figure
+        if self.axis.legend_ is not None:
+            self.set_legend()
+        self.axis.relim()
+        self.axis.autoscale_view(None, True, True)
+        self.figure.canvas.draw()
+
+    # This function sets the legend of the figure
+    @QC.Slot()
+    def set_legend(self):
+        # Obtain the legend_flag
+        flag = get_box_value(self.legend_flag)
+
+        # If flag is True, create a legend
+        if flag:
+            self.axis.legend(loc=get_box_value(self.legend_loc_box))
+
+        # Else, remove the current one
+        else:
+            self.axis.legend_.remove()
+
+
+# Create custom class for make a plot entry
+class PlotEntryBox(BaseBox):
+    # Signals
+    labelChanged = QC.Signal(str)
+
+    # Initialize PlotEntryBox class
+    def __init__(self, name, figure_options_obj, parent=None, *args, **kwargs):
+        # Save provided FigureOptions object
+        self.figure_options = figure_options_obj
+        self.data_table_plugin = figure_options_obj.data_table_plugin
+        self.figure = figure_options_obj.figure
+        self.axis = self.figure.gca()
+
+        # Call super constructor
+        super().__init__(parent)
+
+        # Set up the plot entry box
+        self.init(name, *args, **kwargs)
+
+    # This function sets up the plot entry box
+    def init(self, name):
+        # Create layout for this plot entry box
+        layout = QW_QFormLayout(self)
+
         # DATA
         # Create a group box for setting the data of the plot
         data_group = QW_QGroupBox("Data")
@@ -316,20 +497,20 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Make a lineedit for setting the label of the plot
         data_label_box = QW_QLineEdit()
-        get_modified_box_signal(data_label_box).connect(self.set_line_label)
+        get_modified_box_signal(data_label_box).connect(self.labelChanged)
         data_layout.addRow("Label", data_label_box)
         self.data_label_box = data_label_box
 
         # Make a combobox for setting the x-axis data
-        x_data_box = DataColumnBox(self.figure_options.data_table_plugin)
-        set_box_value(x_data_box, (0, 0))
+        x_data_box = DataColumnBox(self.data_table_plugin)
+        set_box_value(x_data_box, (-1, -1))
         get_modified_box_signal(x_data_box).connect(self.draw_line)
         data_layout.addRow("X-axis", x_data_box)
         self.x_data_box = x_data_box
 
         # Make a combobox for setting the y-axis data
-        y_data_box = DataColumnBox(self.figure_options.data_table_plugin)
-        set_box_value(y_data_box, (0, 1))
+        y_data_box = DataColumnBox(self.data_table_plugin)
+        set_box_value(y_data_box, (-1, -1))
         get_modified_box_signal(y_data_box).connect(self.draw_line)
         data_layout.addRow("Y-axis", y_data_box)
         self.y_data_box = y_data_box
@@ -382,8 +563,19 @@ class FigureOptionsDialog(QW_QDialog):
         marker_layout.addRow("Color", marker_color_box)
         self.marker_color_box = marker_color_box
 
-        # Return tab
-        return(tab, "Plots")
+        # Connect signals
+        self.labelChanged.connect(self.set_line_label)
+
+        # Save that currently no line exists and draw the start line
+        self.line = None
+        set_box_value(data_label_box, name)
+        self.draw_line()
+
+    # Override closeEvent to remove the plot from the figure when closed
+    def closeEvent(self, *args, **kwargs):
+        # Remove the plot from the figure if it exists
+        if self.line in self.axis.lines:
+            self.axis.lines.remove(self.line)
 
     # This function draws the 2D line plot
     @QC.Slot()
@@ -408,99 +600,40 @@ class FigureOptionsDialog(QW_QDialog):
         if self.line not in self.axis.lines:
             self.line = self.axis.plot(xcol, ycol)[0]
             self.set_line_label()
+            self.update_line()
         else:
             self.line.set_xdata(xcol)
             self.line.set_ydata(ycol)
 
-        # Refresh figure
-        self.refresh_figure()
-
     # This function updates the 2D line plot
     @QC.Slot()
     def update_line(self):
-        # Update line style, width and color
-        self.line.set_linestyle(get_box_value(self.line_style_box))
-        self.line.set_linewidth(get_box_value(self.line_width_box))
-        self.line.set_color(get_box_value(self.line_color_box))
+        # If line currently exists, update it
+        if self.line is not None:
+            # Update line style, width and color
+            self.line.set_linestyle(get_box_value(self.line_style_box))
+            self.line.set_linewidth(get_box_value(self.line_width_box))
+            self.line.set_color(get_box_value(self.line_color_box))
 
-        # Update marker style, size and color
-        self.line.set_marker(get_box_value(self.marker_style_box))
-        self.line.set_markersize(get_box_value(self.marker_size_box))
-        self.line.set_markeredgecolor(get_box_value(self.marker_color_box))
-        self.line.set_markerfacecolor(get_box_value(self.marker_color_box))
-
-    # This function refreshes the figure
-    @QC.Slot()
-    def refresh_figure(self):
-        # Update the figure
-        if self.axis.legend_ is not None:
-            self.set_legend()
-        self.axis.relim()
-        self.axis.autoscale_view(None, True, True)
-        self.figure.canvas.draw()
-
-    # This function sets the legend of the figure
-    @QC.Slot()
-    def set_legend(self):
-        # Obtain the legend_flag
-        flag = get_box_value(self.legend_flag)
-
-        # If flag is True, create a legend
-        if flag:
-            self.axis.legend(loc=get_box_value(self.legend_loc_box))
-
-        # Else, remove the current one
-        else:
-            self.axis.legend_.remove()
+            # Update marker style, size and color
+            self.line.set_marker(get_box_value(self.marker_style_box))
+            self.line.set_markersize(get_box_value(self.marker_size_box))
+            self.line.set_markeredgecolor(get_box_value(self.marker_color_box))
+            self.line.set_markerfacecolor(get_box_value(self.marker_color_box))
 
     # This function sets the label of a line
     @QC.Slot()
     def set_line_label(self):
-        # If line currently exists, set its label and update legend
+        # If line currently exists, set its label
         if self.line is not None:
             self.line.set_label(get_box_value(self.data_label_box))
-            if self.axis.legend_ is not None:
-                self.set_legend()
-
-    # Override showEvent to show the dialog in the proper location
-    def showEvent(self, event):
-        # Call super event
-        super().showEvent(event)
-
-        # Determine the position of the top left corner of the figure dock
-        dock_pos = self.figure_options.rect().topLeft()
-
-        # Determine the size of this dialog
-        size = self.size()
-        size = QC.QPoint(size.width(), 0)
-
-        # Determine position of top left corner
-        dialog_pos = self.figure_options.mapToGlobal(dock_pos-size)
-
-        # Move it slightly to give some spacing
-        dialog_pos.setX(dialog_pos.x()-12)
-
-        # Move the dialog there
-        self.move(dialog_pos)
-
-    # Override eventFilter to filter out clicks, ESC and Enter
-    def eventFilter(self, widget, event):
-        # Check if the event involves anything for which the popup should close
-        if((event.type() == QC.QEvent.KeyPress) and
-           event.key() in (QC.Qt.Key_Escape,)):
-            # Toggle the options dialog
-            self.figure_options.toggle_options_dialog()
-            return(True)
-
-        # Else, process events as normal
-        else:
-            return(super().eventFilter(widget, event))
 
     # This function creates a linestyle box
     def create_linestyle_box(self):
         # Obtain list with all supported linestyles
         linestyles_lst = [(key, value[6:]) for key, value in lineStyles.items()
                           if value != '_draw_nothing']
+        linestyles_lst.append(('', 'nothing'))
         linestyles_lst.sort(key=lambda x: x[0])
 
         # Make combobox for linestyles
@@ -608,9 +741,9 @@ class DataColumnBox(DualComboBox):
         if(self.data_table_plugin.tab_widget.indexOf(self.data_table) != -1):
             self.model.columnsInserted.disconnect(self.insert_columns)
             self.model.columnsRemoved.disconnect(self.remove_columns)
-            self.model.columnNameChanged.disconnect(
+            self.model.columnDisplayNameChanged.disconnect(
                 self.columns_box.setItemText)
-            self.model.columnNameChanged.disconnect(
+            self.model.columnDisplayNameChanged.disconnect(
                 self.set_columns_box_item_tooltip)
 
         # If currently a data table is selected, obtain its columns
@@ -627,8 +760,9 @@ class DataColumnBox(DualComboBox):
             # Connect signals for columns_box
             self.model.columnsInserted.connect(self.insert_columns)
             self.model.columnsRemoved.connect(self.remove_columns)
-            self.model.columnNameChanged.connect(self.columns_box.setItemText)
-            self.model.columnNameChanged.connect(
+            self.model.columnDisplayNameChanged.connect(
+                self.columns_box.setItemText)
+            self.model.columnDisplayNameChanged.connect(
                 self.set_columns_box_item_tooltip)
 
         # Else, set data_table and model to None

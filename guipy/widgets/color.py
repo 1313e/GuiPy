@@ -349,7 +349,7 @@ class ColorBox(BaseBox):
             default_flag = True
 
         # Set the colorlabel
-        self.color_label.setPixmap(pixmap)
+        set_box_value(self.color_label, pixmap)
 
         # Return if default was used or not
         return(default_flag)

@@ -24,8 +24,9 @@ __all__ = ['QW_QAction', 'QW_QCheckBox', 'QW_QComboBox', 'QW_QDialog',
            'QW_QDockWidget', 'QW_QDoubleSpinBox', 'QW_QFileDialog',
            'QW_QGroupBox', 'QW_QHeaderView', 'QW_QLabel', 'QW_QLineEdit',
            'QW_QMainWindow', 'QW_QMenu', 'QW_QMessageBox', 'QW_QPushButton',
-           'QW_QSpinBox', 'QW_QTabBar', 'QW_QTableView', 'QW_QTabWidget',
-           'QW_QTextEdit', 'QW_QToolBar', 'QW_QToolTip', 'QW_QWidget']
+           'QW_QSpinBox', 'QW_QStackedWidget', 'QW_QTabBar', 'QW_QTableView',
+           'QW_QTabWidget', 'QW_QTextEdit', 'QW_QToolBar', 'QW_QToolButton',
+           'QW_QToolTip', 'QW_QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -445,6 +446,11 @@ class QW_QPushButton(QW.QPushButton, QW_QWidget):
     pass
 
 
+# Create custom QStackedWidget class
+class QW_QStackedWidget(QW.QStackedWidget, QW_QWidget):
+    pass
+
+
 # Create custom QTabBar class
 class QW_QTabBar(QW.QTabBar, QW_QWidget):
     # Signals
@@ -554,6 +560,11 @@ class QW_QToolBar(QW.QToolBar, QW_QWidget):
 
         # Add this action
         self.addAction(action)
+
+
+# Create custom QToolButton class
+class QW_QToolButton(QW.QToolButton, QW_QWidget):
+    pass
 
 
 # Create custom QToolTip class

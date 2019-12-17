@@ -37,6 +37,7 @@ class DataTableModel(QC.QAbstractTableModel):
     rowCountChanged = QC.Signal(int)
     columnCountChanged = QC.Signal(int)
     columnNameChanged = QC.Signal(int, str)
+    columnDisplayNameChanged = QC.Signal(int, str)
 
     # Initialize DataTableModel class
     def __init__(self, parent=None, *args, **kwargs):
@@ -461,14 +462,15 @@ class DataTableModel(QC.QAbstractTableModel):
     # This function sets the name of a column
     @QC.Slot(int, str)
     def setColumnName(self, col, name):
-        # Emit a signal stating that a column changed its name
-        self.columnNameChanged.emit(col, name)
-
         # Get the requested column
         column = self.column_list[col]
 
         # Set column's name
         column.name = name
+
+        # Emit a signal stating that a column changed its (display) name
+        self.columnNameChanged.emit(col, name)
+        self.columnDisplayNameChanged.emit(col, column.display_name)
 
     # This function sets the dtype of a column
     # TODO: If auto-conversion is not possible, ask user if the column should
