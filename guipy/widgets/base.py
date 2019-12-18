@@ -240,7 +240,7 @@ class QW_QFileDialog(QW.QFileDialog, QW_QDialog):
 
 
 # Create custom QGroupBox class
-class QW_QGroupBox(QW.QGroupBox, QW_QDialog):
+class QW_QGroupBox(QW.QGroupBox, QW_QWidget):
     pass
 
 
