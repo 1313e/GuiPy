@@ -13,7 +13,6 @@ configurations in *GuiPy*.
 # Package imports
 from sortedcontainers import SortedDict as sdict
 
-
 # All declaration
 __all__ = ['FILE_EXTS', 'FILE_FILTERS', 'FILE_FORMATS', 'FILE_TYPES', 'ntr',
            'register_file_format', 'tr']

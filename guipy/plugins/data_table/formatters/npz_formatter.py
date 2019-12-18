@@ -15,17 +15,17 @@ from ast import literal_eval
 import numpy as np
 
 # GuiPy imports
-from guipy.plugins.data_table.formatters.base import BaseFormatter
+from guipy.plugins.data_table.formatters import BaseFormatter
 from guipy.plugins.data_table.widgets import DataTableColumn
 
 
 # All declaration
-__all__ = []
+__all__ = ['NPZFormatter']
 
 
 # %% CLASS DEFINITIONS
 # Define Formatter for .npz-files
-class Formatter(BaseFormatter):
+class NPZFormatter(BaseFormatter):
     # Class attributes
     TYPE = "NumPy Binary Archive"
     EXTS = ['.npz']

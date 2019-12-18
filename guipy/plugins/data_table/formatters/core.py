@@ -17,7 +17,6 @@ from os import path
 # GuiPy imports
 from guipy.config import register_file_format
 
-
 # All declaration
 __all__ = ['FORMATTERS', 'register_formatter']
 
@@ -104,8 +103,10 @@ def _import_formatters():
         # Import this module
         mod = import_module(modname)
 
-        # Register this formatter
-        register_formatter(mod.Formatter)
+        # Register everything in __all__ as a formatter
+        for prop in mod.__all__:
+            formatter = getattr(mod, prop)
+            register_formatter(formatter)
 
 
 # Import all defined formatters

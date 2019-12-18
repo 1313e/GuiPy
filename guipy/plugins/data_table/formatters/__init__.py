@@ -9,8 +9,9 @@ Data Table Formatters
 
 # %% IMPORTS
 # Import core modules
-from . import base, core
+from . import base
 from .base import *
+from . import core
 from .core import *
 
 # All declaration
