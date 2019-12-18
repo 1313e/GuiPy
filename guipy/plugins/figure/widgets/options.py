@@ -98,6 +98,7 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Make line edit for title
         title_box = QW_QLineEdit()
+        title_box.setToolTip("Figure title")
         get_modified_box_signal(title_box).connect(self.axis.set_title)
         layout.addRow("Title", title_box)
 
@@ -109,6 +110,7 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Make a box for setting the label on the x-axis
         x_label_box = QW_QLineEdit()
+        x_label_box.setToolTip("Label of the X-axis")
         get_modified_box_signal(x_label_box).connect(self.axis.set_xlabel)
         x_axis_layout.addRow("Label", x_label_box)
         self.x_label_box = x_label_box
@@ -119,10 +121,13 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Make a box for setting the range on the x-axis
         # TODO: Maybe use dual lineedits instead to eliminate range problem?
+        # TODO: This would also allow for a cell or small formula to be used
         x_range_box = DualSpinBox((float, float), r"<html>&le; X &le;</html>")
         x_min_box, x_max_box = x_range_box[:]
         x_min_box.setRange(-9999999, 9999999)
+        x_min_box.setToolTip("Minimum value of the X-axis")
         x_max_box.setRange(-9999999, 9999999)
+        x_max_box.setToolTip("Maximum value of the X-axis")
         set_box_value(x_range_box, self.axis.get_xlim())
         x_range_box.setEnabled(False)
 
@@ -134,8 +139,7 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Make a checkbox for enabling/disabling the use of this range
         x_range_flag = QW_QCheckBox()
-        x_range_flag.setToolTip("Enable/disable the use of a manual X-axis "
-                                "range.")
+        x_range_flag.setToolTip("Toggle the use of a manual X-axis range")
         set_box_value(x_range_flag, False)
 
         # Connect signals for x_range_flag
@@ -151,6 +155,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Make a box for setting the scale on the x-axis
         x_scale_box = QW_QComboBox()
         x_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
+        x_scale_box.setToolTip("Value scale of the X-axis")
         get_modified_box_signal(x_scale_box).connect(self.axis.set_xscale)
         x_axis_layout.addRow("Scale", x_scale_box)
 
@@ -162,6 +167,7 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Make a box for setting the label on the y-axis
         y_label_box = QW_QLineEdit()
+        y_label_box.setToolTip("Label of the Y-axis")
         get_modified_box_signal(y_label_box).connect(self.axis.set_ylabel)
         y_axis_layout.addRow("Label", y_label_box)
         self.y_label_box = y_label_box
@@ -174,7 +180,9 @@ class FigureOptionsDialog(QW_QDialog):
         y_range_box = DualSpinBox((float, float), r"<html>&le; Y &le;</html>")
         y_min_box, y_max_box = y_range_box[:]
         y_min_box.setRange(-9999999, 9999999)
+        y_min_box.setToolTip("Minimum value of the Y-axis")
         y_max_box.setRange(-9999999, 9999999)
+        y_max_box.setToolTip("Maximum value of the Y-axis")
         set_box_value(y_range_box, self.axis.get_ylim())
         y_range_box.setEnabled(False)
 
@@ -186,8 +194,7 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Make a checkbox for enabling/disabling the use of this range
         y_range_flag = QW_QCheckBox()
-        y_range_flag.setToolTip("Enable/disable the use of a manual Y-axis "
-                                "range.")
+        y_range_flag.setToolTip("Toggle the use of a manual Y-axis range")
         set_box_value(y_range_flag, False)
 
         # Connect signals for y_range_flag
@@ -203,6 +210,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Make a box for setting the scale on the y-axis
         y_scale_box = QW_QComboBox()
         y_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
+        y_scale_box.setToolTip("Value scale of the Y-axis")
         get_modified_box_signal(y_scale_box).connect(self.axis.set_yscale)
         y_axis_layout.addRow("Scale", y_scale_box)
 
@@ -219,6 +227,7 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Make a checkbox for using a legend
         legend_flag = QW_QCheckBox("Legend")
+        legend_flag.setToolTip("Toggle the use of a figure legend")
         set_box_value(legend_flag, False)
         legend_layout.addWidget(legend_flag)
         self.legend_flag = legend_flag
@@ -226,6 +235,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Make a combobox for choosing the location of the legend
         legend_loc_box = QW_QComboBox()
         legend_loc_box.addItems(mpl.legend.Legend.codes.keys())
+        legend_loc_box.setToolTip("Location of the figure legend")
         set_box_value(legend_loc_box, rcParams['legend.loc'])
         legend_loc_box.setEnabled(False)
         legend_layout.addWidget(legend_loc_box)

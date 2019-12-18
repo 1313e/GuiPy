@@ -52,6 +52,7 @@ class FigureToolbar(NavigationToolbar2QT):
         # Create button for showing/hiding extra options
         dialog_but = QW_QPushButton()
         set_box_value(dialog_but, self.labels[self.options_dialog.isHidden()])
+        dialog_but.setToolTip("Toggle the figure options menu")
         get_modified_box_signal(dialog_but).connect(self.toggle_options_dialog)
         dialog_but.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         self.insertWidget(action_0, dialog_but)

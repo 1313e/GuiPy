@@ -61,12 +61,15 @@ class FigurePlotEntry(BaseBox):
 
         # Make a lineedit for setting the label of the plot
         data_label_box = QW_QLineEdit()
+        data_label_box.setToolTip("Label of this plot")
         get_modified_box_signal(data_label_box).connect(self.labelChanged)
         data_layout.addRow("Label", data_label_box)
         self.data_label_box = data_label_box
 
         # Make a combobox for setting the x-axis data
         x_data_box = DataColumnBox(self.data_table_plugin)
+        x_data_box.setToolTip("Data table and column to use for the X-axis "
+                              "data")
         set_box_value(x_data_box, (-1, -1))
         get_modified_box_signal(x_data_box).connect(self.draw_line)
         data_layout.addRow("X-axis", x_data_box)
@@ -74,6 +77,8 @@ class FigurePlotEntry(BaseBox):
 
         # Make a combobox for setting the y-axis data
         y_data_box = DataColumnBox(self.data_table_plugin)
+        y_data_box.setToolTip("Data table and column to use for the Y-axis "
+                              "data")
         set_box_value(y_data_box, (-1, -1))
         get_modified_box_signal(y_data_box).connect(self.draw_line)
         data_layout.addRow("Y-axis", y_data_box)
