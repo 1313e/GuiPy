@@ -77,9 +77,6 @@ class MainWindow(QW_QMainWindow):
         # Disable the default context menu (right-click menu)
         self.setContextMenuPolicy(QC.Qt.NoContextMenu)
 
-        # Initialize empty list with plugins
-        self.plugin_list = []
-
         # Create statusbar
         self.create_statusbar()
 
@@ -104,7 +101,7 @@ class MainWindow(QW_QMainWindow):
     # Override closeEvent to automatically close all plugins
     def closeEvent(self, *args, **kwargs):
         # Close all plugins in plugin_list
-        for plugin in self.plugin_list:
+        for plugin in self.plugins.items():
             plugin.close()
 
         # Call super event
@@ -290,6 +287,9 @@ class MainWindow(QW_QMainWindow):
 
         """
 
+        # Initialize empty dict with plugins
+        self.plugins = {}
+
         # Initialize the DataTable plugin
         data_table = DataTable(self)
         self.add_dockwidget(data_table)
@@ -316,8 +316,8 @@ class MainWindow(QW_QMainWindow):
         # Add action for toggling the dock widget
         self.add_menu_actions({'View/Docks': [dock_widget.toggleViewAction()]})
 
-        # Add plugin to list of all current plugins
-        self.plugin_list.append(plugin)
+        # Add plugin to dict of all current plugins
+        self.plugins[plugin.title] = plugin
 
         # Add all menu actions of this plugin to the proper menus
         self.add_menu_actions(plugin.menu_actions)

@@ -27,6 +27,12 @@ __all__ = ['main']
 
 # %% MAIN FUNCTION
 def main():
+    """
+    Prepares an :obj:`~PyQt5.QtWidgets.QApplication` instance and starts the
+    *GuiPy* application.
+
+    """
+
     # Obtain application instance
     qapp = QW.QApplication.instance()
 
