@@ -21,90 +21,27 @@ from guipy.layouts import (
 from guipy.plugins.figure.widgets.plot_entry import FigurePlotEntry
 from guipy.widgets import (
     DualSpinBox, QW_QCheckBox, QW_QComboBox, QW_QDialog, QW_QGroupBox,
-    QW_QLineEdit, QW_QMessageBox, QW_QPushButton, QW_QStackedWidget,
-    QW_QTabWidget, QW_QToolButton, QW_QWidget, get_box_value,
-    get_modified_box_signal, set_box_value)
+    QW_QLineEdit, QW_QMessageBox, QW_QStackedWidget, QW_QTabWidget,
+    QW_QToolButton, QW_QWidget, get_box_value, get_modified_box_signal,
+    set_box_value)
 
 # All declaration
-__all__ = ['FigureOptions']
+__all__ = ['FigureOptionsDialog']
 
 
 # %% CLASS DEFINITIONS
-# Define class for the Figure options widget
-# TODO: Combine this class with the FigureToolbar
-# TODO: Allow for individual plots to be toggled (toggled QGroupBox?)
-# TODO: Write custom QGroupBox that can have a QComboBox as its title?
-class FigureOptions(QW_QWidget):
-    # Initialize FigureOptions
-    def __init__(self, data_table_plugin_obj, figure, parent=None, *args,
-                 **kwargs):
-        # Save provided data table plugin object
-        self.data_table_plugin = data_table_plugin_obj
-        self.tab_widget = self.data_table_plugin.tab_widget
-        self.figure = figure
-
-        # Call super constructor
-        super().__init__(parent)
-
-        # Set up the figure options
-        self.init(*args, **kwargs)
-
-    # This function sets up the figure options
-    def init(self):
-        # Set size policies for this options widget
-        self.setSizePolicy(QW.QSizePolicy.Ignored, QW.QSizePolicy.Fixed)
-
-        # Initialize options dialog
-        self.options_dialog = FigureOptionsDialog(self)
-        self.labels = ['>>> Figure &options...', '<<< Figure &options...']
-
-        # Create main layout
-        layout = QW_QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-
-        # Create button for showing/hiding extra options
-        dialog_but = QW_QPushButton()
-        set_box_value(dialog_but, self.labels[self.options_dialog.isHidden()])
-        get_modified_box_signal(dialog_but).connect(self.toggle_options_dialog)
-        dialog_but.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
-        layout.addWidget(dialog_but)
-        self.dialog_but = dialog_but
-
-        # Create button for refreshing the figure
-        refresh_but = QW_QPushButton("Refresh")
-        refresh_but.setShortcut(QC.Qt.Key_F5)
-        get_modified_box_signal(refresh_but).connect(
-            self.options_dialog.refresh_figure)
-        refresh_but.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
-        layout.addWidget(refresh_but)
-
-        # Add a stretch to the layout
-        layout.addStretch()
-
-    # This function toggles the options dialog
-    @QC.Slot()
-    def toggle_options_dialog(self):
-        # Toggle the options dialog
-        self.options_dialog.setVisible(self.options_dialog.isHidden())
-        set_box_value(self.dialog_but,
-                      self.labels[self.options_dialog.isHidden()])
-
-        # Refresh the figure if the dialog was closed
-        if self.options_dialog.isHidden():
-            self.options_dialog.refresh_figure()
-
-
 # Define class for the Figure options dialog
 class FigureOptionsDialog(QW_QDialog):
     # Initialize FigureOptionsDialog
-    def __init__(self, figure_options_obj, *args, **kwargs):
-        # Save provided FigureOptions object
-        self.figure_options = figure_options_obj
-        self.figure = figure_options_obj.figure
+    def __init__(self, toolbar, *args, **kwargs):
+        # Save provided FigureToolbar object
+        self.toolbar = toolbar
+        self.canvas = toolbar.canvas
+        self.figure = self.canvas.figure
         self.axis = self.figure.gca()
 
         # Call super constructor
-        super().__init__(figure_options_obj)
+        super().__init__(toolbar)
 
         # Set up the figure options dialog
         self.init(*args, **kwargs)
@@ -135,7 +72,7 @@ class FigureOptionsDialog(QW_QDialog):
         layout.addWidget(button_box)
         close_but = button_box.addButton(button_box.Close)
         get_modified_box_signal(close_but).connect(
-            self.figure_options.toggle_options_dialog)
+            self.toolbar.toggle_options_dialog)
 
     # This function creates the options tabwidget for the selected plot type
     def create_options_tabs(self, index=None):
@@ -186,6 +123,7 @@ class FigureOptionsDialog(QW_QDialog):
         x_min_box, x_max_box = x_range_box[:]
         x_min_box.setRange(-9999999, 9999999)
         x_max_box.setRange(-9999999, 9999999)
+        set_box_value(x_range_box, self.axis.get_xlim())
         x_range_box.setEnabled(False)
 
         # Connect signals for x_range_box
@@ -237,6 +175,7 @@ class FigureOptionsDialog(QW_QDialog):
         y_min_box, y_max_box = y_range_box[:]
         y_min_box.setRange(-9999999, 9999999)
         y_max_box.setRange(-9999999, 9999999)
+        set_box_value(y_range_box, self.axis.get_ylim())
         y_range_box.setEnabled(False)
 
         # Connect signals for y_range_box
@@ -366,7 +305,7 @@ class FigureOptionsDialog(QW_QDialog):
         name = "plot_%i" % (index)
 
         # Create plot entry box
-        plot_entry = FigurePlotEntry(name, self.figure_options)
+        plot_entry = FigurePlotEntry(name, self.toolbar)
 
         # Connect signals
         plot_entry.labelChanged.connect(
@@ -411,14 +350,14 @@ class FigureOptionsDialog(QW_QDialog):
         super().showEvent(event)
 
         # Determine the position of the top left corner of the figure dock
-        dock_pos = self.figure_options.rect().topLeft()
+        dock_pos = self.toolbar.rect().topLeft()
 
         # Determine the size of this dialog
         size = self.size()
         size = QC.QPoint(size.width(), 0)
 
         # Determine position of top left corner
-        dialog_pos = self.figure_options.mapToGlobal(dock_pos-size)
+        dialog_pos = self.toolbar.mapToGlobal(dock_pos-size)
 
         # Move it slightly to give some spacing
         dialog_pos.setX(dialog_pos.x()-12)
@@ -432,7 +371,7 @@ class FigureOptionsDialog(QW_QDialog):
         if((event.type() == QC.QEvent.KeyPress) and
            event.key() in (QC.Qt.Key_Escape,)):
             # Toggle the options dialog
-            self.figure_options.toggle_options_dialog()
+            self.toolbar.toggle_options_dialog()
             return(True)
 
         # Else, process events as normal
@@ -447,7 +386,7 @@ class FigureOptionsDialog(QW_QDialog):
             self.set_legend()
         self.axis.relim()
         self.axis.autoscale_view(None, True, True)
-        self.figure.canvas.draw()
+        self.canvas.draw()
 
     # This function sets the legend of the figure
     @QC.Slot()

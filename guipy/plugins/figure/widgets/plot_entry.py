@@ -28,16 +28,18 @@ __all__ = ['FigurePlotEntry']
 
 # %% CLASS DEFINITIONS
 # Create custom class for make a plot entry
+# TODO: Allow for individual plots to be toggled (toggled QGroupBox?)
+# TODO: Write custom QGroupBox that can have a QComboBox as its title?
 class FigurePlotEntry(BaseBox):
     # Signals
     labelChanged = QC.Signal(str)
 
     # Initialize PlotEntryBox class
-    def __init__(self, name, figure_options_obj, parent=None, *args, **kwargs):
-        # Save provided FigureOptions object
-        self.figure_options = figure_options_obj
-        self.data_table_plugin = figure_options_obj.data_table_plugin
-        self.figure = figure_options_obj.figure
+    def __init__(self, name, toolbar, parent=None, *args, **kwargs):
+        # Save provided FigureToolbar object
+        self.toolbar = toolbar
+        self.data_table_plugin = toolbar.data_table_plugin
+        self.figure = toolbar.canvas.figure
         self.axis = self.figure.gca()
 
         # Call super constructor

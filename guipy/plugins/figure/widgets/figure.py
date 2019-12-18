@@ -18,7 +18,6 @@ from qtpy import QtCore as QC, QtWidgets as QW
 from guipy.layouts import QW_QVBoxLayout
 from guipy.plugins.figure.widgets.canvas import FigureCanvas
 from guipy.plugins.figure.widgets.manager import FigureManager
-from guipy.plugins.figure.widgets.options import FigureOptions
 from guipy.plugins.figure.widgets.toolbar import FigureToolbar
 from guipy.widgets import QW_QWidget
 
@@ -30,9 +29,10 @@ __all__ = ['FigureWidget']
 # Define class for the Figure widget
 class FigureWidget(QW_QWidget):
     # Initialize FigureWidget
-    def __init__(self, data_table_obj, num, parent=None, *args, **kwargs):
+    def __init__(self, data_table_plugin_obj, num, parent=None, *args,
+                 **kwargs):
         # Save provided data table object
-        self.data_table = data_table_obj
+        self.data_table_plugin = data_table_plugin_obj
         self.num = num
 
         # Call super constructor
@@ -51,14 +51,13 @@ class FigureWidget(QW_QWidget):
         self.figure, self.canvas, self.manager, self.toolbar =\
             self.create_figure()
 
-        # Create an options box for this figure and add it
-        layout.addWidget(FigureOptions(self.data_table, self.figure, self))
+        # Add figure toolbar to layout
+        layout.addWidget(self.toolbar)
 
         # Add a separator
         layout.addSeparator()
 
-        # Add figure canvas and toolbar to layout
-        layout.addWidget(self.toolbar)
+        # Add figure canvas to layout
         layout.addWidget(self.canvas)
 
     # This function creates and returns a figure
@@ -73,7 +72,7 @@ class FigureWidget(QW_QWidget):
         manager = FigureManager(canvas, self.num)
 
         # Create a toolbar for this figure
-        toolbar = FigureToolbar(canvas, self)
+        toolbar = FigureToolbar(self.data_table_plugin, canvas, self)
 
         # Return all
         return(figure, canvas, manager, toolbar)
