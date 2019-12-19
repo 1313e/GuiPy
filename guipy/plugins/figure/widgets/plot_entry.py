@@ -15,7 +15,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy.layouts import QW_QHBoxLayout, QW_QVBoxLayout
-from guipy.plugins.figure.widgets.types.line import LineType
+from guipy.plugins.figure.widgets.types import PLOT_TYPES
 from guipy.widgets import (
     QW_QComboBox, QW_QLabel, QW_QToolButton, QW_QWidget,
     get_modified_box_signal, set_box_value)
@@ -68,7 +68,7 @@ class FigurePlotEntry(QW_QWidget):
 
         # Create a combobox for choosing a plot type
         plot_types = QW_QComboBox()
-        plot_types.addItems(['Line'])
+        plot_types.addItems(PLOT_TYPES)
         plot_types.setToolTip("Select the plot type you wish to use for this "
                               "plot")
         set_box_value(plot_types, -1)
@@ -103,7 +103,7 @@ class FigurePlotEntry(QW_QWidget):
         # Else, initialize the requested type
         else:
             # Initialize the LineType entry
-            plot_entry = LineType(self.name, self.toolbar)
+            plot_entry = PLOT_TYPES[plot_type](self.name, self.toolbar)
             plot_entry.labelChanged.connect(self.labelChanged)
 
         # Replace the current plot entry with the new one

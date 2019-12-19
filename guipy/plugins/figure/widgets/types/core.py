@@ -17,9 +17,6 @@ from os import path
 # Package imports
 from sortedcontainers import SortedDict as sdict
 
-# GuiPy imports
-
-
 # All declaration
 __all__ = ['PLOT_TYPES', 'register_plot_type']
 
@@ -45,8 +42,41 @@ def register_plot_type(plot_type_class):
 
     """
 
-    # Initialize provided PlotType class
-    plot_type = plot_type_class()
-
     # Register the plot_type
-    PLOT_TYPES[plot_type.name] = plot_type
+    PLOT_TYPES[plot_type_class.name()] = plot_type_class
+
+
+# This function imports all pre-defined plot types and registers them
+def _import_plot_types():
+    """
+    Imports and registers all pre-defined plot types for use in *GuiPy*.
+
+    """
+
+    # Obtain the path to this directory
+    dirpath = path.dirname(__file__)
+
+    # Obtain a list of all files in this directory
+    filenames = next(os.walk(dirpath))[2]
+
+    # Remove __init__.py, base.py and core.py
+    filenames.remove('__init__.py')
+    filenames.remove('base.py')
+    filenames.remove('core.py')
+
+    # Loop over all files remaining
+    for filename in filenames:
+        # Obtain full module name
+        modname = "%s.%s" % (__package__, filename[:-3])
+
+        # Import this module
+        mod = import_module(modname)
+
+        # Register everything in __all__ as a plot type
+        for type_name in mod.__all__:
+            type_class = getattr(mod, type_name)
+            register_plot_type(type_class)
+
+
+# Import all defined plot types
+_import_plot_types()

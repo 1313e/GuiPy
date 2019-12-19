@@ -20,7 +20,7 @@ __all__ = ['BasePlotProp']
 # Define BasePlotProp base class
 class BasePlotProp(QW_QGroupBox):
     """
-    Provides an base class definition that must be subclassed by all figure
+    Provides a base class definition that must be subclassed by all figure
     plot properties.
 
     Every plot property has a `name` associated with it; a list of
