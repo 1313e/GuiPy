@@ -28,6 +28,13 @@ class BasePlotProp(QW_QGroupBox):
     The requirements specify all attributes that are required by that property,
     which must be provided by the class initializing it.
 
+    The `widget_names` are the names of the methods that must be called to
+    receive the widgets for this plot property.
+    These methods return the name (as shown in the group box) and the widget
+    itself.
+    The widgets will also be registered as instance attributes with the same
+    name as their construction method.
+
     """
 
     # Define class attributes

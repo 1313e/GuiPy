@@ -15,7 +15,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.layouts import QW_QFormLayout
-from guipy.plugins.figure.widgets.plot_types.plot_props import PLOT_PROPS
+from guipy.plugins.figure.widgets.types.props import PLOT_PROPS
 from guipy.widgets import BaseBox, QW_QWidget, get_box_value, set_box_value
 
 # All declaration

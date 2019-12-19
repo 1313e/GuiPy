@@ -14,13 +14,16 @@ from importlib import import_module
 import os
 from os import path
 
+# Package imports
+from sortedcontainers import SortedDict as sdict
+
 # All declaration
 __all__ = ['PLOT_PROPS', 'register_plot_prop']
 
 
 # %% GLOBALS
 # Define dict of data table formatters
-PLOT_PROPS = {}
+PLOT_PROPS = sdict()
 
 
 # %% FUNCTION DEFINITIONS
@@ -35,8 +38,8 @@ def register_plot_prop(plot_prop_class):
 
     Parameters
     ----------
-    plot_prop_class : :class:`~guipy.plugins.figure.widgets.plot_types.\
-        plot_props.BasePlotProp` subclass
+    plot_prop_class : :class:`~guipy.plugins.figure.widgets.types.\
+        props.BasePlotProp` subclass
         The plot property class to use for formatting a plot property.
 
     """
@@ -47,6 +50,11 @@ def register_plot_prop(plot_prop_class):
 
 # This function imports all pre-defined plot properties and registers them
 def _import_plot_props():
+    """
+    Imports and registers all pre-defined plot properties for use in *GuiPy*.
+
+    """
+
     # Obtain the path to this directory
     dirpath = path.dirname(__file__)
 

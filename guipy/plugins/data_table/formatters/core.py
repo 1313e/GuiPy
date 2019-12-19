@@ -14,6 +14,9 @@ from importlib import import_module
 import os
 from os import path
 
+# Package imports
+from sortedcontainers import SortedDict as sdict
+
 # GuiPy imports
 from guipy.config import register_file_format
 
@@ -47,7 +50,7 @@ FORMATS_LIST = [
     "X11 Pixmap (*.xpm)"]
 
 # Define dict of data table formatters
-FORMATTERS = {}
+FORMATTERS = sdict()
 
 
 # %% FUNCTION DEFINITIONS
@@ -81,6 +84,12 @@ def register_formatter(formatter_class):
 
 # This function imports all pre-defined formatters and registers them
 def _import_formatters():
+    """
+    Imports and registers all pre-defined data table formatters for use in
+    *GuiPy*.
+
+    """
+
     # Obtain the path to this directory
     dirpath = path.dirname(__file__)
 

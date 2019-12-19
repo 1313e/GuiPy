@@ -14,7 +14,7 @@ from matplotlib.lines import lineMarkers
 from qtpy import QtCore as QC
 
 # GuiPy imports
-from guipy.plugins.figure.widgets.plot_types.plot_props import BasePlotProp
+from guipy.plugins.figure.widgets.types.props import BasePlotProp
 from guipy.widgets import (
     ColorBox, QW_QComboBox, QW_QDoubleSpinBox, get_modified_box_signal,
     set_box_value)

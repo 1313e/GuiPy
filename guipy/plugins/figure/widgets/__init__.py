@@ -18,11 +18,11 @@ from .plot_entry import *
 from .toolbar import *
 
 # Import subpackages
-from . import plot_types
+from . import types
 
 # All declaration
 __all__ = ['canvas', 'figure', 'manager', 'options', 'plot_entry',
-           'plot_types', 'toolbar']
+           'toolbar', 'types']
 __all__.extend(canvas.__all__)
 __all__.extend(figure.__all__)
 __all__.extend(manager.__all__)

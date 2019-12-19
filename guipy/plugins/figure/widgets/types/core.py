@@ -14,6 +14,9 @@ from importlib import import_module
 import os
 from os import path
 
+# Package imports
+from sortedcontainers import SortedDict as sdict
+
 # GuiPy imports
 
 
@@ -23,7 +26,7 @@ __all__ = ['PLOT_TYPES', 'register_plot_type']
 
 # %% GLOBALS
 # Define dict of plot types
-PLOT_TYPES = {}
+PLOT_TYPES = sdict()
 
 
 # %% FUNCTION DEFINITIONS
@@ -37,7 +40,7 @@ def register_plot_type(plot_type_class):
     Parameters
     ----------
     plot_type_class : \
-        :class:`~guipy.plugins.figure.widgets.plot_types.BasePlotType` subclass
+        :class:`~guipy.plugins.figure.widgets.types.BasePlotType` subclass
         The plot type class to use for drawing a given plot.
 
     """

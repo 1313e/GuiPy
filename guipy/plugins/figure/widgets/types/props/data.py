@@ -12,7 +12,7 @@ Data Property
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.plugins.figure.widgets.plot_types.plot_props import BasePlotProp
+from guipy.plugins.figure.widgets.types.props import BasePlotProp
 from guipy.widgets import (
     DualComboBox, QW_QLineEdit, get_box_value, get_modified_box_signal,
     set_box_value)
