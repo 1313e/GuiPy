@@ -18,20 +18,33 @@ from guipy.widgets import (
     set_box_value)
 
 # All declaration
-__all__ = ['Data2DProp']
+__all__ = ['Data1DProp', 'Data2DProp', 'Data3DProp']
 
 
 # %% CLASS DEFINITIONS
-# Define 'Data2D' plot property
-class Data2DProp(BasePlotProp):
+# Define 'Data1D' plot property
+class Data1DProp(BasePlotProp):
+    """
+    Provides the definition of the :class:`~Data1DProp` plot property.
+
+    This property contains boxes for setting the label and the X-axis data.
+
+    """
+
     # Class attributes
-    NAME = "Data2D"
+    NAME = "Data1D"
     DISPLAY_NAME = "Data"
     REQUIREMENTS = ['data_table_plugin', 'draw_plot', 'labelChanged']
-    WIDGET_NAMES = ['data_label_box', 'x_data_box', 'y_data_box']
+    WIDGET_NAMES = ['data_label_box', 'x_data_box']
 
     # This function creates and returns the data label box
     def data_label_box(self):
+        """
+        Creates a widget box for setting the label of the plot data and returns
+        it.
+
+        """
+
         # Make a lineedit for setting the label of the plot
         data_label_box = QW_QLineEdit()
         data_label_box.setToolTip("Label of this plot")
@@ -42,6 +55,12 @@ class Data2DProp(BasePlotProp):
 
     # This function creates and returns the x-axis data box
     def x_data_box(self):
+        """
+        Creates a widget box for setting the data for the X-axis and returns
+        it.
+
+        """
+
         # Make a combobox for setting the x-axis data
         x_data_box = DataColumnBox(self.data_table_plugin)
         x_data_box.setToolTip("Data table and column to use for the X-axis "
@@ -51,8 +70,29 @@ class Data2DProp(BasePlotProp):
         # Return name and box
         return('X-axis', x_data_box)
 
+
+# Define 'Data2D' plot property
+class Data2DProp(Data1DProp):
+    """
+    Provides the definition of the :class:`~Data2DProp` plot property.
+
+    This property contains boxes for setting the label and the X-axis; and
+    Y-axis data.
+
+    """
+
+    # Class attributes
+    NAME = "Data2D"
+    WIDGET_NAMES = [*Data1DProp.WIDGET_NAMES, 'y_data_box']
+
     # This function creates and returns the y-axis data box
     def y_data_box(self):
+        """
+        Creates a widget box for setting the data for the Y-axis and returns
+        it.
+
+        """
+
         # Make a combobox for setting the y-axis data
         y_data_box = DataColumnBox(self.data_table_plugin)
         y_data_box.setToolTip("Data table and column to use for the Y-axis "
@@ -61,6 +101,38 @@ class Data2DProp(BasePlotProp):
 
         # Return name and box
         return('Y-axis', y_data_box)
+
+
+# Define 'Data3D' plot property
+class Data3DProp(Data2DProp):
+    """
+    Provides the definition of the :class:`~Data3DProp` plot property.
+
+    This property contains boxes for setting the label and the X-axis; Y-axis;
+    and Z-axis data.
+
+    """
+
+    # Class attributes
+    NAME = "Data3D"
+    WIDGET_NAMES = [*Data2DProp.WIDGET_NAMES, 'z_data_box']
+
+    # This function creates and returns the z-axis data box
+    def z_data_box(self):
+        """
+        Creates a widget box for setting the data for the Z-axis and returns
+        it.
+
+        """
+
+        # Make a combobox for setting the z-axis data
+        z_data_box = DataColumnBox(self.data_table_plugin)
+        z_data_box.setToolTip("Data table and column to use for the Z-axis "
+                              "data")
+        get_modified_box_signal(z_data_box).connect(self.draw_plot)
+
+        # Return name and box
+        return('Z-axis', z_data_box)
 
 
 # Create custom class for setting the data column used in plots
@@ -109,11 +181,36 @@ class DataColumnBox(DualComboBox):
     # This function sets the tooltip of an item in the tables box
     @QC.Slot(int, str)
     def set_tables_box_item_tooltip(self, index, text):
+        """
+        Sets the tooltip of a specified table with `index` to the given `text`.
+
+        Parameters
+        ----------
+        index : int
+            The logical index of the data table that needs to change its
+            tooltip.
+        text : str
+            The string that needs to be used for this new tooltip.
+
+        """
+
         self.tables_box.setItemData(index, text, QC.Qt.ToolTipRole)
 
     # This function sets the data table in the columns box
     @QC.Slot(int)
     def set_columns_box_table(self, index):
+        """
+        Sets the columns combobox to contain all columns that are contained in
+        the data table with `index`.
+
+        Parameters
+        ----------
+        index : int
+            The logical index of the data table whose columns need to be put
+            into columns box.
+
+        """
+
         # Clear the columns_box of all its items
         self.columns_box.clear()
 
@@ -153,11 +250,41 @@ class DataColumnBox(DualComboBox):
     # This function sets the tooltip of an item in the columns box
     @QC.Slot(int, str)
     def set_columns_box_item_tooltip(self, index, text):
+        """
+        Sets the tooltip of a specified column with `index` to the given
+        `text`.
+
+        Parameters
+        ----------
+        index : int
+            The logical index of the data column that needs to change its
+            tooltip.
+        text : str
+            The string that needs to be used for this new tooltip.
+
+        """
+
         self.columns_box.setItemData(index, text, QC.Qt.ToolTipRole)
 
     # This function inserts column display names into the columns box
     @QC.Slot(QC.QModelIndex, int, int)
     def insert_columns(self, parent, first, last):
+        """
+        Inserts new columns into the columns box between given `first` and
+        `last`.
+
+        Parameters
+        ----------
+        parent : :obj:`~PyQt5.QtCore.QModelIndex` object
+            The parent that was used in the data table model.
+            This function does not need it.
+        first : int
+            The logical index of the first column that was inserted.
+        last : int
+            The logical index of the last column that was inserted.
+
+        """
+
         # Insert all columns between first and last+1 to the columns box
         for i in range(first, last+1):
             display_name = self.model.dataColumn(i).display_name
@@ -167,6 +294,22 @@ class DataColumnBox(DualComboBox):
     # This function removes column display names from the columns box
     @QC.Slot(QC.QModelIndex, int, int)
     def remove_columns(self, parent, first, last):
+        """
+        Removes the columns from the columns box between given `first` and
+        `last`.
+
+        Parameters
+        ----------
+        parent : :obj:`~PyQt5.QtCore.QModelIndex` object
+            The parent that was used in the data table model.
+            This function does not need it.
+        first : int
+            The logical index of the first column that was removed.
+        last : int
+            The logical index of the last column that was removed.
+
+        """
+
         # If the currently set column has been removed, set it to -1
         if get_box_value(self.columns_box, int) in range(first, last+1):
             set_box_value(self.columns_box, -1)

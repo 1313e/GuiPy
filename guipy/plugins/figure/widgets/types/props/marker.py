@@ -33,6 +33,12 @@ class MarkerProp(BasePlotProp):
 
     # This function creates and returns a line style box
     def marker_style_box(self):
+        """
+        Creates a widget box for setting the style of the marker and returns
+        it.
+
+        """
+
         # Obtain list with all supported markerstyles if not existing already
         if not hasattr(self, 'MARKERS'):
             # Create list of all supported markerstyles
@@ -64,6 +70,11 @@ class MarkerProp(BasePlotProp):
 
     # This function creates and returns a marker size box
     def marker_size_box(self):
+        """
+        Creates a widget box for setting the size of the marker and returns it.
+
+        """
+
         # Make a double spinbox for markersize
         marker_size_box = QW_QDoubleSpinBox()
         marker_size_box.setToolTip("Size of the plotted markers")
@@ -81,6 +92,12 @@ class MarkerProp(BasePlotProp):
 
     # This function creates and returns a marker color box
     def marker_color_box(self):
+        """
+        Creates a widget box for setting the color of the marker and returns
+        it.
+
+        """
+
         # Make a color box
         marker_color_box = ColorBox()
 
@@ -93,6 +110,15 @@ class MarkerProp(BasePlotProp):
 
 # Define 'LineMarker' plot property
 class LineMarkerProp(MarkerProp):
+    """
+    Provides the definition of the :class:`~LineMarkerProp` plot property,
+    specifically used for line plots.
+
+    This property contains boxes for setting the marker style, marker size and
+    marker color.
+
+    """
+
     # Class attributes
     NAME = "LineMarker"
     DEFAULT_MARKER = rcParams['lines.marker']
@@ -100,6 +126,15 @@ class LineMarkerProp(MarkerProp):
 
 # Define 'ScatterMarker' plot property
 class ScatterMarkerProp(MarkerProp):
+    """
+    Provides the definition of the :class:`~ScatterMarkerProp` plot property,
+    specifically used for scatter plots.
+
+    This property contains boxes for setting the marker style, marker size and
+    marker color.
+
+    """
+
     # Class attributes
     NAME = "ScatterMarker"
     DEFAULT_MARKER = rcParams['scatter.marker']

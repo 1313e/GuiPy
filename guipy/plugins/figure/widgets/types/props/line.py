@@ -26,6 +26,14 @@ __all__ = ['LineProp']
 # %% CLASS DEFINITIONS
 # Define 'Line' plot property
 class LineProp(BasePlotProp):
+    """
+    Provides the definition of the :class:`~LineProp` plot property.
+
+    This property contains boxes for setting the line style, line width and
+    line color.
+
+    """
+
     # Class attributes
     NAME = "Line"
     DISPLAY_NAME = "Line"
@@ -34,6 +42,12 @@ class LineProp(BasePlotProp):
 
     # This function creates and returns a line style box
     def line_style_box(self):
+        """
+        Creates a widget box for setting the style of this line plot and
+        returns it.
+
+        """
+
         # Obtain list with all supported linestyles if not existing already
         if not hasattr(self, 'LINESTYLES'):
             # Create list of all supported linestyles
@@ -65,6 +79,12 @@ class LineProp(BasePlotProp):
 
     # This function creates and returns a line width box
     def line_width_box(self):
+        """
+        Creates a widget box for setting the width of this line plot and
+        returns it.
+
+        """
+
         # Make a double spinbox for linewidth
         line_width_box = QW_QDoubleSpinBox()
         line_width_box.setToolTip("Width of the plotted line")
@@ -82,6 +102,12 @@ class LineProp(BasePlotProp):
 
     # This function creates a line color box
     def line_color_box(self):
+        """
+        Creates a widget box for setting the color of this line plot and
+        returns it.
+
+        """
+
         # Make a color box
         line_color_box = ColorBox()
 

@@ -25,6 +25,11 @@ __all__ = ['LineType']
 # %% CLASS DEFINITIONS
 # Create custom class for making a line plot
 class LineType(BasePlotType):
+    """
+    Provides the definition of the :class:`~LineType` plot type.
+
+    """
+
     # Class attributes
     NAME = "2D Line"
     PROP_NAMES = ['Data2D', 'Line', 'LineMarker']

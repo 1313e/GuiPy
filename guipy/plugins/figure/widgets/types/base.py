@@ -30,6 +30,8 @@ class BasePlotType(QW_QWidget):
     Every plot type has a `name` associated with it; and a list of all
     `prop_names`.
 
+    The `name` is the name/string used internally to identify this property.
+
     The `prop_names` are the names of the plot properties that this plot type
     uses. The 'Data' property is used by default and does not need to be
     provided.

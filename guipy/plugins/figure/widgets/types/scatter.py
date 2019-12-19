@@ -26,6 +26,11 @@ __all__ = ['ScatterType']
 # Create custom class for making a scatter plot
 # TODO: Figure out how to manipulate plt.scatter instead of plt.plot
 class ScatterType(BasePlotType):
+    """
+    Provides the definition of the :class:`~ScatterType` plot type.
+
+    """
+
     # Class attributes
     NAME = "2D Scatter"
     PROP_NAMES = ['Data2D', 'ScatterMarker']
