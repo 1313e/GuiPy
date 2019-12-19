@@ -26,6 +26,7 @@ __all__ = ['DataProp']
 class DataProp(BasePlotProp):
     # Class attributes
     NAME = "Data"
+    DISPLAY_NAME = "Data"
     REQUIREMENTS = ['data_table_plugin', 'draw_plot', 'labelChanged']
     WIDGET_NAMES = ['data_label_box', 'x_data_box', 'y_data_box']
 

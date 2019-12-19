@@ -39,13 +39,14 @@ class BasePlotProp(QW_QGroupBox):
 
     # Define class attributes
     NAME = ""
+    DISPLAY_NAME = ""
     REQUIREMENTS = []
     WIDGET_NAMES = []
 
     # Initialize this plot property
     def __init__(self, parent=None, **kwargs):
         # Call super constructor
-        super().__init__(self.name(), parent)
+        super().__init__(self.display_name(), parent)
 
         # Set up the plot property
         self.init(**kwargs)
@@ -54,6 +55,11 @@ class BasePlotProp(QW_QGroupBox):
     @classmethod
     def name(cls):
         return(cls.NAME)
+
+    # Class method for obtaining the display name of this plot property
+    @classmethod
+    def display_name(cls):
+        return(cls.DISPLAY_NAME)
 
     # Class method for obtaining the requirements of this plot property
     @classmethod

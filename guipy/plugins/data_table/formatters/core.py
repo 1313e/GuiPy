@@ -96,18 +96,15 @@ def _import_formatters():
     # Obtain a list of all files in this directory
     filenames = next(os.walk(dirpath))[2]
 
-    # Create empty list of module names
-    modnames = []
-
-    # Add all files to modnames that end with '_formatter.py'
-    for filename in filenames:
-        if filename.endswith('_formatter.py'):
-            modnames.append(filename)
+    # Remove __init__.py, base.py and core.py
+    filenames.remove('__init__.py')
+    filenames.remove('base.py')
+    filenames.remove('core.py')
 
     # Loop over all modules and import their Formatter class
-    for modname in modnames:
+    for filename in filenames:
         # Obtain full module name
-        modname = "%s.%s" % (__package__, modname[:-3])
+        modname = "%s.%s" % (__package__, filename[:-3])
 
         # Import this module
         mod = import_module(modname)

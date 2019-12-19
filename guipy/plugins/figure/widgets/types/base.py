@@ -127,17 +127,7 @@ class BasePlotType(QW_QWidget):
 
         raise NotImplementedError(self.__class__)
 
-    # Override closeEvent to remove the plot from the figure when closed
-    # TODO: Is this plot type specific?
-    def closeEvent(self, *args, **kwargs):
-        # Remove the plot from the figure if it exists
-        if self.plot in self.axis.lines:
-            self.axis.lines.remove(self.plot)
-
-        # Call super event
-        super().closeEvent(*args, **kwargs)
-
-    # This function sets the label of a line
+    # This function sets the label of a plot
     @QC.Slot()
     def set_plot_label(self):
         # If line currently exists, set its label

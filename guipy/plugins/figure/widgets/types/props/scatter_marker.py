@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Marker Property
-===============
+Scatter Marker Property
+=======================
 
 """
 
@@ -20,14 +20,15 @@ from guipy.widgets import (
     set_box_value)
 
 # All declaration
-__all__ = ['MarkerProp']
+__all__ = ['ScatterMarkerProp']
 
 
 # %% CLASS DEFINITIONS
-# Define 'Marker' plot property
-class MarkerProp(BasePlotProp):
+# Define 'ScatterMarker' plot property
+class ScatterMarkerProp(BasePlotProp):
     # Class attributes
-    NAME = "Marker"
+    NAME = "ScatterMarker"
+    DISPLAY_NAME = "Marker"
     REQUIREMENTS = ['update_plot']
     WIDGET_NAMES = ['marker_style_box', 'marker_size_box', 'marker_color_box']
 
@@ -42,7 +43,7 @@ class MarkerProp(BasePlotProp):
             markers.sort(key=lambda x: x[0])
 
             # Save as class attribute
-            MarkerProp.markers = markers
+            ScatterMarkerProp.markers = markers
 
         # Make combobox for markerstyles
         marker_style_box = QW_QComboBox()
@@ -54,7 +55,7 @@ class MarkerProp(BasePlotProp):
             marker_style_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
 
         # Set initial value to the default value in MPL
-        set_box_value(marker_style_box, rcParams['lines.marker'])
+        set_box_value(marker_style_box, rcParams['scatter.marker'])
 
         # Connect signals
         get_modified_box_signal(marker_style_box).connect(self.update_plot)

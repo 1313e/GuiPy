@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Line Type
-=========
+Scatter Type
+============
 
 """
 
@@ -19,28 +19,28 @@ from guipy.plugins.figure.widgets.types import BasePlotType
 from guipy.widgets import get_box_value, set_box_value
 
 # All declaration
-__all__ = ['LineType']
+__all__ = ['ScatterType']
 
 
 # %% CLASS DEFINITIONS
-# Create custom class for making a line plot
-class LineType(BasePlotType):
+# Create custom class for making a scatter plot
+# TODO: Figure out how to manipulate plt.scatter instead of plt.plot
+class ScatterType(BasePlotType):
     # Class attributes
-    NAME = "2D Line"
-    PROP_NAMES = ['Line', 'LineMarker']
+    NAME = "2D Scatter"
+    PROP_NAMES = ['ScatterMarker']
 
-    # This function sets up the line plot
+    # This function sets up the scatter plot
     def init(self, *args, **kwargs):
-        # Create layout for this line plot
+        # Create layout for this scatter plot
         super().init(*args, **kwargs)
 
-        # Set the starting color to be the number of lines already present
+        # Set the starting color to be the number of scatters already present
         n_lines = len(self.axis.lines)
         color = "C%i" % (n_lines % len(rcParams['axes.prop_cycle']))
-        set_box_value(self.line_color_box, color)
         set_box_value(self.marker_color_box, color)
 
-    # This function draws the 2D line plot
+    # This function draws the 2D scatter plot
     @QC.Slot()
     def draw_plot(self):
         # Obtain the x and y columns
@@ -59,25 +59,21 @@ class LineType(BasePlotType):
         if(len(xcol) != len(ycol)):
             return
 
-        # If the current saved line is not already in the figure, make one
+        # If the current saved scatter is not already in the figure, make one
         if self.plot not in self.axis.lines:
             self.plot = self.axis.plot(xcol, ycol)[0]
+            self.plot.set_linestyle('')
             self.set_plot_label()
             self.update_plot()
         else:
             self.plot.set_xdata(xcol)
             self.plot.set_ydata(ycol)
 
-    # This function updates the 2D line plot
+    # This function updates the 2D scatter plot
     @QC.Slot()
     def update_plot(self):
-        # If line currently exists, update it
+        # If scatter currently exists, update it
         if self.plot is not None:
-            # Update line style, width and color
-            self.plot.set_linestyle(get_box_value(self.line_style_box))
-            self.plot.set_linewidth(get_box_value(self.line_width_box))
-            self.plot.set_color(get_box_value(self.line_color_box))
-
             # Update marker style, size and color
             self.plot.set_marker(get_box_value(self.marker_style_box))
             self.plot.set_markersize(get_box_value(self.marker_size_box))

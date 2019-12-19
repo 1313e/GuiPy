@@ -28,6 +28,7 @@ __all__ = ['LineProp']
 class LineProp(BasePlotProp):
     # Class attributes
     NAME = "Line"
+    DISPLAY_NAME = "Line"
     REQUIREMENTS = ['update_plot']
     WIDGET_NAMES = ['line_style_box', 'line_width_box', 'line_color_box']
 
