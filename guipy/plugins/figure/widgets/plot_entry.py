@@ -11,12 +11,14 @@ Figure Plot Entry
 # Built-in imports
 
 # Package imports
-from qtpy import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import QW_QFormLayout
-from guipy.plugins.figure.widgets.types.props import PLOT_PROPS
-from guipy.widgets import BaseBox, QW_QWidget, get_box_value, set_box_value
+from guipy.layouts import QW_QHBoxLayout, QW_QVBoxLayout
+from guipy.plugins.figure.widgets.types.line import LineType
+from guipy.widgets import (
+    QW_QComboBox, QW_QLabel, QW_QToolButton, QW_QWidget,
+    get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['FigurePlotEntry']
@@ -26,118 +28,96 @@ __all__ = ['FigurePlotEntry']
 # Create custom class for making a plot entry
 # TODO: Allow for individual plots to be toggled (toggled QGroupBox?)
 # TODO: Write custom QGroupBox that can have a QComboBox as its title?
-class FigurePlotEntry(BaseBox):
+class FigurePlotEntry(QW_QWidget):
     # Signals
     labelChanged = QC.Signal(str)
+    entryRemoveRequested = QC.Signal()
 
-    # Initialize PlotEntryBox class
+    # Initialize FigurePlotEntry class
     def __init__(self, name, toolbar, parent=None, *args, **kwargs):
-        # Save provided FigureToolbar object
+        # Save provided name and FigureToolbar object
+        self.name = name
         self.toolbar = toolbar
-        self.data_table_plugin = toolbar.data_table_plugin
-        self.figure = toolbar.canvas.figure
-        self.axis = self.figure.gca()
 
         # Call super constructor
         super().__init__(parent)
 
         # Set up the plot entry box
-        self.init(name, *args, **kwargs)
+        self.init(*args, **kwargs)
 
-    # This function sets up the plot entry box
-    def init(self, name):
-        # Create layout for this plot entry box
+    # This function sets up the plot entry
+    def init(self):
+        # Create layout for this plot entry
         self.create_entry_layout()
-
-        # Connect signals
-        self.labelChanged.connect(self.set_line_label)
-
-        # Save that currently no line exists and draw the start line
-        self.line = None
-        set_box_value(self.data_label_box, name)
-        self.draw_plot()
 
     # This function creates the entry layout
     def create_entry_layout(self):
-        # Create layout for this plot entry box
-        layout = QW_QFormLayout(self)
+        # Create layout
+        layout = QW_QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.layout = layout
 
-        # Define list of all plot props that are needed
-        prop_names = ['Data', 'Line', 'Marker']
+        # Create a type picker layout
+        type_layout = QW_QHBoxLayout()
+        layout.addLayout(type_layout)
 
-        # Loop over all required plot props
-        for prop_name in prop_names:
-            # Obtain the PlotProp class associated with this property
-            plot_prop_class = PLOT_PROPS[prop_name]
+        # Create a label
+        type_label = QW_QLabel("Type")
+        type_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
+        type_layout.addWidget(type_label)
 
-            # Obtain a dictionary with all requirements of this property
-            prop_kwargs = {req: getattr(self, req)
-                           for req in plot_prop_class.requirements()}
+        # Create a combobox for choosing a plot type
+        plot_types = QW_QComboBox()
+        plot_types.addItems(['Line'])
+        plot_types.setToolTip("Select the plot type you wish to use for this "
+                              "plot")
+        set_box_value(plot_types, -1)
+        get_modified_box_signal(plot_types).connect(self.set_plot_type)
+        type_layout.addWidget(plot_types)
+        self.plot_types = plot_types
 
-            # Initialize the property and add to layout
-            prop_group = plot_prop_class(**prop_kwargs)
-            layout.addRow(prop_group)
+        # Add a toolbutton for deleting this plot entry
+        del_but = QW_QToolButton()
+        del_but.setToolTip("Delete this plot entry")
+        get_modified_box_signal(del_but).connect(self.entryRemoveRequested)
+        type_layout.addWidget(del_but)
 
-            # Register all widgets in this property as instance attributes
-            for widget_name, widget in prop_group.widgets.items():
-                setattr(self, widget_name, widget)
+        # If this theme has a 'remove' icon, use it
+        if QG.QIcon.hasThemeIcon('remove'):
+            del_but.setIcon(QG.QIcon.fromTheme('remove'))
+        # Else, use a simple cross
+        else:
+            del_but.setText('X')
+
+        # Create a dummy entry to start off
+        self.plot_entry = QW_QWidget()
+        layout.addWidget(self.plot_entry)
+
+    # This function sets the currently used plot type
+    @QC.Slot(str)
+    def set_plot_type(self, plot_type):
+        # If the plot_type is empty, create dummy widget
+        if not plot_type:
+            plot_entry = QW_QWidget()
+
+        # Else, initialize the requested type
+        else:
+            # Initialize the LineType entry
+            plot_entry = LineType(self.name, self.toolbar)
+            plot_entry.labelChanged.connect(self.labelChanged)
+
+        # Replace the current plot entry with the new one
+        old_item = self.layout.replaceWidget(self.plot_entry, plot_entry)
+        old_item.widget().close()
+        del old_item
+
+        # Save new plot entry as the current entry
+        self.plot_entry = plot_entry
 
     # Override closeEvent to remove the plot from the figure when closed
     def closeEvent(self, *args, **kwargs):
-        # Remove the plot from the figure if it exists
-        if self.line in self.axis.lines:
-            self.axis.lines.remove(self.line)
+        # Close the plot_type
+        self.plot_entry.close()
 
         # Call super event
         super().closeEvent(*args, **kwargs)
-
-    # This function draws the 2D line plot
-    @QC.Slot()
-    def draw_plot(self):
-        # Obtain the x and y columns
-        try:
-            xcol = get_box_value(self.x_data_box)[1]
-            ycol = get_box_value(self.y_data_box)[1]
-        # If any of the columns cannot be called, return
-        except IndexError:
-            return
-
-        # If either xcol or ycol is None, return
-        if xcol is None or ycol is None:
-            return
-
-        # If xcol and ycol are not the same shape, return
-        if(len(xcol) != len(ycol)):
-            return
-
-        # If the current saved line is not already in the figure, make one
-        if self.line not in self.axis.lines:
-            self.line = self.axis.plot(xcol, ycol)[0]
-            self.set_line_label()
-            self.update_plot()
-        else:
-            self.line.set_xdata(xcol)
-            self.line.set_ydata(ycol)
-
-    # This function updates the 2D line plot
-    @QC.Slot()
-    def update_plot(self):
-        # If line currently exists, update it
-        if self.line is not None:
-            # Update line style, width and color
-            self.line.set_linestyle(get_box_value(self.line_style_box))
-            self.line.set_linewidth(get_box_value(self.line_width_box))
-            self.line.set_color(get_box_value(self.line_color_box))
-
-            # Update marker style, size and color
-            self.line.set_marker(get_box_value(self.marker_style_box))
-            self.line.set_markersize(get_box_value(self.marker_size_box))
-            self.line.set_markeredgecolor(get_box_value(self.marker_color_box))
-            self.line.set_markerfacecolor(get_box_value(self.marker_color_box))
-
-    # This function sets the label of a line
-    @QC.Slot()
-    def set_line_label(self):
-        # If line currently exists, set its label
-        if self.line is not None:
-            self.line.set_label(get_box_value(self.data_label_box))

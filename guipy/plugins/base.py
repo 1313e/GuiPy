@@ -17,7 +17,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy.config import tr
-from guipy.widgets.core import BaseBox
+from guipy.widgets import QW_QWidget
 
 # All declaration
 __all__ = ['BasePlugin', 'BasePluginWidget']
@@ -37,7 +37,7 @@ class BasePlugin(object):
 
 
 # Define base class for making plugin widgets
-class BasePluginWidget(BaseBox, BasePlugin):
+class BasePluginWidget(QW_QWidget, BasePlugin):
     # Define class attributes
     LOCATION = QC.Qt.LeftDockWidgetArea
 

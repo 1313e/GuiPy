@@ -21,7 +21,7 @@ from guipy.layouts import (
 from guipy.plugins.figure.widgets.plot_entry import FigurePlotEntry
 from guipy.widgets import (
     DualSpinBox, QW_QCheckBox, QW_QComboBox, QW_QDialog, QW_QGroupBox,
-    QW_QLineEdit, QW_QMessageBox, QW_QStackedWidget, QW_QTabWidget,
+    QW_QLabel, QW_QLineEdit, QW_QMessageBox, QW_QStackedWidget, QW_QTabWidget,
     QW_QToolButton, QW_QWidget, get_box_value, get_modified_box_signal,
     set_box_value)
 
@@ -262,23 +262,16 @@ class FigureOptionsDialog(QW_QDialog):
         plot_layout = QW_QHBoxLayout()
         layout.addRow(plot_layout)
 
+        # Create a label
+        plot_label = QW_QLabel("Plot")
+        plot_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
+        plot_layout.addWidget(plot_label)
+
         # Create a combobox for choosing an existing plot
-        self.plot_entries = QW_QComboBox()
-        self.plot_entries.setToolTip("Select the plot entry you wish to edit")
-        plot_layout.addWidget(self.plot_entries)
-
-        # Add a toolbutton for deleting this plot entry
-        del_but = QW_QToolButton()
-        del_but.setToolTip("Delete this plot entry")
-        get_modified_box_signal(del_but).connect(self.remove_plot)
-        plot_layout.addWidget(del_but)
-
-        # If this theme has a 'remove' icon, use it
-        if QG.QIcon.hasThemeIcon('remove'):
-            del_but.setIcon(QG.QIcon.fromTheme('remove'))
-        # Else, use a simple cross
-        else:
-            del_but.setText('X')
+        plot_entries = QW_QComboBox()
+        plot_entries.setToolTip("Select the plot entry you wish to edit")
+        plot_layout.addWidget(plot_entries)
+        self.plot_entries = plot_entries
 
         # Add a toolbutton for adding a new plot entry
         add_but = QW_QToolButton()
@@ -297,10 +290,11 @@ class FigureOptionsDialog(QW_QDialog):
         layout.addSeparator()
 
         # Add a stacked widget here for dividing the plots
-        self.plot_pages = QW_QStackedWidget()
-        get_modified_box_signal(self.plot_entries, int).connect(
-            self.plot_pages.setCurrentIndex)
-        layout.addRow(self.plot_pages)
+        plot_pages = QW_QStackedWidget()
+        get_modified_box_signal(plot_entries, int).connect(
+            plot_pages.setCurrentIndex)
+        layout.addRow(plot_pages)
+        self.plot_pages = plot_pages
 
         # Return tab
         return(tab, "Plots")
@@ -320,6 +314,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Connect signals
         plot_entry.labelChanged.connect(
             lambda x: self.plot_entries.setItemText(index, x))
+        plot_entry.entryRemoveRequested.connect(self.remove_entry)
 
         # Add it to the plot_entries and plot_pages
         self.plot_entries.addItem(name)
@@ -330,7 +325,7 @@ class FigureOptionsDialog(QW_QDialog):
 
     # This function removes a plot entry
     @QC.Slot()
-    def remove_plot(self):
+    def remove_entry(self):
         # Obtain the index and widget of the currently shown plot entry
         index = get_box_value(self.plot_entries, int)
         name = get_box_value(self.plot_entries, str)
