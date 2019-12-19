@@ -18,14 +18,14 @@ from guipy.widgets import (
     set_box_value)
 
 # All declaration
-__all__ = ['DataProp']
+__all__ = ['Data2DProp']
 
 
 # %% CLASS DEFINITIONS
-# Define 'Data' plot property
-class DataProp(BasePlotProp):
+# Define 'Data2D' plot property
+class Data2DProp(BasePlotProp):
     # Class attributes
-    NAME = "Data"
+    NAME = "Data2D"
     DISPLAY_NAME = "Data"
     REQUIREMENTS = ['data_table_plugin', 'draw_plot', 'labelChanged']
     WIDGET_NAMES = ['data_label_box', 'x_data_box', 'y_data_box']

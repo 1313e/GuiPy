@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Scatter Marker Property
-=======================
+Marker Property
+===============
 
 """
 
@@ -20,14 +20,13 @@ from guipy.widgets import (
     set_box_value)
 
 # All declaration
-__all__ = ['ScatterMarkerProp']
+__all__ = ['LineMarkerProp', 'ScatterMarkerProp']
 
 
 # %% CLASS DEFINITIONS
-# Define 'ScatterMarker' plot property
-class ScatterMarkerProp(BasePlotProp):
+# Define 'Marker' plot property
+class MarkerProp(BasePlotProp):
     # Class attributes
-    NAME = "ScatterMarker"
     DISPLAY_NAME = "Marker"
     REQUIREMENTS = ['update_plot']
     WIDGET_NAMES = ['marker_style_box', 'marker_size_box', 'marker_color_box']
@@ -35,7 +34,7 @@ class ScatterMarkerProp(BasePlotProp):
     # This function creates and returns a line style box
     def marker_style_box(self):
         # Obtain list with all supported markerstyles if not existing already
-        if not hasattr(self, 'markerstyles'):
+        if not hasattr(self, 'MARKERS'):
             # Create list of all supported markerstyles
             markers = [(key, value) for key, value in lineMarkers.items()
                        if(value != 'nothing' and isinstance(key, str))]
@@ -43,19 +42,19 @@ class ScatterMarkerProp(BasePlotProp):
             markers.sort(key=lambda x: x[0])
 
             # Save as class attribute
-            ScatterMarkerProp.markers = markers
+            MarkerProp.MARKERS = markers
 
         # Make combobox for markerstyles
         marker_style_box = QW_QComboBox()
         marker_style_box.setToolTip("Marker to be used for this plot")
 
         # Populate box with all supported linestyles
-        for i, (marker, tooltip) in enumerate(self.markers):
+        for i, (marker, tooltip) in enumerate(self.MARKERS):
             marker_style_box.addItem(marker)
             marker_style_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
 
         # Set initial value to the default value in MPL
-        set_box_value(marker_style_box, rcParams['scatter.marker'])
+        set_box_value(marker_style_box, self.DEFAULT_MARKER)
 
         # Connect signals
         get_modified_box_signal(marker_style_box).connect(self.update_plot)
@@ -90,3 +89,17 @@ class ScatterMarkerProp(BasePlotProp):
 
         # Return name and box
         return('Color', marker_color_box)
+
+
+# Define 'LineMarker' plot property
+class LineMarkerProp(MarkerProp):
+    # Class attributes
+    NAME = "LineMarker"
+    DEFAULT_MARKER = rcParams['lines.marker']
+
+
+# Define 'ScatterMarker' plot property
+class ScatterMarkerProp(MarkerProp):
+    # Class attributes
+    NAME = "ScatterMarker"
+    DEFAULT_MARKER = rcParams['scatter.marker']

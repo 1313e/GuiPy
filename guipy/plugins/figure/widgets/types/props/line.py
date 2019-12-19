@@ -35,7 +35,7 @@ class LineProp(BasePlotProp):
     # This function creates and returns a line style box
     def line_style_box(self):
         # Obtain list with all supported linestyles if not existing already
-        if not hasattr(self, 'linestyles'):
+        if not hasattr(self, 'LINESTYLES'):
             # Create list of all supported linestyles
             linestyles = [(key, value[6:]) for key, value in lineStyles.items()
                           if value != '_draw_nothing']
@@ -43,14 +43,14 @@ class LineProp(BasePlotProp):
             linestyles.sort(key=lambda x: x[0])
 
             # Save as class attribute
-            LineProp.linestyles = linestyles
+            LineProp.LINESTYLES = linestyles
 
         # Make combobox for linestyles
         line_style_box = QW_QComboBox()
         line_style_box.setToolTip("Linestyle to be used for this plot")
 
         # Populate box with all supported linestyles
-        for i, (linestyle, tooltip) in enumerate(self.linestyles):
+        for i, (linestyle, tooltip) in enumerate(self.LINESTYLES):
             line_style_box.addItem(linestyle)
             line_style_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
 

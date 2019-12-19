@@ -85,13 +85,8 @@ class BasePlotType(QW_QWidget):
         layout = QW_QFormLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # Obtain all required plot props and make sure 'Data' is not given
-        prop_names = self.prop_names()
-        if 'Data' in prop_names:
-            prop_names.remove('Data')
-
         # Loop over all required plot props
-        for prop_name in ['Data', *prop_names]:
+        for prop_name in self.prop_names():
             # Obtain the PlotProp class associated with this property
             plot_prop_class = PLOT_PROPS[prop_name]
 
@@ -127,9 +122,12 @@ class BasePlotType(QW_QWidget):
 
         raise NotImplementedError(self.__class__)
 
-    # This function sets the label of a plot
-    @QC.Slot()
-    def set_plot_label(self):
-        # If line currently exists, set its label
-        if self.plot is not None:
-            self.plot.set_label(get_box_value(self.data_label_box))
+    # Define set_plot_label method
+    @QC.Slot(str)
+    def set_plot_label(self, label):
+        """
+        Sets the label of the current plot.
+
+        """
+
+        raise NotImplementedError(self.__class__)

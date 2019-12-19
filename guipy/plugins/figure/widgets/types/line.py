@@ -27,7 +27,7 @@ __all__ = ['LineType']
 class LineType(BasePlotType):
     # Class attributes
     NAME = "2D Line"
-    PROP_NAMES = ['Line', 'LineMarker']
+    PROP_NAMES = ['Data2D', 'Line', 'LineMarker']
 
     # This function sets up the line plot
     def init(self, *args, **kwargs):
@@ -62,7 +62,7 @@ class LineType(BasePlotType):
         # If the current saved line is not already in the figure, make one
         if self.plot not in self.axis.lines:
             self.plot = self.axis.plot(xcol, ycol)[0]
-            self.set_plot_label()
+            self.set_plot_label(get_box_value(self.data_label_box))
             self.update_plot()
         else:
             self.plot.set_xdata(xcol)
@@ -92,3 +92,10 @@ class LineType(BasePlotType):
 
         # Call super event
         super().closeEvent(*args, **kwargs)
+
+    # This function sets the label of a plot
+    @QC.Slot(str)
+    def set_plot_label(self, label):
+        # If line currently exists, set its label
+        if self.plot is not None:
+            self.plot.set_label(label)

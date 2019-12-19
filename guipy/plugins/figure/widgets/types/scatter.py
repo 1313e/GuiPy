@@ -28,7 +28,7 @@ __all__ = ['ScatterType']
 class ScatterType(BasePlotType):
     # Class attributes
     NAME = "2D Scatter"
-    PROP_NAMES = ['ScatterMarker']
+    PROP_NAMES = ['Data2D', 'ScatterMarker']
 
     # This function sets up the scatter plot
     def init(self, *args, **kwargs):
@@ -63,7 +63,7 @@ class ScatterType(BasePlotType):
         if self.plot not in self.axis.lines:
             self.plot = self.axis.plot(xcol, ycol)[0]
             self.plot.set_linestyle('')
-            self.set_plot_label()
+            self.set_plot_label(get_box_value(self.data_label_box))
             self.update_plot()
         else:
             self.plot.set_xdata(xcol)
@@ -88,3 +88,10 @@ class ScatterType(BasePlotType):
 
         # Call super event
         super().closeEvent(*args, **kwargs)
+
+    # This function sets the label of a plot
+    @QC.Slot(str)
+    def set_plot_label(self, label):
+        # If line currently exists, set its label
+        if self.plot is not None:
+            self.plot.set_label(label)
