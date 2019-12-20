@@ -61,7 +61,7 @@ class LineProp(BasePlotProp):
 
         # Make combobox for linestyles
         line_style_box = QW_QComboBox()
-        line_style_box.setToolTip("Linestyle to be used for this plot")
+        line_style_box.setToolTip("Linestyle to be used for this line plot")
 
         # Populate box with all supported linestyles
         for i, (linestyle, tooltip) in enumerate(self.LINESTYLES):

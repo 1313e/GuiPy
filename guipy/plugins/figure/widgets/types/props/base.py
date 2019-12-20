@@ -95,10 +95,10 @@ class BasePlotProp(QW_QGroupBox):
             func = getattr(self, widget_name)
 
             # Call the function
-            name, widget = func()
+            out = func()
 
             # Register the widget
-            self.widgets[widget_name] = widget
+            self.widgets[widget_name] = out[-1]
 
             # Add widget to the layout
-            layout.addRow(name, widget)
+            layout.addRow(*out)

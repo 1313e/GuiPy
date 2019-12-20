@@ -384,6 +384,9 @@ class FigureOptionsDialog(QW_QDialog):
             return(super().eventFilter(widget, event))
 
     # This function refreshes the figure
+    # TODO: Write system that stores all changes made (figure + plots) and
+    # applies them whenever this function is called
+    # TODO: Add a 'Refresh' button in the options menu as well
     @QC.Slot()
     def refresh_figure(self):
         # Update the figure

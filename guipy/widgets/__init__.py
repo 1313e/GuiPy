@@ -16,24 +16,27 @@ from .base import *
 from .core import *
 
 # Import base modules
-from . import color, combobox, dock, exceptions, spinbox, tabbar, utils
+from . import (
+    color, combobox, dock, exceptions, radiobutton, spinbox, tabbar, utils)
 from .color import *
 from .combobox import *
 from .dock import *
 from .exceptions import *
+from .radiobutton import *
 from .spinbox import *
 from .tabbar import *
 from .utils import *
 
 # All declaration
 __all__ = ['base', 'color', 'combobox', 'core', 'dock', 'exceptions',
-           'spinbox', 'tabbar', 'utils']
+           'radiobutton', 'spinbox', 'tabbar', 'utils']
 __all__.extend(base.__all__)
 __all__.extend(color.__all__)
 __all__.extend(combobox.__all__)
 __all__.extend(core.__all__)
 __all__.extend(dock.__all__)
 __all__.extend(exceptions.__all__)
+__all__.extend(radiobutton.__all__)
 __all__.extend(spinbox.__all__)
 __all__.extend(tabbar.__all__)
 __all__.extend(utils.__all__)

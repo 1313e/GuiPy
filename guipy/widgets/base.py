@@ -24,9 +24,9 @@ __all__ = ['QW_QAction', 'QW_QCheckBox', 'QW_QComboBox', 'QW_QDialog',
            'QW_QDockWidget', 'QW_QDoubleSpinBox', 'QW_QFileDialog',
            'QW_QGroupBox', 'QW_QHeaderView', 'QW_QLabel', 'QW_QLineEdit',
            'QW_QMainWindow', 'QW_QMenu', 'QW_QMessageBox', 'QW_QPushButton',
-           'QW_QSpinBox', 'QW_QStackedWidget', 'QW_QTabBar', 'QW_QTableView',
-           'QW_QTabWidget', 'QW_QTextEdit', 'QW_QToolBar', 'QW_QToolButton',
-           'QW_QToolTip', 'QW_QWidget']
+           'QW_QRadioButton', 'QW_QSpinBox', 'QW_QStackedWidget', 'QW_QTabBar',
+           'QW_QTableView', 'QW_QTabWidget', 'QW_QTextEdit', 'QW_QToolBar',
+           'QW_QToolButton', 'QW_QToolTip', 'QW_QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -271,6 +271,10 @@ class QW_QAbstractSpinBox(QW.QAbstractSpinBox, QW_QWidget):
                 max-height: 24px;}}
             """.format("-1" if platform.startswith('linux') else '0'))
 
+    # Auto translate any special value text that is set
+    def setSpecialValueText(self, text):
+        super().setSpecialValueText(tr(text))
+
 
 # Create custom QDoubleSpinBox
 class QW_QDoubleSpinBox(QW.QDoubleSpinBox, QW_QAbstractSpinBox):
@@ -443,6 +447,11 @@ class QW_QMessageBox(QW.QMessageBox, QW_QDialog):
 
 # Create custom QPushButton class
 class QW_QPushButton(QW.QPushButton, QW_QWidget):
+    pass
+
+
+# Create custom QRadioButton class
+class QW_QRadioButton(QW.QRadioButton, QW_QWidget):
     pass
 
 
