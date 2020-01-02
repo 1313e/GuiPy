@@ -450,7 +450,7 @@ class MainWindow(QW_QMainWindow):
         # Create the text for the 'about' dialog
         text = dedent(r"""
             <b><a href="{github}">{name}</a> v{version}</b><br>
-            Copyright &copy; 2019 Ellert van der Velden<br>
+            Copyright &copy; 2019-2020 Ellert van der Velden<br>
             Distributed under the
             <a href="{github}/raw/master/LICENSE">BSD-3 License</a>.<br>
             <br>
