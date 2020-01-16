@@ -14,10 +14,10 @@ Figure Plot Entry
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import QW_QHBoxLayout, QW_QVBoxLayout
+from guipy.layouts import QW_QHBoxLayout, QW_QFormLayout
 from guipy.plugins.figure.widgets.types import PLOT_TYPES
 from guipy.widgets import (
-    QW_QComboBox, QW_QLabel, QW_QToolButton, QW_QWidget,
+    QW_QComboBox, QW_QLineEdit, QW_QToolButton, QW_QWidget,
     get_modified_box_signal, set_box_value)
 
 # All declaration
@@ -30,7 +30,7 @@ __all__ = ['FigurePlotEntry']
 # TODO: Write custom QGroupBox that can have a QComboBox as its title?
 class FigurePlotEntry(QW_QWidget):
     # Signals
-    labelChanged = QC.Signal(str)
+    entryNameChanged = QC.Signal(str)
     entryRemoveRequested = QC.Signal()
 
     # Initialize FigurePlotEntry class
@@ -53,34 +53,25 @@ class FigurePlotEntry(QW_QWidget):
     # This function creates the entry layout
     def create_entry_layout(self):
         # Create layout
-        layout = QW_QVBoxLayout(self)
+        layout = QW_QFormLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.layout = layout
 
-        # Create a type picker layout
-        type_layout = QW_QHBoxLayout()
-        layout.addLayout(type_layout)
+        # Create a name editor layout
+        name_layout = QW_QHBoxLayout()
 
-        # Create a label
-        type_label = QW_QLabel("Type")
-        type_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
-        type_layout.addWidget(type_label)
-
-        # Create a combobox for choosing a plot type
-        plot_types = QW_QComboBox()
-        plot_types.addItems(PLOT_TYPES)
-        plot_types.setToolTip("Select the plot type you wish to use for this "
-                              "plot")
-        set_box_value(plot_types, -1)
-        get_modified_box_signal(plot_types).connect(self.set_plot_type)
-        type_layout.addWidget(plot_types)
-        self.plot_types = plot_types
+        # Create entry name editor
+        name_box = QW_QLineEdit()
+        name_box.setToolTip("Name of this plot entry")
+        set_box_value(name_box, self.name)
+        get_modified_box_signal(name_box).connect(self.entryNameChanged)
+        name_layout.addWidget(name_box)
 
         # Add a toolbutton for deleting this plot entry
         del_but = QW_QToolButton()
         del_but.setToolTip("Delete this plot entry")
         get_modified_box_signal(del_but).connect(self.entryRemoveRequested)
-        type_layout.addWidget(del_but)
+        name_layout.addWidget(del_but)
 
         # If this theme has a 'remove' icon, use it
         if QG.QIcon.hasThemeIcon('remove'):
@@ -89,9 +80,25 @@ class FigurePlotEntry(QW_QWidget):
         else:
             del_but.setText('X')
 
+        # Add name_layout to layout
+        layout.addRow('Name', name_layout)
+
+        # Create a combobox for choosing a plot type
+        plot_types = QW_QComboBox()
+        plot_types.addItems(PLOT_TYPES)
+        plot_types.setToolTip("Select the plot type you wish to use for this "
+                              "plot entry")
+        set_box_value(plot_types, -1)
+        get_modified_box_signal(plot_types).connect(self.set_plot_type)
+        layout.addRow('Type', plot_types)
+        self.plot_types = plot_types
+
+        # Add a separator
+        layout.addSeparator()
+
         # Create a dummy entry to start off
         self.plot_entry = QW_QWidget()
-        layout.addWidget(self.plot_entry)
+        layout.addRow(self.plot_entry)
 
     # This function sets the currently used plot type
     @QC.Slot(str)
@@ -102,9 +109,8 @@ class FigurePlotEntry(QW_QWidget):
 
         # Else, initialize the requested type
         else:
-            # Initialize the LineType entry
-            plot_entry = PLOT_TYPES[plot_type](self.name, self.toolbar)
-            plot_entry.labelChanged.connect(self.labelChanged)
+            # Initialize the proper entry
+            plot_entry = PLOT_TYPES[plot_type](self.toolbar)
 
         # Replace the current plot entry with the new one
         old_item = self.layout.replaceWidget(self.plot_entry, plot_entry)

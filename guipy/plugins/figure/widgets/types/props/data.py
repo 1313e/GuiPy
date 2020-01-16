@@ -34,7 +34,7 @@ class Data1DProp(BasePlotProp):
     # Class attributes
     NAME = "Data1D"
     DISPLAY_NAME = "Data"
-    REQUIREMENTS = ['data_table_plugin', 'draw_plot', 'labelChanged']
+    REQUIREMENTS = ['data_table_plugin', 'draw_plot', 'dataLabelChanged']
     WIDGET_NAMES = ['data_label_box', 'x_data_box']
 
     # This function creates and returns the data label box
@@ -48,7 +48,7 @@ class Data1DProp(BasePlotProp):
         # Make a lineedit for setting the label of the plot
         data_label_box = QW_QLineEdit()
         data_label_box.setToolTip("Label of this plot")
-        get_modified_box_signal(data_label_box).connect(self.labelChanged)
+        get_modified_box_signal(data_label_box).connect(self.dataLabelChanged)
 
         # Return name and box
         return('Label', data_label_box)

@@ -312,7 +312,7 @@ class FigureOptionsDialog(QW_QDialog):
         plot_entry = FigurePlotEntry(name, self.toolbar)
 
         # Connect signals
-        plot_entry.labelChanged.connect(
+        plot_entry.entryNameChanged.connect(
             lambda x: self.plot_entries.setItemText(index, x))
         plot_entry.entryRemoveRequested.connect(self.remove_entry)
 
@@ -338,7 +338,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Show a warning message asking if the user really wants to remove it
         button_clicked = QW_QMessageBox.warning(
             self, "WARNING: Delete plot",
-            ("Are you sure you want to delete the plot with label <b>%s</b>? "
+            ("Are you sure you want to delete the plot with name <b>%s</b>? "
              "(<i>Note: This action is irreversible!</i>)" % (name)),
             QW_QMessageBox.Yes | QW_QMessageBox.No, QW_QMessageBox.No)
 

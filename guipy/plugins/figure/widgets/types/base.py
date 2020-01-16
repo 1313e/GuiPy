@@ -14,7 +14,7 @@ from qtpy import QtCore as QC
 # GuiPy imports
 from guipy.layouts import QW_QFormLayout
 from guipy.plugins.figure.widgets.types.props import PLOT_PROPS
-from guipy.widgets import QW_QWidget, get_box_value, set_box_value
+from guipy.widgets import QW_QWidget
 
 # All declaration
 __all__ = ['BasePlotType']
@@ -43,10 +43,10 @@ class BasePlotType(QW_QWidget):
     PROP_NAMES = []
 
     # Signals
-    labelChanged = QC.Signal(str)
+    dataLabelChanged = QC.Signal(str)
 
     # Initialize this plot type
-    def __init__(self, name, toolbar, parent=None, *args, **kwargs):
+    def __init__(self, toolbar, parent=None, *args, **kwargs):
         # Save provided FigureToolbar object
         self.toolbar = toolbar
         self.data_table_plugin = toolbar.data_table_plugin
@@ -57,7 +57,7 @@ class BasePlotType(QW_QWidget):
         super().__init__(parent)
 
         # Set up the plot entry box
-        self.init(name, *args, **kwargs)
+        self.init(*args, **kwargs)
 
     # Class method for obtaining the name of this plot type
     @classmethod
@@ -70,16 +70,15 @@ class BasePlotType(QW_QWidget):
         return(cls.PROP_NAMES)
 
     # This function sets up the plot type
-    def init(self, name):
+    def init(self):
         # Create layout for this line plot
         self.create_type_layout()
 
         # Connect signals
-        self.labelChanged.connect(self.set_plot_label)
+        self.dataLabelChanged.connect(self.set_plot_label)
 
         # Save that currently no line exists
         self.plot = None
-        set_box_value(self.data_label_box, name)
 
     # This function creates the type layout
     def create_type_layout(self):
