@@ -20,8 +20,8 @@ from guipy.layouts import (
     QW_QFormLayout, QW_QHBoxLayout, QW_QVBoxLayout)
 from guipy.plugins.figure.widgets.plot_entry import FigurePlotEntry
 from guipy.widgets import (
-    DualSpinBox, QW_QCheckBox, QW_QComboBox, QW_QDialog, QW_QGroupBox,
-    QW_QLabel, QW_QLineEdit, QW_QMessageBox, QW_QStackedWidget, QW_QTabWidget,
+    DualSpinBox, FigureLabelBox, QW_QCheckBox, QW_QComboBox, QW_QDialog,
+    QW_QGroupBox, QW_QLabel, QW_QMessageBox, QW_QStackedWidget, QW_QTabWidget,
     QW_QToolButton, QW_QWidget, get_box_value, get_modified_box_signal,
     set_box_value)
 
@@ -97,9 +97,13 @@ class FigureOptionsDialog(QW_QDialog):
         layout = QW_QFormLayout(tab)
 
         # Make line edit for title
-        title_box = QW_QLineEdit()
-        title_box.setToolTip("Figure title")
-        get_modified_box_signal(title_box).connect(self.axis.set_title)
+        title_box = FigureLabelBox()
+        title_box[0].setToolTip("Figure title")
+        title_box[1].setToolTip("Title size")
+        set_box_value(title_box,
+                      ('', {'fontsize': rcParams['axes.titlesize']}))
+        get_modified_box_signal(title_box)[str, dict].connect(
+            self.axis.set_title)
         layout.addRow("Title", title_box)
 
         # X-AXIS
@@ -109,9 +113,13 @@ class FigureOptionsDialog(QW_QDialog):
         x_axis_layout = QW_QFormLayout(x_axis_group)
 
         # Make a box for setting the label on the x-axis
-        x_label_box = QW_QLineEdit()
-        x_label_box.setToolTip("Label of the X-axis")
-        get_modified_box_signal(x_label_box).connect(self.axis.set_xlabel)
+        x_label_box = FigureLabelBox()
+        x_label_box[0].setToolTip("Label of the X-axis")
+        x_label_box[1].setToolTip("Label size")
+        set_box_value(x_label_box,
+                      ('', {'fontsize': rcParams['xtick.labelsize']}))
+        get_modified_box_signal(x_label_box)[str, dict].connect(
+            self.axis.set_xlabel)
         x_axis_layout.addRow("Label", x_label_box)
         self.x_label_box = x_label_box
 
@@ -166,9 +174,13 @@ class FigureOptionsDialog(QW_QDialog):
         y_axis_layout = QW_QFormLayout(y_axis_group)
 
         # Make a box for setting the label on the y-axis
-        y_label_box = QW_QLineEdit()
-        y_label_box.setToolTip("Label of the Y-axis")
-        get_modified_box_signal(y_label_box).connect(self.axis.set_ylabel)
+        y_label_box = FigureLabelBox()
+        y_label_box[0].setToolTip("Label of the Y-axis")
+        y_label_box[1].setToolTip("Label size")
+        set_box_value(y_label_box,
+                      ('', {'fontsize': rcParams['ytick.labelsize']}))
+        get_modified_box_signal(y_label_box)[str, dict].connect(
+            self.axis.set_ylabel)
         y_axis_layout.addRow("Label", y_label_box)
         self.y_label_box = y_label_box
 
@@ -309,7 +321,7 @@ class FigureOptionsDialog(QW_QDialog):
         name = "plot_%i" % (index)
 
         # Create plot entry box
-        plot_entry = FigurePlotEntry(name, self.toolbar)
+        plot_entry = FigurePlotEntry(index, name, self.toolbar)
 
         # Connect signals
         plot_entry.entryNameChanged.connect(

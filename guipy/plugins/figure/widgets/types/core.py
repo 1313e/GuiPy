@@ -23,7 +23,9 @@ __all__ = ['PLOT_TYPES', 'register_plot_type']
 
 # %% GLOBALS
 # Define dict of plot types
-PLOT_TYPES = sdict()
+PLOT_TYPES = {
+    '2D': sdict(),
+    '3D': sdict()}
 
 
 # %% FUNCTION DEFINITIONS
@@ -43,7 +45,9 @@ def register_plot_type(plot_type_class):
     """
 
     # Register the plot_type
-    PLOT_TYPES[plot_type_class.name()] = plot_type_class
+    name = plot_type_class.name()
+    axis_type = plot_type_class.axis_type()
+    PLOT_TYPES[axis_type][name] = plot_type_class
 
 
 # This function imports all pre-defined plot types and registers them

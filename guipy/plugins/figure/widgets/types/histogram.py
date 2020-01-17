@@ -33,6 +33,8 @@ class HistogramType(BasePlotType):
 
     # Class attributes
     NAME = "Histogram"
+    PREFIX = "hist_"
+    AXIS_TYPE = "2D"
     PROP_NAMES = ['Data1D', 'Histogram']
 
     # This function sets up the histogram plot
@@ -71,7 +73,7 @@ class HistogramType(BasePlotType):
             cumulative=get_box_value(self.hist_cumul_box),
             orientation=get_box_value(self.hist_orient_box, str).lower())
         self.plot = self.axis.containers[-1]
-        self.set_plot_label(get_box_value(self.data_label_box))
+        set_box_value(self.data_label_box, self.plot.get_label())
         self.update_plot()
 
     # This function updates the histogram plot

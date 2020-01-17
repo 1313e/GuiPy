@@ -4,7 +4,7 @@
 Colors
 ======
 Provides a collection of :class:`~PyQt5.QtWidgets.QWidget` subclasses for
-handling colors.
+handling colors in :mod:`~matplotlib`.
 
 """
 

@@ -17,7 +17,8 @@ from .core import *
 
 # Import base modules
 from . import (
-    color, combobox, dock, exceptions, radiobutton, spinbox, tabbar, utils)
+    color, combobox, dock, exceptions, radiobutton, spinbox, tabbar, text,
+    utils)
 from .color import *
 from .combobox import *
 from .dock import *
@@ -25,11 +26,12 @@ from .exceptions import *
 from .radiobutton import *
 from .spinbox import *
 from .tabbar import *
+from .text import *
 from .utils import *
 
 # All declaration
 __all__ = ['base', 'color', 'combobox', 'core', 'dock', 'exceptions',
-           'radiobutton', 'spinbox', 'tabbar', 'utils']
+           'radiobutton', 'spinbox', 'tabbar', 'text', 'utils']
 __all__.extend(base.__all__)
 __all__.extend(color.__all__)
 __all__.extend(combobox.__all__)
@@ -39,6 +41,7 @@ __all__.extend(exceptions.__all__)
 __all__.extend(radiobutton.__all__)
 __all__.extend(spinbox.__all__)
 __all__.extend(tabbar.__all__)
+__all__.extend(text.__all__)
 __all__.extend(utils.__all__)
 
 # Author declaration

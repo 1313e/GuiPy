@@ -31,7 +31,9 @@ class LineType(BasePlotType):
     """
 
     # Class attributes
-    NAME = "2D Line"
+    NAME = "Line"
+    PREFIX = "line_"
+    AXIS_TYPE = "2D"
     PROP_NAMES = ['Data2D', 'Line', 'LineMarker']
 
     # This function sets up the line plot
@@ -67,7 +69,7 @@ class LineType(BasePlotType):
         # If the current saved line is not already in the figure, make one
         if self.plot not in self.axis.lines:
             self.plot = self.axis.plot(xcol, ycol)[0]
-            self.set_plot_label(get_box_value(self.data_label_box))
+            set_box_value(self.data_label_box, self.plot.get_label())
             self.update_plot()
         else:
             self.plot.set_xdata(xcol)

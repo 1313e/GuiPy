@@ -34,8 +34,9 @@ class FigurePlotEntry(QW_QWidget):
     entryRemoveRequested = QC.Signal()
 
     # Initialize FigurePlotEntry class
-    def __init__(self, name, toolbar, parent=None, *args, **kwargs):
-        # Save provided name and FigureToolbar object
+    def __init__(self, index, name, toolbar, parent=None, *args, **kwargs):
+        # Save provided index, name and FigureToolbar object
+        self.index = index
         self.name = name
         self.toolbar = toolbar
 
@@ -66,6 +67,7 @@ class FigurePlotEntry(QW_QWidget):
         set_box_value(name_box, self.name)
         get_modified_box_signal(name_box).connect(self.entryNameChanged)
         name_layout.addWidget(name_box)
+        self.name_box = name_box
 
         # Add a toolbutton for deleting this plot entry
         del_but = QW_QToolButton()
@@ -85,7 +87,7 @@ class FigurePlotEntry(QW_QWidget):
 
         # Create a combobox for choosing a plot type
         plot_types = QW_QComboBox()
-        plot_types.addItems(PLOT_TYPES)
+        plot_types.addItems(PLOT_TYPES['2D'])
         plot_types.setToolTip("Select the plot type you wish to use for this "
                               "plot entry")
         set_box_value(plot_types, -1)
@@ -106,11 +108,14 @@ class FigurePlotEntry(QW_QWidget):
         # If the plot_type is empty, create dummy widget
         if not plot_type:
             plot_entry = QW_QWidget()
+            entry_name = self.name
 
         # Else, initialize the requested type
         else:
             # Initialize the proper entry
-            plot_entry = PLOT_TYPES[plot_type](self.toolbar)
+            plot_type = PLOT_TYPES['2D'][plot_type]
+            plot_entry = plot_type(self.toolbar)
+            entry_name = "%s%i" % (plot_type.prefix(), self.index)
 
         # Replace the current plot entry with the new one
         old_item = self.layout.replaceWidget(self.plot_entry, plot_entry)
@@ -119,6 +124,9 @@ class FigurePlotEntry(QW_QWidget):
 
         # Save new plot entry as the current entry
         self.plot_entry = plot_entry
+
+        # Save new entry name
+        set_box_value(self.name_box, entry_name)
 
     # Override closeEvent to remove the plot from the figure when closed
     def closeEvent(self, *args, **kwargs):

@@ -27,10 +27,15 @@ class BasePlotType(QW_QWidget):
     Provides a base class definition that must be subclassed by all figure plot
     types.
 
-    Every plot type has a `name` associated with it; and a list of all
-    `prop_names`.
+    Every plot type has a `name` and `prefix` associated with it; can be used
+    for a specific `axis_type`; and a list of all `prop_names`.
 
     The `name` is the name/string used internally to identify this property.
+
+    The `prefix` is the string used as a prefix for texts/names that relate to
+    this plot type.
+
+    The `display_name` is the text used in the types combobox.
 
     The `prop_names` are the names of the plot properties that this plot type
     uses. The 'Data' property is used by default and does not need to be
@@ -40,6 +45,8 @@ class BasePlotType(QW_QWidget):
 
     # Define class attributes
     NAME = ""
+    PREFIX = ""
+    AXIS_TYPE = ""
     PROP_NAMES = []
 
     # Signals
@@ -64,6 +71,16 @@ class BasePlotType(QW_QWidget):
     def name(cls):
         return(cls.NAME)
 
+    # Class method for obtaining the prefix of this plot type
+    @classmethod
+    def prefix(cls):
+        return(cls.PREFIX)
+
+    # Class method for obtaining the axis type of this plot type
+    @classmethod
+    def axis_type(cls):
+        return(cls.AXIS_TYPE)
+
     # Class method for obtaining the property names of this plot type
     @classmethod
     def prop_names(cls):
@@ -79,6 +96,9 @@ class BasePlotType(QW_QWidget):
 
         # Save that currently no line exists
         self.plot = None
+
+        # Attempt to draw the plot to check if that does not raise errors
+        self.draw_plot()
 
     # This function creates the type layout
     def create_type_layout(self):
