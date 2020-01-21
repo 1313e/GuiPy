@@ -33,7 +33,7 @@ class ScatterType(BasePlotType):
 
     # Class attributes
     NAME = "Scatter"
-    PREFIX = "scatter_"
+    PREFIX = "scatter"
     AXIS_TYPE = "2D"
     PROP_NAMES = ['Data2D', 'ScatterMarker']
 

@@ -22,7 +22,7 @@ from guipy.plugins.data_table.formatters import FORMATTERS
 from guipy.plugins.data_table.widgets import DataTableWidget
 from guipy.widgets import (
     EditableTabBar, QW_QAction, QW_QTabWidget, getOpenFileNames,
-    getSaveFileName)
+    getSaveFileName, set_box_value)
 
 # All declaration
 __all__ = ['DataTable']
@@ -52,7 +52,6 @@ class DataTable(BasePluginWidget):
         # Create a tab widget
         tab_widget = QW_QTabWidget()
         tab_widget.setTabBar(EditableTabBar())
-        tab_widget.setElideMode(QC.Qt.ElideNone)
         tab_widget.setMovable(True)
         tab_widget.setTabsClosable(True)
 
@@ -180,14 +179,14 @@ class DataTable(BasePluginWidget):
         index = self.tab_widget.addTab(data_table, name)
 
         # Switch focus to the new tab
-        self.tab_widget.setCurrentIndex(index)
+        set_box_value(self.tab_widget, index)
 
     # This function closes a data table widget
     # TODO: Warn the user about closing a tab if it has unsaved changes
     @QC.Slot(int)
     def close_tab(self, index):
         # Obtain the DataTableWidget object associated with this index
-        data_table = self.tab_widget.widget(index)
+        data_table = self.dataTable(index)
 
         # Close this data_table
         data_table.close()

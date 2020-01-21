@@ -10,7 +10,6 @@ Base Plot Properties
 # %% IMPORTS
 # GuiPy imports
 from guipy.layouts import QW_QFormLayout
-from guipy.widgets import QW_QGroupBox
 
 # All declaration
 __all__ = ['BasePlotProp']
@@ -18,7 +17,7 @@ __all__ = ['BasePlotProp']
 
 # %% CLASS DEFINITIONS
 # Define BasePlotProp base class
-class BasePlotProp(QW_QGroupBox):
+class BasePlotProp(QW_QFormLayout):
     """
     Provides a base class definition that must be subclassed by all figure
     plot properties.
@@ -36,7 +35,7 @@ class BasePlotProp(QW_QGroupBox):
 
     The `widget_names` are the names of the methods that must be called to
     receive the widgets for this plot property.
-    These methods return the widget name (as shown in the group box) and the
+    These methods return the widget name (as shown in the prop layout) and the
     widget itself.
     The widgets will also be registered as instance attributes with the same
     name as their construction method.
@@ -52,7 +51,7 @@ class BasePlotProp(QW_QGroupBox):
     # Initialize this plot property
     def __init__(self, parent=None, **kwargs):
         # Call super constructor
-        super().__init__(self.display_name(), parent)
+        super().__init__(parent)
 
         # Set up the plot property
         self.init(**kwargs)
@@ -83,9 +82,6 @@ class BasePlotProp(QW_QGroupBox):
         for name, value in kwargs.items():
             setattr(self, name, value)
 
-        # Create a layout for this plot property
-        layout = QW_QFormLayout(self)
-
         # Initialize empty dict of registered widgets
         self.widgets = {}
 
@@ -101,4 +97,4 @@ class BasePlotProp(QW_QGroupBox):
             self.widgets[widget_name] = out[-1]
 
             # Add widget to the layout
-            layout.addRow(*out)
+            self.addRow(*out)

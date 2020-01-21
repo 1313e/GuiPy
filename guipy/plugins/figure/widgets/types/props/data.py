@@ -9,16 +9,17 @@ Data Property
 
 # %% IMPORTS
 # Package imports
-from qtpy import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
 from guipy.widgets import (
-    DualComboBox, QW_QLineEdit, get_box_value, get_modified_box_signal,
-    set_box_value)
+    DualComboBox, QW_QLineEdit, QW_QTabWidget, QW_QToolButton, QW_QWidget,
+    get_box_value, get_modified_box_signal, set_box_value)
 
 # All declaration
-__all__ = ['Data1DProp', 'Data2DProp', 'Data3DProp']
+__all__ = ['Data1DProp', 'Data2DProp', 'Data3DProp', 'MultiData1DProp',
+           'MultiData2DProp', 'MultiData3DProp']
 
 
 # %% CLASS DEFINITIONS
@@ -135,6 +136,343 @@ class Data3DProp(Data2DProp):
         return('Z-axis', z_data_box)
 
 
+# Define 'MultiDataND' plot property, which holds several 'DataND' props
+class MultiDataNDProp(BasePlotProp):
+    """
+    Provides the definition of the :class:`~MultiDataNDProp` plot property.
+
+    This property contains a tab widget with multiple `DataNDProp` properties.
+
+    """
+
+    # Class attributes
+    DISPLAY_NAME = "Data"
+    WIDGET_NAMES = ['multi_data_box']
+
+    # Initialize multi data property
+    def __init__(self, data_prop, *args, **kwargs):
+        # Save the provided data_prop
+        self.data_prop = data_prop
+
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+    # This function creates and returns the multi data box
+    def multi_data_box(self):
+        """
+        Creates a widget box for setting the data for multiple 'DataND' props
+        and returns it.
+
+        """
+
+        # Make a tab widget for holding data tabs
+        tab_widget = MultiDataTabWidget()
+        self.tab_widget = tab_widget
+
+        # Create add button for tabs
+        add_but = QW_QToolButton()
+        add_but.setToolTip("Add additional data set")
+        tab_widget.setCornerWidget(add_but, QC.Qt.TopRightCorner)
+
+        # If this theme has an 'add' icon, use it
+        if QG.QIcon.hasThemeIcon('add'):
+            add_but.setIcon(QG.QIcon.fromTheme('add'))
+        # Else, use a simple plus
+        else:
+            add_but.setText('+')
+
+        # Connect tab widget signals
+        get_modified_box_signal(add_but).connect(self.add_data_box)
+        tab_widget.tabCloseRequested.connect(self.remove_data_box)
+
+        # Add initial data box
+        self.add_data_box()
+
+        # Return box
+        return(tab_widget,)
+
+    # This function adds a data box to the tab widget
+    @QC.Slot()
+    def add_data_box(self):
+        """
+        Adds a new data tab to this plot property.
+
+        """
+
+        # Create a default widget for the new DataND prop
+        data_prop = QW_QWidget()
+
+        # Obtain a dictionary with all requirements of this property
+        prop_kwargs = {req: getattr(self, req)
+                       for req in self.data_prop.requirements()}
+
+        # Replace the dataLabelChanged requirement with a different function
+        prop_kwargs['dataLabelChanged'] =\
+            lambda text: self.dataLabelChanged.emit(
+                self.tab_widget.indexOf(data_prop), text)
+
+        # Create the DataND prop
+        prop_layout = self.data_prop(**prop_kwargs)
+
+        # Set prop_layout as the layout for data_prop
+        data_prop.setLayout(prop_layout)
+
+        # Obtain the name of this data_prop
+        name = "data_%i" % (self.tab_widget.count())
+
+        # Add data_prop to the tab widget
+        index = self.tab_widget.addTab(data_prop, name)
+
+        # Switch focus to the new tab
+        set_box_value(self.tab_widget, index)
+
+        # Check if there is now more than a single tab
+        self.tab_widget.setTabsClosable(self.tab_widget.count() > 1)
+
+    # This function removes a data box from the tab widget
+    @QC.Slot(int)
+    def remove_data_box(self, index):
+        """
+        Removes the data tab associated with the provided `index` from this
+        plot property.
+
+        """
+
+        # Obtain the DataND prop associated with this index
+        data_prop = self.tab_widget.widget(index)
+
+        # Close this data_prop
+        data_prop.close()
+
+        # Remove this data_prop from the tab widget
+        self.tab_widget.removeTab(index)
+
+        # Check if there is still more than a single tab
+        self.tab_widget.setTabsClosable(self.tab_widget.count() > 1)
+
+        # Redraw the plot
+        self.draw_plot()
+
+
+# Define custom QTabWidget for holding the multi data
+class MultiDataTabWidget(QW_QTabWidget):
+    # Define special get_box_value method
+    def get_box_value(self, *value_sig):
+        """
+        Returns the values stored in the tabs of this multi data tab widget, as
+        requested by the provided `value_sig`.
+
+        Parameters
+        ----------
+        value_sig : positional arguments of object
+            The signature of the value(s) that must be returned.
+            If a signature is invalid, only the valid part will be used.
+            See ``Notes`` for all valid signatures.
+
+        Returns
+        -------
+        value : obj
+            The requested value(s).
+
+        Notes
+        -----
+        The following signatures are valid (`values` is equal to
+        ``[widgets.items() for widgets in tabWidgets]``):
+
+            =================== ===========================================
+            value signature     requested value
+            =================== ===========================================
+            `()`                ``values``
+            `(int,)`            ``values[int]``
+            `(str,)`            ``[value[str] for value in values]``
+            `(int, str)`        ``values[int][str]``
+            `(str, *args)`      ``[value[str][*args] for value in values]``
+            `(int, str, *args)` ``values[int][str][*args]``
+            =================== ===========================================
+
+        """
+
+        # Convert value_sig to a list
+        value_sig = list(value_sig)
+
+        # Create empty list of values
+        value = []
+
+        # Check if the first argument of value_sig is an integer
+        if value_sig and isinstance(value_sig[0], int):
+            # If so, use the tab indicated by this index
+            index = value_sig.pop(0)
+            tabWidgets = [self.widget(index)]
+            indexed = True
+        else:
+            # If not, use all tabs
+            tabWidgets = self.tabWidgets()
+            indexed = False
+
+        # Loop over all tab widgets
+        for widget in tabWidgets:
+            # Obtain the dict of widgets in this tab
+            widgets = widget.layout().widgets
+
+            # Create dict with all box values of these widgets
+            values = {key: get_box_value(box) for key, box in widgets.items()}
+
+            # Add this dict to value
+            value.append(values)
+
+        # Check if the first argument of value_sig is a string
+        if value_sig and isinstance(value_sig[0], str):
+            # If so, it indicates a box that must be returned
+            key = value_sig.pop(0)
+            value = [val[key] for val in value]
+
+            # If value_sig still has elements, it indexes this box
+            for sig in value_sig:
+                value = [val[sig] for val in value]
+
+        # If indexed is True, return solely the first argument
+        if indexed:
+            value = value[0]
+
+        # Return value
+        return(value)
+
+    # Define special set_box_value method
+    def set_box_value(self, value, *value_sig):
+        """
+        Sets the provided `value` in the tabs of this multi data tab widget, as
+        requested by the provided `value_sig`.
+
+        Parameters
+        ----------
+        value : obj
+            The value that must be set.
+        value_sig : positional arguments of object
+            The signature of the value(s) that must be set.
+            If a signature is invalid, only the valid part will be used.
+            See ``Notes`` for all valid signatures.
+
+        Notes
+        -----
+        The following signatures are valid:
+
+            =============== ========== ===============================
+            value signature value type operation
+            =============== ========== ===============================
+            `()`            -          <default>
+            `(int,)`        dict       ``tabWidgets[int][key]``
+            `(str,)`        array_like ``tabWidgets[:][str]``
+            `(int, str)`    obj        ``tabWidgets[int][str]``
+            =============== ========== ===============================
+
+        """
+
+        # If value_sig is empty, use the default operation by raising an error
+        if not value_sig:
+            raise NotImplementedError
+
+        # If value cannot be iterated over, make it into a list
+        if isinstance(value, str) or not hasattr(value, '__iter__'):
+            value = [value]
+
+        # Convert value_sig to a list
+        value_sig = list(value_sig)
+
+        # Check if the first argument of value_sig is an integer
+        if isinstance(value_sig[0], int):
+            # If so, use tha tab indicated by this index
+            index = value_sig.pop(0)
+            tabWidgets = [self.widget(index)]
+            indexed = True
+        else:
+            # If not, use all tabs
+            tabWidgets = self.tabWidgets()
+            indexed = False
+
+        # Obtain the list of all required boxes
+        tabBoxes = [widget.layout().widgets for widget in tabWidgets]
+
+        # Check if the first argument of value_sig is a string
+        if value_sig and isinstance(value_sig[0], str):
+            # If so, it indicates the key of a specific box
+            key = value_sig.pop(0)
+            boxes = [tab[key] for tab in tabBoxes]
+
+            # Loop over all boxes and assign the values
+            for box, val in zip(boxes, value):
+                set_box_value(box, val)
+
+        # If not, it must have been indexed
+        elif indexed:
+            # If it was indexed, obtain the sole tab that was obtained
+            boxes = tabBoxes[0]
+
+            # Loop over all values in value and assign them
+            for key, val in value.items():
+                set_box_value(boxes[key], val)
+
+        # Else, the signature is invalid, so raise an error
+        else:
+            raise NotImplementedError
+
+
+# Define 'MultiData1D' plot property, holding multiple 'Data1D' props
+class MultiData1DProp(MultiDataNDProp):
+    """
+    Provides the definition of the :class:`~MultiData1DProp` plot property.
+
+    This property contains a tab widget with multiple `Data1DProp` properties.
+
+    """
+
+    # Class attributes
+    NAME = "MultiData1D"
+    REQUIREMENTS = [*Data1DProp.REQUIREMENTS]
+
+    # Initialize multi 1D data property
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(Data1DProp, *args, **kwargs)
+
+
+# Define 'MultiData2D' plot property, holding multiple 'Data2D' props
+class MultiData2DProp(MultiDataNDProp):
+    """
+    Provides the definition of the :class:`~MultiData2DProp` plot property.
+
+    This property contains a tab widget with multiple `Data2DProp` properties.
+
+    """
+
+    # Class attributes
+    NAME = "MultiData2D"
+    REQUIREMENTS = [*Data2DProp.REQUIREMENTS]
+
+    # Initialize multi 2D data property
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(Data2DProp, *args, **kwargs)
+
+
+# Define 'MultiData3D' plot property, holding multiple 'Data3D' props
+class MultiData3DProp(MultiDataNDProp):
+    """
+    Provides the definition of the :class:`~MultiData3DProp` plot property.
+
+    This property contains a tab widget with multiple `Data3DProp` properties.
+
+    """
+
+    # Class attributes
+    NAME = "MultiData3D"
+    REQUIREMENTS = [*Data3DProp.REQUIREMENTS]
+
+    # Initialize multi 3D data property
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(Data3DProp, *args, **kwargs)
+
+
 # Create custom class for setting the data column used in plots
 class DataColumnBox(DualComboBox):
     # Initialize DataColumnBox class
@@ -148,6 +486,7 @@ class DataColumnBox(DualComboBox):
                          **kwargs)
 
     # This function sets up the data column box
+    # TODO: Figure out how to stop this from resizing when contents change
     def init(self, *args, **kwargs):
         # Call super setup
         super().init(*args, **kwargs)
@@ -163,8 +502,8 @@ class DataColumnBox(DualComboBox):
             self.set_tables_box_item_tooltip(i, name)
 
         # Connect signals for tables_box
-        self.tab_widget.tabNameChanged.connect(tables_box.setItemText)
-        self.tab_widget.tabNameChanged.connect(
+        self.tab_widget.tabTextChanged.connect(tables_box.setItemText)
+        self.tab_widget.tabTextChanged.connect(
             self.set_tables_box_item_tooltip)
         self.tab_widget.tabWasInserted[int, str].connect(tables_box.insertItem)
         self.tab_widget.tabWasInserted[int, str].connect(

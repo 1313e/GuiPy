@@ -380,7 +380,7 @@ class ColorBox(BaseBox):
             return(color)
 
     # This function sets the value of this special box
-    def set_box_value(self, value):
+    def set_box_value(self, value, *args, **kwargs):
         """
         Sets the current (default) color value to `value`.
 
@@ -592,7 +592,7 @@ class ColorMapBox(BaseBox):
         return(cmap)
 
     # This function sets the value of this special box
-    def set_box_value(self, value):
+    def set_box_value(self, value, *args, **kwargs):
         """
         Sets the current colormap to `value`.
 

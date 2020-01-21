@@ -261,8 +261,8 @@ def create_exception_handler(parent=None):
         Creates an instance of the :class:`~ExceptionDialog` class and shows
         it.
 
-        Optional
-        --------
+        Parameters
+        ----------
         args : positional arguments
             The positional arguments that must be passed to the constructor of
             the :class:`~guipy.widgets.exceptions.ExceptionDialog` class.

@@ -43,7 +43,7 @@ class DualComboBox(BaseBox):
         Optional
         --------
         editable : tuple of bool. Default: (False, False)
-            A tuple containing editability of each combobox.
+            A tuple containing the editability of each combobox.
         sep : str or None. Default: None
             The string that must be used as a separator between the two
             comboboxes. If *None*, no separator is used.
@@ -61,21 +61,21 @@ class DualComboBox(BaseBox):
 
     # Override __getitem__ to return the left and/or right combobox
     def __getitem__(self, key):
-        # If key is a slice object, return everything that is requested
-        if isinstance(key, slice):
-            return(tuple([self[i] for i in range(*key.indices(2))]))
-
         # If key is an integer, return the corresponding combobox
-        elif isinstance(key, int):
-            # If key is zero, return left_box
-            if(key == 0):
+        if isinstance(key, int):
+            # If key is 0 or -2, return left_box
+            if key in (0, -2):
                 return(self.left_box)
-            # Else, if key is one, return right_box
-            elif(key == 1):
+            # Else, if key is 1 or -1, return right_box
+            elif key in (1, -1):
                 return(self.right_box)
             # Else, raise IndexError
             else:
                 raise IndexError("Index out of range")
+
+        # If key is a slice object, return everything that is requested
+        elif isinstance(key, slice):
+            return(*map(self.__getitem__, range(*key.indices(2))),)
 
         # Else, raise TypeError
         else:
@@ -116,8 +116,7 @@ class DualComboBox(BaseBox):
         # Emit modified signal with proper types
         for types in [(int, int), (int, str), (str, int), (str, str)]:
             self.modified[types[0], types[1]].emit(
-                get_box_value(self.left_box, types[0]),
-                get_box_value(self.right_box, types[1]))
+                *DualComboBox.get_box_value(self, *types))
 
     # This function retrieves a value of this special box
     def get_box_value(self, *value_sig):
@@ -135,13 +134,13 @@ class DualComboBox(BaseBox):
         # If value_sig contains more than 1 element, use them separately
         if(len(value_sig) > 1):
             return(get_box_value(self.left_box, value_sig[0]),
-                   get_box_value(self.left_box, value_sig[1]))
+                   get_box_value(self.right_box, value_sig[1]))
         else:
-            return(get_box_value(self.left_box, value_sig),
-                   get_box_value(self.left_box, value_sig))
+            return(get_box_value(self.left_box, *value_sig),
+                   get_box_value(self.right_box, *value_sig))
 
     # This function sets the value of this special box
-    def set_box_value(self, value):
+    def set_box_value(self, value, *args, **kwargs):
         """
         Sets the current value of the dual combobox to `value`.
 
@@ -153,8 +152,8 @@ class DualComboBox(BaseBox):
 
         """
 
-        set_box_value(self.left_box, value[0])
-        set_box_value(self.right_box, value[1])
+        set_box_value(self.left_box, value[0], *args, **kwargs)
+        set_box_value(self.right_box, value[1], *args, **kwargs)
 
 
 # Create custom QComboBox class that is editable

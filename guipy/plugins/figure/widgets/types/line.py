@@ -32,7 +32,7 @@ class LineType(BasePlotType):
 
     # Class attributes
     NAME = "Line"
-    PREFIX = "line_"
+    PREFIX = "line"
     AXIS_TYPE = "2D"
     PROP_NAMES = ['Data2D', 'Line', 'LineMarker']
 

@@ -44,7 +44,7 @@ class DualSpinBox(BaseBox):
         Optional
         --------
         types : tuple of types ({int; float}). Default: (int, int)
-            A tuple containing the types of each spinbox.
+            A tuple containing the type of each spinbox.
         sep : str or None. Default: None
             The string that must be used as a separator between the two
             spinboxes. If *None*, no separator is used.
@@ -62,28 +62,28 @@ class DualSpinBox(BaseBox):
 
     # Override __getitem__ to return the left and/or right spinbox
     def __getitem__(self, key):
-        # If key is a slice object, return everything that is requested
-        if isinstance(key, slice):
-            return(tuple([self[i] for i in range(*key.indices(2))]))
-
         # If key is an integer, return the corresponding spinbox
-        elif isinstance(key, int):
-            # If key is zero, return left_box
-            if(key == 0):
+        if isinstance(key, int):
+            # If key is 0 or -2, return left_box
+            if key in (0, -2):
                 return(self.left_box)
-            # Else, if key is one, return right_box
-            elif(key == 1):
+            # Else, if key is 1 or -1, return right_box
+            elif key in (1, -1):
                 return(self.right_box)
             # Else, raise IndexError
             else:
                 raise IndexError("Index out of range")
+
+        # If key is a slice object, return everything that is requested
+        elif isinstance(key, slice):
+            return(*map(self.__getitem__, range(*key.indices(2))),)
 
         # Else, raise TypeError
         else:
             raise TypeError("Index must be of type 'int' or 'slice', not type "
                             "%r" % (type(key).__name__))
 
-    # This function creates the figsize box
+    # This function creates the dual spinbox
     def init(self, types, sep):
         """
         Sets up the dual spinbox after it has been initialized.
@@ -119,8 +119,7 @@ class DualSpinBox(BaseBox):
     def modified_signal_slot(self):
         # Emit modified signal with proper types
         self.modified[self.types[0], self.types[1]].emit(
-            get_box_value(self.left_box),
-            get_box_value(self.right_box))
+            *DualSpinBox.get_box_value(self))
 
     # This function retrieves a value of this special box
     def get_box_value(self, *args, **kwargs):
@@ -139,7 +138,7 @@ class DualSpinBox(BaseBox):
                get_box_value(self.right_box, *args, **kwargs))
 
     # This function sets the value of this special box
-    def set_box_value(self, value):
+    def set_box_value(self, value, *args, **kwargs):
         """
         Sets the current value of the dual spinbox to `value`.
 
@@ -151,5 +150,5 @@ class DualSpinBox(BaseBox):
 
         """
 
-        set_box_value(self.left_box, value[0])
-        set_box_value(self.right_box, value[1])
+        set_box_value(self.left_box, value[0], *args, **kwargs)
+        set_box_value(self.right_box, value[1], *args, **kwargs)

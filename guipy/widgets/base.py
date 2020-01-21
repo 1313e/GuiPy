@@ -259,8 +259,12 @@ class QW_QAbstractSpinBox(QW.QAbstractSpinBox, QW_QWidget):
 
     """
 
+    # Override constructor to set some default settings
     def __init__(self, *args, **kwargs):
+        # Call super constructor
         super().__init__(*args, **kwargs)
+
+        # Use default settings
         self.setStepType(self.AdaptiveDecimalStepType)
         self.setAccelerated(True)
         self.setGroupSeparatorShown(True)
@@ -463,15 +467,23 @@ class QW_QStackedWidget(QW.QStackedWidget, QW_QWidget):
 # Create custom QTabBar class
 class QW_QTabBar(QW.QTabBar, QW_QWidget):
     # Signals
-    tabNameChanged = QC.Signal([int, str])
+    tabTextChanged = QC.Signal(int, str)
+
+    # Override constructor to set some default settings
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+        # Use default settings
+        self.setElideMode(QC.Qt.ElideNone)
 
     # Override setTabText to emit a signal whenever it is called
-    def setTabText(self, index, name):
+    def setTabText(self, index, text):
         # Emit signal
-        self.tabNameChanged.emit(index, name)
+        self.tabTextChanged.emit(index, text)
 
         # Call super method
-        return(super().setTabText(index, name))
+        return(super().setTabText(index, text))
 
 
 # Create custom QTableView class
@@ -491,9 +503,27 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
     """
 
     # Signals
-    tabNameChanged = QC.Signal([int, str])
-    tabWasInserted = QC.Signal([int], [int, str])
-    tabWasRemoved = QC.Signal([int])
+    currentIndexChanged = QC.Signal(int)
+    currentTextChanged = QC.Signal(str)
+    currentWidgetChanged = QC.Signal(QW.QWidget)
+    tabTextChanged = QC.Signal(int, str)
+    tabWasInserted = QC.Signal([int], [int, str], [int, QW.QWidget])
+    tabWasRemoved = QC.Signal(int)
+
+    # Override constructor to connect some signals
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+        # Set default tabbar
+        self.setTabBar(QW_QTabBar())
+
+        # Connect signals
+        self.currentChanged.connect(self.currentIndexChanged)
+        self.currentChanged.connect(
+            lambda index: self.currentTextChanged.emit(self.tabText(index)))
+        self.currentChanged.connect(
+            lambda index: self.currentWidgetChanged.emit(self.widget(index)))
 
     # Override addTab to automatically translate the given tab name
     def addTab(self, widget, label, icon=None):
@@ -508,8 +538,8 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
 
     # Override setTabBar to automatically connect some signals
     def setTabBar(self, tabbar):
-        # Connect the tabNameChanged signals
-        tabbar.tabNameChanged.connect(self.tabNameChanged)
+        # Connect the tabTextChanged signals
+        tabbar.tabTextChanged.connect(self.tabTextChanged)
 
         # Call super method
         return(super().setTabBar(tabbar))
@@ -519,6 +549,7 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
         # Emit tabWasInserted signal
         self.tabWasInserted[int].emit(index)
         self.tabWasInserted[int, str].emit(index, self.tabText(index))
+        self.tabWasInserted[int, QW.QWidget].emit(index, self.widget(index))
 
         # Call super method
         super().tabInserted(index)
@@ -534,6 +565,10 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
     # Define function that returns a list of all tab names
     def tabNames(self):
         return(list(map(self.tabText, range(self.count()))))
+
+    # Define function that returns a list of all tab widgets
+    def tabWidgets(self):
+        return(list(map(self.widget, range(self.count()))))
 
 
 # Create custom QTextEdit class
@@ -573,7 +608,13 @@ class QW_QToolBar(QW.QToolBar, QW_QWidget):
 
 # Create custom QToolButton class
 class QW_QToolButton(QW.QToolButton, QW_QWidget):
-    pass
+    # Override constructor to set some default settings
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+        # Use default settings
+        self.setAutoRaise(True)
 
 
 # Create custom QToolTip class

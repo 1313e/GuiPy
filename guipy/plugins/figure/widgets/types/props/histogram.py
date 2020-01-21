@@ -15,12 +15,14 @@ from qtpy import QtCore as QC
 # GuiPy imports
 from guipy.layouts import QW_QHBoxLayout
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
+from guipy.plugins.figure.widgets.types.props.data import (
+    Data1DProp, MultiDataNDProp)
 from guipy.widgets import (
     BaseBox, ColorBox, DualSpinBox, MultiRadioButton, QW_QCheckBox,
     QW_QSpinBox, get_box_value, get_modified_box_signal, set_box_value)
 
 # All declaration
-__all__ = ['HistogramProp']
+__all__ = ['HistogramProp', 'MultiHistDataProp']
 
 
 # %% CLASS DEFINITIONS
@@ -38,8 +40,7 @@ class HistogramProp(BasePlotProp):
     NAME = "Histogram"
     DISPLAY_NAME = "Histogram"
     REQUIREMENTS = ['draw_plot', 'update_plot']
-    WIDGET_NAMES = ['n_bins_box', 'hist_color_box', 'hist_cumul_box',
-                    'hist_orient_box']
+    WIDGET_NAMES = ['n_bins_box', 'hist_cumul_box', 'hist_orient_box']
 
     # This function creates and returns a bins box
     def n_bins_box(self):
@@ -62,23 +63,6 @@ class HistogramProp(BasePlotProp):
 
         # Return name and box
         return('# of bins', n_bins_box)
-
-    # This function creates a histogram color box
-    def hist_color_box(self):
-        """
-        Creates a widget box for setting the color of this histogram and
-        returns it.
-
-        """
-
-        # Make a color box
-        hist_color_box = ColorBox()
-
-        # Connect signals
-        get_modified_box_signal(hist_color_box).connect(self.update_plot)
-
-        # Return name and box
-        return('Color', hist_color_box)
 
     # This function creates a histogram cumulative box
     def hist_cumul_box(self):
@@ -116,6 +100,62 @@ class HistogramProp(BasePlotProp):
 
         # Return name and box
         return('Orientation', hist_orient_box)
+
+
+# Define 'HistData' plot property
+class HistDataProp(Data1DProp):
+    """
+    Provides the definition of the :class:`~HistDataProp` plot property.
+
+    This property contains boxes for setting the label; X-axis data and color
+    for an individual histogram.
+
+    """
+
+    # Class attributes
+    NAME = "HistData"
+    REQUIREMENTS = [*Data1DProp.REQUIREMENTS, 'update_plot']
+    WIDGET_NAMES = [*Data1DProp.WIDGET_NAMES, 'hist_color_box']
+
+    # This function creates a histogram color box
+    def hist_color_box(self):
+        """
+        Creates a widget box for setting the color of this histogram and
+        returns it.
+
+        """
+
+        # Make a color box
+        hist_color_box = ColorBox()
+
+        # Connect signals
+        get_modified_box_signal(hist_color_box).connect(self.update_plot)
+
+        # Return name and box
+        return('Color', hist_color_box)
+
+
+# Define custom class for setting the data used in the histogram
+class MultiHistDataProp(MultiDataNDProp):
+    """
+    Provides the definition of the :class:`~MultiHistDataProp` plot property.
+
+    This property contains a tab widget with multiple :class`~HistDataProp`
+    properties.
+
+    """
+
+    # Class attributes
+    NAME = "MultiHistData"
+    REQUIREMENTS = [*HistDataProp.REQUIREMENTS, 'hist_tab_added']
+
+    # Initialize hist data property
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(HistDataProp, *args, **kwargs)
+
+        # Connect signals
+        self.tab_widget.tabWasInserted.connect(self.hist_tab_added)
 
 
 # Define custom class for setting the value range of a histogram
@@ -170,5 +210,5 @@ class HistRangeBox(BaseBox):
         return(get_box_value(self.range_flag), *get_box_value(self.range_box))
 
     # This function sets the value of this special box
-    def set_box_value(self, value):
-        set_box_value(self.range_box, value)
+    def set_box_value(self, value, *args, **kwargs):
+        set_box_value(self.range_box, value, *args, **kwargs)

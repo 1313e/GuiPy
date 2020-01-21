@@ -58,21 +58,21 @@ class FigureLabelBox(BaseBox):
 
     # Override __getitem__ to return the lineedit or fontsize box
     def __getitem__(self, key):
-        # If key is a slice object, return everything that is requested
-        if isinstance(key, slice):
-            return(tuple([self[i] for i in range(*key.indices(2))]))
-
-        # If key is an integer, return the corresponding spinbox
-        elif isinstance(key, int):
-            # If key is zero, return label_box
-            if(key == 0):
+        # If key is an integer, return the corresponding box
+        if isinstance(key, int):
+            # If key is 0 or -2, return label_box
+            if key in (0, -2):
                 return(self.label_box)
-            # Else, if key is one, return size_box
-            elif(key == 1):
+            # Else, if key is 1 or -1, return size_box
+            elif key in (1, -1):
                 return(self.size_box)
             # Else, raise IndexError
             else:
                 raise IndexError("Index out of range")
+
+        # If key is a slice object, return everything that is requested
+        elif isinstance(key, slice):
+            return(*map(self.__getitem__, range(*key.indices(2))),)
 
         # Else, raise TypeError
         else:
@@ -108,7 +108,7 @@ class FigureLabelBox(BaseBox):
     def modified_signal_slot(self):
         # Emit modified signals
         self.modified[str].emit(get_box_value(self.label_box))
-        self.modified[str, dict].emit(*get_box_value(self))
+        self.modified[str, dict].emit(*self.get_box_value())
 
     # This function retrieves a value of this special box
     def get_box_value(self, *args, **kwargs):
@@ -127,7 +127,7 @@ class FigureLabelBox(BaseBox):
                {'fontsize': get_box_value(self.size_box)})
 
     # This function sets the value of this special box
-    def set_box_value(self, value):
+    def set_box_value(self, value, *args, **kwargs):
         """
         Sets the current value of the figure label box to `value`.
 

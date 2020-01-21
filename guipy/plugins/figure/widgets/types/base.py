@@ -14,7 +14,7 @@ from qtpy import QtCore as QC
 # GuiPy imports
 from guipy.layouts import QW_QFormLayout
 from guipy.plugins.figure.widgets.types.props import PLOT_PROPS
-from guipy.widgets import QW_QWidget
+from guipy.widgets import QW_QGroupBox, QW_QWidget
 
 # All declaration
 __all__ = ['BasePlotType']
@@ -116,11 +116,13 @@ class BasePlotType(QW_QWidget):
                            for req in plot_prop_class.requirements()}
 
             # Initialize the property and add to layout
-            prop_group = plot_prop_class(**prop_kwargs)
+            prop_layout = plot_prop_class(**prop_kwargs)
+            prop_group = QW_QGroupBox(prop_layout.display_name())
+            prop_group.setLayout(prop_layout)
             layout.addRow(prop_group)
 
             # Register all widgets in this property as instance attributes
-            for widget_name, widget in prop_group.widgets.items():
+            for widget_name, widget in prop_layout.widgets.items():
                 setattr(self, widget_name, widget)
 
     # Define draw_plot method

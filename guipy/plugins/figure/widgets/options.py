@@ -117,7 +117,7 @@ class FigureOptionsDialog(QW_QDialog):
         x_label_box[0].setToolTip("Label of the X-axis")
         x_label_box[1].setToolTip("Label size")
         set_box_value(x_label_box,
-                      ('', {'fontsize': rcParams['xtick.labelsize']}))
+                      ('', {'fontsize': rcParams['axes.labelsize']}))
         get_modified_box_signal(x_label_box)[str, dict].connect(
             self.axis.set_xlabel)
         x_axis_layout.addRow("Label", x_label_box)
@@ -178,7 +178,7 @@ class FigureOptionsDialog(QW_QDialog):
         y_label_box[0].setToolTip("Label of the Y-axis")
         y_label_box[1].setToolTip("Label size")
         set_box_value(y_label_box,
-                      ('', {'fontsize': rcParams['ytick.labelsize']}))
+                      ('', {'fontsize': rcParams['axes.labelsize']}))
         get_modified_box_signal(y_label_box)[str, dict].connect(
             self.axis.set_ylabel)
         y_axis_layout.addRow("Label", y_label_box)
@@ -288,10 +288,10 @@ class FigureOptionsDialog(QW_QDialog):
         # Add a toolbutton for adding a new plot entry
         add_but = QW_QToolButton()
         add_but.setToolTip("Add new plot entry")
-        get_modified_box_signal(add_but).connect(self.add_plot)
+        get_modified_box_signal(add_but).connect(self.add_entry)
         plot_layout.addWidget(add_but)
 
-        # If this theme has a 'add' icon, use it
+        # If this theme has an 'add' icon, use it
         if QG.QIcon.hasThemeIcon('add'):
             add_but.setIcon(QG.QIcon.fromTheme('add'))
         # Else, use a simple plus
@@ -313,12 +313,12 @@ class FigureOptionsDialog(QW_QDialog):
 
     # This function adds a plot entry
     @QC.Slot()
-    def add_plot(self):
+    def add_entry(self):
         # Obtain index of this plot entry
         index = self.plot_entries.count()
 
         # Obtain name
-        name = "plot_%i" % (index)
+        name = "%i_plot" % (index)
 
         # Create plot entry box
         plot_entry = FigurePlotEntry(index, name, self.toolbar)

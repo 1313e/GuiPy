@@ -15,7 +15,7 @@ import numpy as np
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy.widgets.base import QW_QLabel, QW_QWidget
+from guipy.widgets.base import QW_QLabel, QW_QTabWidget, QW_QWidget
 
 # All declaration
 __all__ = ['BaseBox', 'get_box_value', 'get_modified_box_signal',
@@ -25,6 +25,7 @@ __all__ = ['BaseBox', 'get_box_value', 'get_modified_box_signal',
 # %% CLASS DEFINITIONS
 # Make base class for custom boxes
 # As QW.QWidget is a strict class (in C++), this cannot be an ABC
+# TODO: Create a DualBaseBox class for dual widgets?
 class BaseBox(QW_QWidget):
     """
     Defines the :class:`~BaseBox` base class.
@@ -93,7 +94,7 @@ class BaseBox(QW_QWidget):
         signal.connect(self.modified)
 
     # Define get_box_value method
-    def get_box_value(self, value_sig=None):
+    def get_box_value(self, *value_sig):
         """
         Obtain the value of this widget and return it.
 
@@ -102,7 +103,7 @@ class BaseBox(QW_QWidget):
         raise NotImplementedError(self.__class__)
 
     # Define set_box_value method
-    def set_box_value(self, value):
+    def set_box_value(self, value, *value_sig):
         """
         Set the value of this widget to `value`.
 
@@ -117,15 +118,19 @@ def get_box_value(box, *value_sig):
     """
     Retrieves the value of the provided widget `box` and returns it.
 
+    If `box` has the `get_box_value()` method defined (always the case for
+    instances of :class:`~BaseBox`), it will be used instead. If this raises a
+    :class:`~NotImplementedError`, the method is skipped.
+
     Parameters
     ----------
     box : :obj:`~PyQt5.QtWidgets.QWidget` object
         The widget whose value must be returned.
-    value_sig : positional arguments of type
+    value_sig : positional arguments of object
         The signature of the value of `box` that must be returned.
         If empty or invalid, the default value is returned.
-        If `box` is an instance of :class:`~BaseBox`, this argument is passed
-        to :meth:`~BaseBox.get_box_value`.
+        If `box` has the `get_box_value()` method defined, this argument is
+        passed to it.
 
     Returns
     -------
@@ -133,6 +138,15 @@ def get_box_value(box, *value_sig):
         The value of the requested `box`.
 
     """
+
+    # Custom boxes (get_box_value()-method)
+    if hasattr(box, 'get_box_value'):
+        # Try to use the custom get_box_value()-method
+        try:
+            return(box.get_box_value(*value_sig))
+        # If that fails, proceed to use a normal function
+        except NotImplementedError:
+            pass
 
     # Values (QAbstractSpinBox)
     if isinstance(box, QW.QAbstractSpinBox):
@@ -149,6 +163,15 @@ def get_box_value(box, *value_sig):
     elif isinstance(box, QW.QComboBox):
         return(box.currentIndex() if int in value_sig else box.currentText())
 
+    # Tabs (QTabWidget)
+    elif isinstance(box, QW.QTabWidget):
+        if int in value_sig:
+            return(box.currentIndex())
+        elif str in value_sig:
+            return(box.tabText(box.currentIndex()))
+        else:
+            return(box.currentWidget())
+
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         return(box.text())
@@ -161,13 +184,11 @@ def get_box_value(box, *value_sig):
         else:
             return(box.text())
 
-    # Custom boxes (BaseBox)
-    elif isinstance(box, BaseBox):
-        return(box.get_box_value(*value_sig))
-
     # If none applies, raise error
     else:
-        raise NotImplementedError("Custom boxes must be a subclass of BaseBox")
+        raise NotImplementedError("Custom boxes must provide their own "
+                                  "'get_box_value()'-method! (%s)"
+                                  % (box.__class__))
 
 
 # This function gets the emitted signal when a provided box is modified
@@ -176,27 +197,32 @@ def get_modified_box_signal(box, *signal_sig):
     Retrieves a signal of the provided widget `box` that indicates that `box`
     has been modified and returns it.
 
+    If `box` has the `modified` signal defined (always the case for instances
+    of :class:`~BaseBox`), it will be returned instead.
+
     Parameters
     ----------
     box : :obj:`~PyQt5.QtWidgets.QWidget` object
         The widget whose modified signal must be retrieved.
-    signal_sig : positional arguments of type
+    signal_sig : positional arguments of object
         The signature of the modified signal that is requested.
         If empty or invalid, the default modified signal is returned.
-        If `box` is an instance of :class:`~BaseBox`, this argument has no
+        If `box` has the `modified` signal defined, this argument has no
         effect.
 
     Returns
     -------
     modified_signal : :obj:`~PyQt5.QtCore.pyqtBoundSignal` object
         The requested modified signal of `box`.
-        If `box` is an instance of :class:`~BaseBox`, this is always
-        :attr:`~BaseBox.modified`.
 
     """
 
+    # Custom boxes (modified signal)
+    if hasattr(box, 'modified'):
+        return(box.modified)
+
     # Values (QAbstractSpinBox)
-    if isinstance(box, QW.QAbstractSpinBox):
+    elif isinstance(box, QW.QAbstractSpinBox):
         return(box.valueChanged)
 
     # Bools/Buttons (QAbstractButton)
@@ -207,6 +233,19 @@ def get_modified_box_signal(box, *signal_sig):
     elif isinstance(box, QW.QComboBox):
         return(box.currentIndexChanged if int in signal_sig else
                box.currentTextChanged)
+
+    # Tabs (QTabWidget)
+    elif isinstance(box, QW_QTabWidget):
+        if int in signal_sig:
+            return(box.currentIndexChanged)
+        elif str in signal_sig:
+            return(box.currentTextChanged)
+        elif QW.QWidget in signal_sig:
+            return(box.currentWidgetChanged)
+        else:
+            return(box.currentChanged)
+    elif isinstance(box, QW.QTabWidget):
+        return(box.currentChanged)
 
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
@@ -219,19 +258,20 @@ def get_modified_box_signal(box, *signal_sig):
         raise NotImplementedError("Default QW.QLabel has no modified signal "
                                   "defined. Use QW_QLabel instead!")
 
-    # Custom boxes (BaseBox)
-    elif isinstance(box, BaseBox):
-        return(box.modified)
-
     # If none applies, raise error
     else:
-        raise NotImplementedError("Custom boxes must be a subclass of BaseBox")
+        raise NotImplementedError("Custom boxes must provide their own "
+                                  "'modified' signal! (%s)" % (box.__class__))
 
 
 # This function sets the value of a provided box
-def set_box_value(box, value):
+def set_box_value(box, value, *value_sig):
     """
     Sets the value of the provided widget `box` to `value`.
+
+    If `box` has the `set_box_value()` method defined (always the case for
+    instances of :class:`~BaseBox`), it will be used instead. If this raises a
+    :class:`~NotImplementedError`, the method is skipped.
 
     Parameters
     ----------
@@ -239,10 +279,28 @@ def set_box_value(box, value):
         The widget whose value must be set.
     value : obj
         The value that must be set in the provided `box`.
-        If `box` is an instance of :class:`~BaseBox`, this argument is passed
-        to :meth:`~BaseBox.set_box_value`.
+        If `box` has the `set_box_value()` method defined, this argument is
+        passed it.
+    value_sig : positional arguments of object
+        The signature of the value that must be set in the provided `box`.
+        This argument is only used if the signature cannot be derived from
+        `value`.
+        If `box` has the `set_box_value()` method defined, this argument is
+        passed to it.
 
     """
+
+    # Custom boxes (set_box_value()-method)
+    if hasattr(box, 'set_box_value'):
+        # Try to use the custom set_box_value()-method
+        try:
+            box.set_box_value(value, *value_sig)
+        # If that fails, proceed to use a normal function
+        except NotImplementedError:
+            pass
+        # If that succeeds, return
+        else:
+            return
 
     # Values (QAbstractSpinBox)
     if isinstance(box, QW.QAbstractSpinBox):
@@ -266,6 +324,16 @@ def set_box_value(box, value):
             else:
                 box.setCurrentText(value)
 
+    # Tabs (QTabWidget)
+    elif isinstance(box, QW.QTabWidget):
+        if isinstance(value, int):
+            box.setCurrentIndex(value)
+        elif isinstance(value, str) and isinstance(box, QW_QTabWidget):
+            index = box.tabNames.index(value)
+            box.setCurrentIndex(index)
+        else:
+            box.setCurrentWidget(value)
+
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         box.setText(value)
@@ -285,10 +353,8 @@ def set_box_value(box, value):
         else:
             raise TypeError("QLabel does not support the given type")
 
-    # Custom boxes (BaseBox)
-    elif isinstance(box, BaseBox):
-        box.set_box_value(value)
-
     # If none applies, raise error
     else:
-        raise NotImplementedError("Custom boxes must be a subclass of BaseBox")
+        raise NotImplementedError("Custom boxes must provide their own "
+                                  "'set_box_value()'-method! (%s)"
+                                  % (box.__class__))

@@ -34,7 +34,7 @@ class MultiRadioButton(BaseBox):
     # Signals
     modified = QC.Signal([], [int], [str])
 
-    # Initialize the DualComboBox class
+    # Initialize the MultiRadioButton class
     def __init__(self, n=2, layout='horizontal', parent=None, *args,
                  **kwargs):
         """
@@ -63,33 +63,30 @@ class MultiRadioButton(BaseBox):
         # Call super constructor
         super().__init__(parent)
 
-        # Create the dual combobox
+        # Create the multi-radiobutton
         self.init(n, layout, *args, **kwargs)
 
-    # Override __getitem__ to return the left and/or right combobox
+    # Override __getitem__ to return the requested radiobutton(s)
     def __getitem__(self, key):
-        # If key is a slice object, return everything that is requested
-        if isinstance(key, slice):
-            return(tuple([self[i] for i in range(*key.indices(2))]))
-
-        # If key is an integer, return the corresponding combobox
-        elif isinstance(key, int):
-            # If key is zero, return left_box
-            if(key == 0):
-                return(self.left_box)
-            # Else, if key is one, return right_box
-            elif(key == 1):
-                return(self.right_box)
-            # Else, raise IndexError
-            else:
+        # If key is an integer, return the corresponding radiobutton
+        if isinstance(key, int):
+            # Try to return the requested radiobutton
+            try:
+                return(self.buttons[key])
+            # If that cannot be done, raise IndexError
+            except IndexError:
                 raise IndexError("Index out of range")
+
+        # If key is a slice object, return everything that is requested
+        elif isinstance(key, slice):
+            return(*map(self.__getitem__, range(*key.indices(self.N))),)
 
         # Else, raise TypeError
         else:
             raise TypeError("Index must be of type 'int' or 'slice', not type "
                             "%r" % (type(key).__name__))
 
-    # This function sets up the dual combobox
+    # This function sets up the multi-radiobutton
     def init(self, n, layout):
         """
         Sets up the multi-radiobutton after it has been initialized.
@@ -149,12 +146,15 @@ class MultiRadioButton(BaseBox):
                 self.buttons.append(button)
                 layout.addWidget(button, *index)
 
+        # Save the number of radiobuttons
+        self.N = len(self.buttons)
+
     # This function is automatically called whenever 'modified' is emitted
     @QC.Slot()
     def modified_signal_slot(self):
         # Emit modified signal with proper types
-        self.modified[int].emit(self.get_box_value(int))
-        self.modified[str].emit(self.get_box_value(str))
+        self.modified[int].emit(MultiRadioButton.get_box_value(self, int))
+        self.modified[str].emit(MultiRadioButton.get_box_value(self, str))
 
     # This function retrieves a value of this special box
     def get_box_value(self, *value_sig):
@@ -180,7 +180,7 @@ class MultiRadioButton(BaseBox):
             return(index)
 
     # This function sets the value of this special box
-    def set_box_value(self, value):
+    def set_box_value(self, value, *args, **kwargs):
         """
         Sets the radiobutton with index `value` to *True*.
 

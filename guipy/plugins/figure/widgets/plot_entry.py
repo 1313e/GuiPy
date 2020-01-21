@@ -60,6 +60,7 @@ class FigurePlotEntry(QW_QWidget):
 
         # Create a name editor layout
         name_layout = QW_QHBoxLayout()
+        layout.addRow('Name', name_layout)
 
         # Create entry name editor
         name_box = QW_QLineEdit()
@@ -82,9 +83,6 @@ class FigurePlotEntry(QW_QWidget):
         else:
             del_but.setText('X')
 
-        # Add name_layout to layout
-        layout.addRow('Name', name_layout)
-
         # Create a combobox for choosing a plot type
         plot_types = QW_QComboBox()
         plot_types.addItems(PLOT_TYPES['2D'])
@@ -105,6 +103,13 @@ class FigurePlotEntry(QW_QWidget):
     # This function sets the currently used plot type
     @QC.Slot(str)
     def set_plot_type(self, plot_type):
+        # Obtain the index of the current plot entry
+        index = self.layout.indexOf(self.plot_entry)
+
+        # Remove this plot entry
+        self.layout.removeWidget(self.plot_entry)
+        self.plot_entry.close()
+
         # If the plot_type is empty, create dummy widget
         if not plot_type:
             plot_entry = QW_QWidget()
@@ -115,12 +120,10 @@ class FigurePlotEntry(QW_QWidget):
             # Initialize the proper entry
             plot_type = PLOT_TYPES['2D'][plot_type]
             plot_entry = plot_type(self.toolbar)
-            entry_name = "%s%i" % (plot_type.prefix(), self.index)
+            entry_name = "%i_%s" % (self.index, plot_type.prefix())
 
-        # Replace the current plot entry with the new one
-        old_item = self.layout.replaceWidget(self.plot_entry, plot_entry)
-        old_item.widget().close()
-        del old_item
+        # Insert the new plot entry
+        self.layout.insertRow(index, plot_entry)
 
         # Save new plot entry as the current entry
         self.plot_entry = plot_entry
