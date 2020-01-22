@@ -77,7 +77,7 @@ class FigureOptionsDialog(QW_QDialog):
     # This function creates the options tabwidget for the selected plot type
     def create_options_tabs(self, index=None):
         # Create a tab widget
-        tab_widget = QW_QTabWidget()
+        tab_widget = QW_QTabWidget(browse_tabs=False)
 
         # Add figure tab
         tab_widget.addTab(*self.create_figure_tab())

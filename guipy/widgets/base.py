@@ -63,7 +63,8 @@ class QW_QAction(QW.QAction):
 
     # Override constructor
     def __init__(self, parent, text, *, shortcut=None, tooltip=None,
-                 statustip=None, icon=None, triggered=None, role=None):
+                 statustip=None, icon=None, triggered=None, toggled=None,
+                 role=None):
         """
         Initializes the :class:`~QW_QAction` class.
 
@@ -93,7 +94,13 @@ class QW_QAction(QW.QAction):
         triggered : function or None. Default: None
             The Qt slot function that must be called whenever this action is
             triggered.
-            If *None*, no slot will connected to this action's signal.
+            If *None*, no slot will be connected to this action's `triggered`
+            signal.
+        toggled : function or None. Default: None
+            The Qt slot function that must be called whenever this action is
+            toggled.
+            If *None*, no slot will be connected to this action's `toggled`
+            signal.
         role : :obj:`~PyQt5.QtWidgets.QAction.MenuRole` object or None. \
             Default: None
             The menu role that must be set as the role of this action.
@@ -115,9 +122,14 @@ class QW_QAction(QW.QAction):
                         tooltip=tooltip,
                         statustip=statustip)
 
-        # Set the signal trigger
+        # Set the triggered signal
         if triggered is not None:
             self.triggered.connect(triggered)
+
+        # Set the toggled signal
+        if toggled is not None:
+            self.toggled.connect(toggled)
+            self.setCheckable(True)
 
         # Set the action menu role
         self.setMenuRole(self.NoRole if role is None else role)
@@ -492,7 +504,6 @@ class QW_QTableView(QW.QTableView, QW_QWidget):
 
 
 # Create custom QTabWidget class
-# TODO: Add a 'tab browser' menu button to all tab widgets by default?
 class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
     """
     Defines the :class:`~QW_QTabWidget` class.
@@ -511,10 +522,15 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
     tabWasRemoved = QC.Signal(int)
 
     # Override constructor to connect some signals
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, browse_tabs=True, **kwargs):
         # Call super constructor
         super().__init__(*args, **kwargs)
 
+        # Set up the tab widget
+        self.init(browse_tabs)
+
+    # This function sets up the tab widget
+    def init(self, browse_tabs):
         # Set default tabbar
         self.setTabBar(QW_QTabBar())
 
@@ -524,6 +540,49 @@ class QW_QTabWidget(QW.QTabWidget, QW_QWidget):
             lambda index: self.currentTextChanged.emit(self.tabText(index)))
         self.currentChanged.connect(
             lambda index: self.currentWidgetChanged.emit(self.widget(index)))
+
+        # Check if a browse menu was requested
+        if browse_tabs:
+            # Create a menu containing all available tabs
+            browse_menu = QW_QMenu('Browse', parent=self)
+            browse_menu.aboutToShow.connect(self.update_browse_menu)
+            self.browse_menu = browse_menu
+
+            # Create a toolbutton for browsing all available tabs
+            browse_but = QW_QToolButton()
+            browse_but.setText('V')
+            browse_but.setToolTip("Browse tabs")
+            browse_but.setMenu(browse_menu)
+            browse_but.setPopupMode(browse_but.InstantPopup)
+            self.browse_but = browse_but
+
+            # Set browse button as the left corner widget
+            self.setCornerWidget(browse_but, QC.Qt.TopLeftCorner)
+
+    # This function updates the browse menu
+    def update_browse_menu(self):
+        """
+        Updates the browse menu that shows all available tabs.
+
+        """
+
+        # Remove all actions currently in the browse menu
+        self.browse_menu.clear()
+
+        # Loop over all available tabs
+        for i, name in enumerate(self.tabNames()):
+            # Create a toggleable action for this tab
+            tab_act = QW_QAction(
+                self, name,
+                icon=self.tabIcon(i),
+                tooltip=self.tabToolTip(i),
+                toggled=lambda *args, index=i: self.setCurrentIndex(index))
+
+            # If this tab is currently selected, check it
+            tab_act.setChecked(self.currentIndex() == i)
+
+            # Add action to menu
+            self.browse_menu.addAction(tab_act)
 
     # Override addTab to automatically translate the given tab name
     def addTab(self, widget, label, icon=None):

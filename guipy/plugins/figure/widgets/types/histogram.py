@@ -50,6 +50,13 @@ class HistogramType(BasePlotType):
     # This function is called whenever a new histogram data tab is added
     @QC.Slot(int)
     def hist_tab_added(self, index):
+        """
+        This slot is automatically called whenever a new histogram data tab
+        with `index` has been added, and is used for initializing certain
+        aspects of this tab.
+
+        """
+
         # Obtain the number of data tabs already present
         n_tabs = self.multi_data_box.count()
 
@@ -118,6 +125,12 @@ class HistogramType(BasePlotType):
     # This function removes the histogram from the figure
     @QC.Slot()
     def remove_hist(self):
+        """
+        Removes all histograms handled by this instance from the current
+        figure.
+
+        """
+
         # Remove the plots from the figure if they exist
         if self.plot is not None:
             for plot in self.plot:

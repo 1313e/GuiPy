@@ -152,8 +152,8 @@ def get_box_value(box, *value_sig):
     if isinstance(box, QW.QAbstractSpinBox):
         return(box.value())
 
-    # Bools/Buttons (QAbstractButton)
-    elif isinstance(box, QW.QAbstractButton):
+    # Actions, Bools/Buttons (QAction, QAbstractButton)
+    elif isinstance(box, (QW.QAction, QW.QAbstractButton)):
         if box.isCheckable() and str not in value_sig:
             return(box.isChecked())
         else:
@@ -224,6 +224,10 @@ def get_modified_box_signal(box, *signal_sig):
     # Values (QAbstractSpinBox)
     elif isinstance(box, QW.QAbstractSpinBox):
         return(box.valueChanged)
+
+    # Actions (QAction)
+    elif isinstance(box, QW.QAction):
+        return(box.toggled if box.isCheckable() else box.triggered)
 
     # Bools/Buttons (QAbstractButton)
     elif isinstance(box, QW.QAbstractButton):
@@ -306,8 +310,8 @@ def set_box_value(box, value, *value_sig):
     if isinstance(box, QW.QAbstractSpinBox):
         box.setValue(value)
 
-    # Bools/Buttons (QAbstractButton)
-    elif isinstance(box, QW.QAbstractButton):
+    # Actions, Bools/Buttons (QAction, QAbstractButton)
+    elif isinstance(box, (QW.QAction, QW.QAbstractButton)):
         if isinstance(value, str):
             box.setText(value)
         else:
