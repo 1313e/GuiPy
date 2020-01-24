@@ -9,16 +9,18 @@ Data Table Model
 
 # %% IMPORTS
 # Built-in imports
+from itertools import chain
 import string
 
 # Package imports
 import numpy as np
+import pandas as pd
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 
 # All declaration
-__all__ = ['DataTableColumn', 'DataTableModel']
+__all__ = ['DataTableModel']
 
 
 # %% GLOBALS
@@ -37,7 +39,6 @@ class DataTableModel(QC.QAbstractTableModel):
     rowCountChanged = QC.Signal(int)
     columnCountChanged = QC.Signal(int)
     columnNameChanged = QC.Signal(int, str)
-    columnDisplayNameChanged = QC.Signal(int, str)
 
     # Initialize DataTableModel class
     def __init__(self, parent=None, *args, **kwargs):
@@ -67,13 +68,12 @@ class DataTableModel(QC.QAbstractTableModel):
             np.bool_: 'bool',
             np.float64: 'float',
             np.int64: 'int',
-            np.str_: 'str'}
+            np.object_: 'str'}
 
         # If import_func is None, initialize an empty table
         if import_func is None:
-            # Initialize the list of column data arrays
-            # TODO: Write custom column list that allows for more flexibility
-            self.column_list = []
+            # Initialize an empty table
+            self._data = pd.DataFrame([])
 
             # Initialize this data table with a 5x5 table
             self.insertColumns(count=5)
@@ -81,8 +81,8 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # If import_func is not None, call it to initialize the table
         else:
-            # Call the function to obtain the list of data columns
-            self.column_list = import_func(self)
+            # Call the function to obtain the data
+            self._data = import_func(self)
 
             # Notify other functions that columns have been inserted
             self.beginInsertColumns(QC.QModelIndex(), 0, self.columnCount()-1)
@@ -129,7 +129,7 @@ class DataTableModel(QC.QAbstractTableModel):
     @QC.Slot(str)
     def dataColumn(self, index):
         """
-        Returns the :obj:`~DataTableColumn` object that belongs to the column
+        Returns the :obj:`~pandas.Series` object that belongs to the column
         with the provided column `index`.
 
         Parameters
@@ -140,7 +140,7 @@ class DataTableModel(QC.QAbstractTableModel):
 
         Returns
         -------
-        data_column : :obj:`~DataTableColumn`
+        data_column : :obj:`~pandas.Series`
             The data column that belongs to the column specified by the
             provided `index`.
 
@@ -148,21 +148,17 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # If index is an int, return the column with that index
         if isinstance(index, int):
-            return(self.column_list[index])
+            return(self._data.iloc[:, index])
 
         # Else if index is a str, check what column that is and return it
         elif isinstance(index, str):
-            # Make list with all column display names
-            names = [column.display_name for column in self.column_list]
-
-            # Return the column belonging to the requested index
-            return(self.column_list[names.index(index)])
+            return(self._data.loc[:, index])
 
     # This function returns a list with all data column names
     @QC.Slot()
     def columnNames(self):
         """
-        Returns a list with the names of all :obj:`~DataTableColumn` objects
+        Returns a list with the names of all :obj:`~pandas.Series` objects
         stored in this model.
 
         Returns
@@ -173,24 +169,7 @@ class DataTableModel(QC.QAbstractTableModel):
         """
 
         # Return list of data column names
-        return([column.name for column in self.column_list])
-
-    # This function returns a list with all data column display names
-    @QC.Slot()
-    def columnDisplayNames(self):
-        """
-        Returns a list with the display names of all :obj:`~DataTableColumn`
-        objects stored in this model.
-
-        Returns
-        -------
-        display_names : list of str
-            List with display names of all data columns.
-
-        """
-
-        # Return list of data column display names
-        return([column.display_name for column in self.column_list])
+        return(list(self._data.columns))
 
     # Override headerData function
     def headerData(self, section, orientation, role):
@@ -200,45 +179,39 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # If the horizontal header information is requested
         if(orientation == QC.Qt.Horizontal):
-            # Return the corresponding column display name
-            return(self.column_list[section].display_name)
+            # Return the corresponding column name
+            return(self._data.columns[section])
 
         # If the vertical header information is requested
         else:
-            # Return the row number itself
-            return(section)
+            # Return the corresponding row name
+            return(self._data.index[section])
 
     # Override data function
     def data(self, index, role):
         # If this index is valid
-        if index.isValid():
-            # Obtain the data point belonging to the requested index
-            data_col = self.column_list[index.column()]
+        if index.isValid() and role in (QC.Qt.DisplayRole, QC.Qt.EditRole):
+            # Obtain the requested value
+            value = self._data.iat[index.row(), index.column()]
 
-            # If a display role is provided
-            if(role == QC.Qt.DisplayRole):
-                # Convert to proper QVariant if not a masked value
-                if data_col[index.row()] is not None:
-                    data_point = QC.QVariant(data_col.item(index.row()))
-                # Else, data point is an empty QVariant
-                else:
-                    data_point = QC.QVariant()
+            # Convert value to a Python scalar
+            if isinstance(value, np.generic):
+                value = value.item()
 
-            # If an edit role is provided, return as normal
-            elif(role == QC.Qt.EditRole):
-                data_point = QC.QVariant(data_col.item(index.row()))
-
-            # All other roles return an empty QVariant
-            else:
+            # If value is None, always use an empty QVariant
+            if pd.isna(value):
                 data_point = QC.QVariant()
 
-            # Return it
-            return(data_point)
+            # Else, create proper QVariant
+            else:
+                data_point = QC.QVariant(value)
 
-        # If this index is not valid
+        # Else, use an empty QVariant
         else:
-            # Return an empty QVariant
-            return(QC.QVariant())
+            data_point = QC.QVariant()
+
+        # Return created data_point
+        return(data_point)
 
     # Override flags function
     def flags(self, index):
@@ -256,11 +229,8 @@ class DataTableModel(QC.QAbstractTableModel):
     def setData(self, index, value, role):
         # If this index is valid and the role is editing
         if index.isValid() and (role == QC.Qt.EditRole):
-            # Obtain the data column belonging to the requested index
-            data_col = self.column_list[index.column()]
-
             # Set the value
-            data_col[index.row()] = value
+            self._data.iat[index.row(), index.column()] = value
 
             # Emit dataChanged signal
             self.dataChanged.emit(index, index, [role])
@@ -281,10 +251,10 @@ class DataTableModel(QC.QAbstractTableModel):
             parent = QC.QModelIndex()
 
         # Return row count
-        if self.column_list:
-            return(self.column_list[0].length)
-        else:
+        if self._data.empty:
             return(0)
+        else:
+            return(self._data.shape[0])
 
     # Override columnCount function
     @QC.Slot()
@@ -295,7 +265,7 @@ class DataTableModel(QC.QAbstractTableModel):
             parent = QC.QModelIndex()
 
         # Return column count
-        return(len(self.column_list))
+        return(self._data.shape[1])
 
     # This function inserts rows before given row
     @QC.Slot()
@@ -314,9 +284,13 @@ class DataTableModel(QC.QAbstractTableModel):
         # Notify other functions that rows are going to be inserted
         self.beginInsertRows(parent, row, row+count-1)
 
-        # Insert the rows into all data columns
-        for column in self.column_list:
-            column.insertRows(row, count)
+        # Create dataframe with the required shape
+        insert_df = pd.DataFrame(np.full((count, self.columnCount()), np.nan),
+                                 columns=self._data.columns)
+
+        # Concatenate the current dataframe and insert_df
+        self._data = pd.concat([self._data[:row], insert_df, self._data[row:]],
+                               ignore_index=True)
 
         # Notify other functions that rows have been inserted
         self.endInsertRows()
@@ -344,9 +318,10 @@ class DataTableModel(QC.QAbstractTableModel):
         # Notify other functions that rows are going to be removed
         self.beginRemoveRows(parent, row, row+count-1)
 
-        # Remove the rows from all data columns
-        for column in self.column_list:
-            column.removeRows(row, count)
+        # Remove the rows
+        indexes = chain(range(0, row), range(row+count, self.rowCount()))
+        self._data = self._data.reindex(index=indexes)
+        self._data.reset_index(drop=True, inplace=True)
 
         # Notify other functions that rows have been removed
         self.endRemoveRows()
@@ -367,8 +342,7 @@ class DataTableModel(QC.QAbstractTableModel):
             parent = QC.QModelIndex()
 
         # Clear the rows
-        for column in self.column_list:
-            column.clearRows(row, count)
+        self._data.iloc[row:row+count] = np.nan
 
         # Return that operation was successful
         return(True)
@@ -387,19 +361,19 @@ class DataTableModel(QC.QAbstractTableModel):
         if parent is None:
             parent = QC.QModelIndex()
 
-        # Determine the length the new columns must have
-        length = self.rowCount()
-
         # Notify other functions that columns are going to be inserted
         self.beginInsertColumns(parent, col, col+count-1)
 
-        # Create as many columns as required
-        for i in range(col, col+count):
-            self.column_list.insert(i, DataTableColumn(length, None, i, self))
+        # Create dict with all renames required
+        renames = {to_base_26(i+1): to_base_26(i+1+count)
+                   for i in range(col, self.columnCount())}
 
-        # Modify the index of all columns that have now been moved
-        for column in self.column_list[col+count:]:
-            column._index += count
+        # Rename all columns that require renaming
+        self._data.rename(columns=renames, inplace=True)
+
+        # Create as many columns as required
+        for i in reversed(range(col, col+count)):
+            self._data.insert(col, to_base_26(i+1), np.nan)
 
         # Notify other functions that columns have been inserted
         self.endInsertColumns()
@@ -423,19 +397,21 @@ class DataTableModel(QC.QAbstractTableModel):
 
         # If count is equal to columnCount, remove all rows first
         if(self.columnCount() == count):
-            self.removeRows(None, self.rowCount())
+            self.removeRows(count=self.rowCount())
 
         # Notify other functions that columns are going to be removed
         self.beginRemoveColumns(parent, col, col+count-1)
 
-        # Delete as many columns as required
-        for i in reversed(range(col, col+count)):
-            column = self.column_list.pop(i)
-            column.delete()
+        # Create dict with all renames required
+        renames = {to_base_26(i+1): to_base_26(i+1-count)
+                   for i in range(col+count, self.columnCount())}
 
-        # Modify the index of all columns that have now been moved
-        for column in self.column_list[col:]:
-            column._index -= count
+        # Delete as many columns as required
+        for name in self._data.columns[col:col+count]:
+            self._data.pop(name)
+
+        # Rename the remaining columns
+        self._data.rename(columns=renames, inplace=True)
 
         # Notify other functions that columns have been removed
         self.endRemoveColumns()
@@ -453,8 +429,7 @@ class DataTableModel(QC.QAbstractTableModel):
             parent = QC.QModelIndex()
 
         # Clear the columns
-        for column in self.column_list[col:col+count]:
-            column.clear()
+        self._data.iloc[:, col:col+count] = np.nan
 
         # Return that operation was successful
         return(True)
@@ -462,311 +437,67 @@ class DataTableModel(QC.QAbstractTableModel):
     # This function sets the name of a column
     @QC.Slot(int, str)
     def setColumnName(self, col, name):
-        # Get the requested column
-        column = self.column_list[col]
+        # If no name was given, use the base name
+        if not name:
+            name = to_base_26(col+1)
 
-        # Set column's name
-        column.name = name
+        # Set column name
+        self._data.rename(
+            columns={self._data.columns[col]: name}, inplace=True)
 
-        # Emit a signal stating that a column changed its (display) name
+        # Emit a signal stating that a column changed its name
         self.columnNameChanged.emit(col, name)
-        self.columnDisplayNameChanged.emit(col, column.display_name)
 
     # This function sets the dtype of a column
     # TODO: If auto-conversion is not possible, ask user if the column should
     # be cleared first instead
     @QC.Slot(int, str)
     def setColumnDataType(self, col, dtype):
-        # Get the requested column
-        column = self.column_list[col]
-
-        # Set column's dtype
-        column.dtype = dtype
+        # Set the requested data type
+        self._data = self._data.astype({self._data.columns[col]: dtype},
+                                       copy=False)
 
 
-# Define class used as a container for data columns in the DataTableModel
-class DataTableColumn(object):
+# %% FUNCTION DEFINITIONS
+# This function converts a value to base-26 using the alphabetical letters
+def to_base_26(value):
     """
-    Defines the :class:`~DataTableColumn` class.
+    Converts a given positive `value` to a base-26 integer, which is made
+    up by the letters in the alphabet, and returns it.
 
-    This class is used as a container for making data columns in the
-    :class:`~DataTableModel` class.
+    In base-26, the values are defined in the following way (note that
+    there is no zero):
+
+    - [1, 26] -> ['A', 'Z'];
+    - [27, 52] -> ['AA', 'AZ'];
+    - [53, 78] -> ['BA', 'BZ'];
+    - [703, 728] -> ['AAA', 'AAZ'], etc.
+
+    Parameters
+    ----------
+    value : int
+        The positive integer that must be converted to base-26.
+
+    Returns
+    -------
+    result : str
+        The provided `value` converted to base-26.
 
     """
 
-    # Initialize data column
-    def __init__(self, length, data=None, index=0, parent=None):
-        """
-        Initialize an instance of the :class:`~DataTableColumn` class.
+    # Initialize empty result
+    result = ''
 
-        Parameters
-        ----------
-        length : int
-            The length (number of rows) requested for this data column.
-            If `data` is not *None* and `length != len(data)`, the array given
-            by `data` will be extended/shortened accordingly.
+    # While value is not zero yet
+    while value:
+        # Decrease by 1 to map [1, 26] to [0, 25]
+        value -= 1
 
-        Optional
-        --------
-        data : 1D :obj:`~numpy.ndarray` object or None. Default: None
-            The array that must be used to initialize this data column with.
-            If *None*, an empty data column is created instead.
-        index : int. Default: 0
-            The logical index of this data column. This is only important if
-            this data column has a parent.
-        parent : :obj:`~PyQt5.QtWidgets.QWidget` object or None. Default: None
-            The widget to use as the parent of this data column.
-            If *None*, this data column has no parent.
+        # Determine the next digit of the base-26 value
+        result = base_26[(value % 26)] + result
 
-        """
+        # True divide by 26 to determine the next digit
+        value //= 26
 
-        # Save provided index and parent
-        self._index = index
-        self._parent = parent
-
-        # Set up the data column
-        self.init(data, length)
-
-    # This function sets up the data column
-    def init(self, data, length):
-        # Set data column name
-        self._name = ""
-
-        # If data is None, initialize default array
-        if data is None:
-            # Set default value for dtype
-            self._dtype = np.float64
-
-            # Initialize data array
-            self._data = np.ma.asarray(np.zeros(length, dtype=self._dtype))
-            self._data.mask = True
-
-        # If data is not None, act accordingly
-        else:
-            # Make sure that data is a masked NumPy array
-            data = np.ma.asarray(data)
-
-            # If data has no masked values, make sure that mask is an array
-            if not data.mask:
-                data.mask = False
-
-            # Obtain the dtype of the provided data
-            self._dtype = data.dtype.type
-
-            # Set the data array
-            self._data = data
-
-            # Determine the difference between length and the array length
-            diff = length-len(self)
-
-            # Extend or shorten the data array accordingly
-            if(diff < 0):
-                self.removeRows(count=abs(diff))
-            elif(diff > 0):
-                self.insertRows(count=abs(diff))
-            else:
-                pass
-
-    # Specify the __repr__ function
-    def __repr__(self):
-        # Make empty list of representations
-        str_repr = []
-
-        # Obtain the representation of the NumPy data array
-        data_repr = str(self._data.tolist())
-        str_repr.append(data_repr)
-
-        # Add length to representation
-        str_repr.append("length=%i" % (len(self)))
-
-        # Add index to representation if it has a parent
-        if self._parent is not None:
-            str_repr.append("index=%i" % (self._index))
-
-        # Combine all together to a string and return representation
-        return("DataTableColumn(%s)" % (", ".join(str_repr)))
-
-    # Specify the __str__ function
-    def __str__(self):
-        return(str(self._data))
-
-    # Specify the __getitem__ function
-    def __getitem__(self, key):
-        value = self._data[key]
-        return(value if value is not np.ma.masked else None)
-
-    # Specify the __len__ function
-    def __len__(self):
-        return(len(self._data))
-
-    # Specify the __setitem__ function
-    def __setitem__(self, key, value):
-        self._data[key] = value
-        self._data.mask[key] = False
-
-    # This function is called whenever this column should be deleted
-    def delete(self):
-        # Delete the data array of this column
-        del self._data
-
-    # This property contains the name of this data column
-    @property
-    def name(self):
-        return(self._name)
-
-    # Property setter for name
-    @name.setter
-    def name(self, name):
-        self._name = name
-
-    # This property contains the base name of this data column
-    @property
-    def base_name(self):
-        return(self.to_base_26(self._index+1))
-
-    # This property contains the display name of this data column
-    @property
-    def display_name(self):
-        return(self.name if self.name else self.base_name)
-
-    # This property contains the parent of this data column
-    @property
-    def parent(self):
-        return(self._parent)
-
-    # This property contains the logical index of this data column
-    @property
-    def index(self):
-        return(self._index)
-
-    # This property contains the # of non-masked values of this data column
-    @property
-    def n_val(self):
-        return(sum(~self._data.mask))
-
-    # This property contains the length of this data column
-    @property
-    def length(self):
-        return(len(self))
-
-    # This property contains the dtype of this data column
-    @property
-    def dtype(self):
-        return(self._dtype)
-
-    # Property setter for dtype
-    @dtype.setter
-    def dtype(self, dtype):
-        # Try to convert the current data to an array with the new dtype
-        try:
-            new_data = np.ma.asarray(self._data, dtype)
-        # If this fails, raise error
-        except Exception as error:
-            raise TypeError("Data column %r cannot be converted to dtype %r! "
-                            "(%s)" % (self._name, dtype, error))
-        # If this succeeds, save new array and dtype
-        else:
-            self._data = new_data
-            self._dtype = new_data.dtype.type
-
-    # This property contains the data array of this data column
-    @property
-    def data(self):
-        return(self._data)
-
-    # This function calls the item()-method of the NumPy data array
-    def item(self, *args):
-        return(self._data.item(*args))
-
-    # This function converts a value to base-26 using the alphabetical letters
-    @staticmethod
-    def to_base_26(value):
-        """
-        Converts a given positive `value` to a base-26 integer, which is made
-        up by the letters in the alphabet, and returns it.
-
-        In base-26, the values are defined in the following way (note that
-        there is no zero):
-
-        - [1, 26] -> ['A', 'Z'];
-        - [27, 52] -> ['AA', 'AZ'];
-        - [53, 78] -> ['BA', 'BZ'];
-        - [703, 728] -> ['AAA', 'AAZ'], etc.
-
-        Parameters
-        ----------
-        value : int
-            The positive integer that must be converted to base-26.
-
-        Returns
-        -------
-        result : str
-            The provided `value` converted to base-26.
-
-        """
-
-        # Initialize empty result
-        result = ''
-
-        # While value is not zero yet
-        while value:
-            # Decrease by 1 to map [1, 26] to [0, 25]
-            value -= 1
-
-            # Determine the next digit of the base-26 value
-            result = base_26[(value % 26)] + result
-
-            # True divide by 26 to determine the next digit
-            value //= 26
-
-        # Return result
-        return(result)
-
-    # This function clears the entire column and resets it to default values
-    @QC.Slot()
-    def clear(self):
-        # Clear all rows
-        self.clearRows(0, len(self))
-
-    # This function inserts empty rows into the data column before given row
-    @QC.Slot()
-    @QC.Slot(int)
-    @QC.Slot(int, int)
-    def insertRows(self, row=None, count=1):
-        # If row is None, set it to length
-        if row is None:
-            row = len(self)
-
-        # Create an array with zeros of the length required
-        insert_array = np.ma.asarray(np.zeros(count, dtype=self._dtype))
-        insert_array.mask = True
-
-        # Insert the array into this data column
-        self._data = np.ma.concatenate([self._data[:row],
-                                        insert_array,
-                                        self._data[row:]])
-
-    # This function removes rows from the data column starting at given row
-    @QC.Slot()
-    @QC.Slot(int)
-    @QC.Slot(int, int)
-    def removeRows(self, row=None, count=1):
-        # If row is None, set it to length-count
-        if row is None:
-            count = min(count, len(self))
-            row = len(self)-count
-        else:
-            count = min(count, len(self)-row)
-
-        # Create new array with specified rows removed
-        mask = np.ones_like(self._data, dtype=bool)
-        mask[slice(row, row+count)] = False
-        self._data = self._data[mask]
-
-    # This function clears rows from the data column starting at given row
-    @QC.Slot(int)
-    @QC.Slot(int, int)
-    def clearRows(self, row, count=1):
-        # Set specified rows to 0
-        self._data[row:row+count] = 0
-        self._data.mask[row:row+count] = True
+    # Return result
+    return(result)

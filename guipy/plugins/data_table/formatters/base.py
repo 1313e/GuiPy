@@ -69,8 +69,8 @@ class BaseFormatter(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def importer(self, filepath, parent=None):
         """
-        Imports a %(ext)s-file with the provided `filepath` as a list of data
-        columns.
+        Imports a %(ext)s-file with the provided `filepath` as a
+        :obj:`~pandas.DataFrame` object.
 
         Parameters
         ----------
@@ -80,16 +80,13 @@ class BaseFormatter(object, metaclass=abc.ABCMeta):
         Optional
         --------
         parent : :obj:`~PyQt5.QtWidgets.QWidget` object or None. Default: None
-            The parent to use for the created
-            :obj:`~guipy.plugins.data_table.widgets.DataTableColumn` objects.
+            The parent that will be maintaining the data.
             If *None*, no parent will be used.
 
         Returns
         -------
-        column_list : list of \
-            :obj:`~guipy.plugins.data_table.widgets.DataTableColumn` objects
-            List containing all data columns necessary for recreating the data
-            table.
+        data_table : :obj:`~pandas.DataFrame` object
+            The data frame that contains all the read-in data.
 
         """
 

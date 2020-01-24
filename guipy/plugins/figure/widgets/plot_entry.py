@@ -52,6 +52,7 @@ class FigurePlotEntry(QW_QWidget):
         self.create_entry_layout()
 
     # This function creates the entry layout
+    # HINT: Use pd.plot?
     def create_entry_layout(self):
         # Create layout
         layout = QW_QFormLayout(self)

@@ -557,9 +557,9 @@ class DataColumnBox(DualComboBox):
         if(self.data_table_plugin.tab_widget.indexOf(self.data_table) != -1):
             self.model.columnsInserted.disconnect(self.insert_columns)
             self.model.columnsRemoved.disconnect(self.remove_columns)
-            self.model.columnDisplayNameChanged.disconnect(
+            self.model.columnNameChanged.disconnect(
                 self.columns_box.setItemText)
-            self.model.columnDisplayNameChanged.disconnect(
+            self.model.columnNameChanged.disconnect(
                 self.set_columns_box_item_tooltip)
 
         # If currently a data table is selected, obtain its columns
@@ -569,16 +569,15 @@ class DataColumnBox(DualComboBox):
             self.model = self.data_table.model
 
             # Add all columns in this data table to the columns box
-            for i, name in enumerate(self.model.columnDisplayNames()):
+            for i, name in enumerate(self.model.columnNames()):
                 self.columns_box.addItem(name)
                 self.set_columns_box_item_tooltip(i, name)
 
             # Connect signals for columns_box
             self.model.columnsInserted.connect(self.insert_columns)
             self.model.columnsRemoved.connect(self.remove_columns)
-            self.model.columnDisplayNameChanged.connect(
-                self.columns_box.setItemText)
-            self.model.columnDisplayNameChanged.connect(
+            self.model.columnNameChanged.connect(self.columns_box.setItemText)
+            self.model.columnNameChanged.connect(
                 self.set_columns_box_item_tooltip)
 
         # Else, set data_table and model to None
@@ -626,9 +625,9 @@ class DataColumnBox(DualComboBox):
 
         # Insert all columns between first and last+1 to the columns box
         for i in range(first, last+1):
-            display_name = self.model.dataColumn(i).display_name
-            self.columns_box.insertItem(i, display_name)
-            self.set_columns_box_item_tooltip(i, display_name)
+            name = self.model.dataColumn(i).name
+            self.columns_box.insertItem(i, name)
+            self.set_columns_box_item_tooltip(i, name)
 
     # This function removes column display names from the columns box
     @QC.Slot(QC.QModelIndex, int, int)

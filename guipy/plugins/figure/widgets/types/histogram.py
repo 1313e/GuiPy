@@ -12,6 +12,7 @@ Histogram Type
 
 # Package imports
 from matplotlib import rcParams
+import pandas as pd
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
@@ -75,7 +76,7 @@ class HistogramType(BasePlotType):
             return
 
         # If any of the xcols contains None, return as well
-        if None in xcols:
+        if pd.isna(xcols).any():
             return
 
 #        # Determine if a custom value range is requested

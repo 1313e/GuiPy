@@ -13,11 +13,10 @@ from ast import literal_eval
 
 # Package imports
 import numpy as np
+import pandas as pd
 
 # GuiPy imports
 from guipy.plugins.data_table.formatters import BaseFormatter
-from guipy.plugins.data_table.widgets import DataTableColumn
-
 
 # All declaration
 __all__ = ['NPZFormatter']
@@ -32,14 +31,12 @@ class NPZFormatter(BaseFormatter):
 
     # Define the export to npz function
     def exporter(self, data_table, filepath):
-        # Obtain the list of all data columns
-        columns = data_table.model.column_list
+        # Obtain the data in the data table
+        data = data_table.model._data
 
         # Make a dictionary that contains the data of all columns
-        # TODO: Find out how to preserve the mask
-        # Maybe use column._data[~column._data.mask]?
-        data_dict = {"(%i, %r)" % (column._index, column._name):
-                     column._data.data for column in columns}
+        data_dict = {"(%i, %r)" % (i, name): column.values
+                     for i, (name, column) in enumerate(data.items())}
 
         # Save data table as NumPy Binary Archive
         np.savez(filepath, **data_dict)
@@ -55,13 +52,11 @@ class NPZFormatter(BaseFormatter):
         # Close the archive
         archive.close()
 
-        # Create empty list of data columns
-        data_columns = []
+        # Create empty column dict and naming dict
+        column_dict = {}
+        name_dict = {}
 
-        # Determine the length of the biggest data column
-        length = max(map(len, data_dict.values()))
-
-        # Loop over all data arrays in data_dict and convert to columns
+        # Loop over all data arrays in data_dict and obtain their indices
         for i, (key, data) in enumerate(data_dict.items()):
             # Try to convert key to index and name
             try:
@@ -72,12 +67,18 @@ class NPZFormatter(BaseFormatter):
                 index = i
                 name = key
 
-            # Create data column
-            column = DataTableColumn(length, data, index, parent)
-            column._name = name
+            # Add index, name and data to the proper dicts
+            column_dict[index] = data
+            name_dict[index] = name
 
-            # Add created data column to the list
-            data_columns.insert(index, column)
+        # Create a data frame
+        data_frame = pd.DataFrame(column_dict)
 
-        # Return data_columns
-        return(data_columns)
+        # Sort the columns on their indices
+        data_frame.sort_index(1, inplace=True)
+
+        # Rename the columns to their proper names
+        data_frame.rename(columns=name_dict, inplace=True)
+
+        # Return data_frame
+        return(data_frame)

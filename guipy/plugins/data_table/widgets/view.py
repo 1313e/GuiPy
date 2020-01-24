@@ -17,7 +17,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from guipy.layouts import QW_QFormLayout
 from guipy.plugins.data_table.widgets.headers import (
     HorizontalHeaderView, VerticalHeaderView)
-from guipy.plugins.data_table.widgets.model import DataTableModel
+from guipy.plugins.data_table.widgets.model import DataTableModel, to_base_26
 from guipy.plugins.data_table.widgets.selection_model import (
     DataTableSelectionModel)
 from guipy.widgets import (
@@ -337,7 +337,7 @@ class HorizontalHeaderPopup(QW_QDialog):
         column = self.model.dataColumn(col)
 
         # Get the dtype of this column
-        dtype = self.model.dtypes[column.dtype]
+        dtype = self.model.dtypes[column.dtype.type]
 
         # Determine the names of all other columns
         used_column_names = set(self.model.columnNames())
@@ -345,9 +345,9 @@ class HorizontalHeaderPopup(QW_QDialog):
         self.used_column_names = used_column_names
 
         # Set the base name, name and dtype of this column
-        base_name = "Column %s" % (column.base_name)
+        base_name = "Column %s" % (to_base_26(col+1))
         set_box_value(self.base_name_label, base_name)
-        set_box_value(self.n_val_box, column.n_val)
+        set_box_value(self.n_val_box, column.count())
         set_box_value(self.name_box, column.name)
         set_box_value(self.dtype_box, dtype)
 
