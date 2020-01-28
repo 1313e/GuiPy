@@ -17,7 +17,8 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 # GuiPy imports
 from guipy.plugins.figure.widgets.options import FigureOptionsDialog
 from guipy.widgets import (
-    QW_QPushButton, get_box_value, get_modified_box_signal, set_box_value)
+    QW_QLabel, QW_QPushButton, get_box_value, get_modified_box_signal,
+    set_box_value)
 
 # All declaration
 __all__ = ['FigureToolbar']
@@ -68,6 +69,14 @@ class FigureToolbar(NavigationToolbar2QT):
 
         # Insert separator
         self.insertSeparator(action_0)
+
+        # Add separator
+        self.addSeparator()
+
+        # Add a label that contains the coordinates of the figure
+        coord_label = QW_QLabel('')
+        self.addWidget(coord_label)
+        self.message.connect(coord_label.setText)
 
     # This function toggles the options dialog
     @QC.Slot()

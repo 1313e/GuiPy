@@ -40,7 +40,7 @@ class HistogramProp(BasePlotProp):
     NAME = "Histogram"
     DISPLAY_NAME = "Histogram"
     REQUIREMENTS = ['draw_plot', 'update_plot']
-    WIDGET_NAMES = ['n_bins_box', 'hist_cumul_box', 'hist_orient_box']
+    WIDGET_NAMES = ['n_bins_box', 'hist_orient_box', 'hist_cumul_box']
 
     # This function creates and returns a bins box
     def n_bins_box(self):
@@ -52,11 +52,13 @@ class HistogramProp(BasePlotProp):
 
         # Make spinbox for bin count
         n_bins_box = QW_QSpinBox()
-        n_bins_box.setToolTip("Number of bins used for this histogram")
+        n_bins_box.setToolTip("Number of bins used for this histogram. Set to "
+                              "'auto' to automatically determine this number")
         n_bins_box.setRange(0, 100)
+        n_bins_box.setSpecialValueText('auto')
 
-        # Set initial value to the default value in MPL
-        set_box_value(n_bins_box, rcParams['hist.bins'])
+        # Set initial value to 'auto'
+        set_box_value(n_bins_box, 0)
 
         # Connect signals
         get_modified_box_signal(n_bins_box).connect(self.draw_plot)
@@ -93,7 +95,7 @@ class HistogramProp(BasePlotProp):
         # Make a multi radiobutton
         hist_orient_box = MultiRadioButton(['Horizontal', 'Vertical'])
         hist_orient_box.setToolTip("The orientation of the histogram")
-        set_box_value(hist_orient_box, 1)
+        set_box_value(hist_orient_box, 'Vertical')
 
         # Connect signals
         get_modified_box_signal(hist_orient_box).connect(self.draw_plot)

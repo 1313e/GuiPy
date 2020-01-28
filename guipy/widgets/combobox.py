@@ -14,6 +14,7 @@ Comboboxes
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
+from guipy import INT_TYPES
 from guipy.layouts import QW_QHBoxLayout
 from guipy.widgets import (
     BaseBox, QW_QComboBox, QW_QLabel, get_box_value, set_box_value)
@@ -62,7 +63,7 @@ class DualComboBox(BaseBox):
     # Override __getitem__ to return the left and/or right combobox
     def __getitem__(self, key):
         # If key is an integer, return the corresponding combobox
-        if isinstance(key, int):
+        if isinstance(key, INT_TYPES):
             # If key is 0 or -2, return left_box
             if key in (0, -2):
                 return(self.left_box)

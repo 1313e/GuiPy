@@ -20,13 +20,14 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from guipy.config import tr
 
 # All declaration
-__all__ = ['QW_QAction', 'QW_QCheckBox', 'QW_QComboBox', 'QW_QDialog',
-           'QW_QDockWidget', 'QW_QDoubleSpinBox', 'QW_QFileDialog',
-           'QW_QGroupBox', 'QW_QHeaderView', 'QW_QLabel', 'QW_QLineEdit',
-           'QW_QMainWindow', 'QW_QMenu', 'QW_QMessageBox', 'QW_QPushButton',
-           'QW_QRadioButton', 'QW_QSpinBox', 'QW_QStackedWidget', 'QW_QTabBar',
-           'QW_QTableView', 'QW_QTabWidget', 'QW_QTextEdit', 'QW_QToolBar',
-           'QW_QToolButton', 'QW_QToolTip', 'QW_QWidget']
+__all__ = ['QW_QAbstractButton', 'QW_QAction', 'QW_QCheckBox', 'QW_QComboBox',
+           'QW_QDialog', 'QW_QDockWidget', 'QW_QDoubleSpinBox',
+           'QW_QFileDialog', 'QW_QGroupBox', 'QW_QHeaderView', 'QW_QLabel',
+           'QW_QLineEdit', 'QW_QMainWindow', 'QW_QMenu', 'QW_QMessageBox',
+           'QW_QPushButton', 'QW_QRadioButton', 'QW_QSpinBox',
+           'QW_QStackedWidget', 'QW_QTabBar', 'QW_QTableView', 'QW_QTabWidget',
+           'QW_QTextEdit', 'QW_QToolBar', 'QW_QToolButton', 'QW_QToolTip',
+           'QW_QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -51,6 +52,17 @@ class QW_QWidget(QW.QWidget):
 
 
 # %% CLASS DEFINITIONS
+# Create custom QAbstractButton
+class QW_QAbstractButton(QW.QAbstractButton, QW_QWidget):
+    # Override constructor to set some default settings
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+        # Use default settings
+        self.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
+
+
 # Make subclass of QW.QAction that automatically sets details based on status
 class QW_QAction(QW.QAction):
     """
@@ -204,7 +216,7 @@ class QW_QAction(QW.QAction):
 
 
 # Create custom QCheckBox
-class QW_QCheckBox(QW.QCheckBox, QW_QWidget):
+class QW_QCheckBox(QW.QCheckBox, QW_QAbstractButton):
     pass
 
 
@@ -462,12 +474,12 @@ class QW_QMessageBox(QW.QMessageBox, QW_QDialog):
 
 
 # Create custom QPushButton class
-class QW_QPushButton(QW.QPushButton, QW_QWidget):
+class QW_QPushButton(QW.QPushButton, QW_QAbstractButton):
     pass
 
 
 # Create custom QRadioButton class
-class QW_QRadioButton(QW.QRadioButton, QW_QWidget):
+class QW_QRadioButton(QW.QRadioButton, QW_QAbstractButton):
     pass
 
 
@@ -666,7 +678,7 @@ class QW_QToolBar(QW.QToolBar, QW_QWidget):
 
 
 # Create custom QToolButton class
-class QW_QToolButton(QW.QToolButton, QW_QWidget):
+class QW_QToolButton(QW.QToolButton, QW_QAbstractButton):
     # Override constructor to set some default settings
     def __init__(self, *args, **kwargs):
         # Call super constructor

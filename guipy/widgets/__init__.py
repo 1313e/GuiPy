@@ -17,8 +17,9 @@ from .core import *
 
 # Import base modules
 from . import (
-    color, combobox, dock, exceptions, radiobutton, spinbox, tabbar, text,
-    utils)
+    checkbox, color, combobox, dock, exceptions, radiobutton, spinbox, tabbar,
+    text, utils)
+from .checkbox import *
 from .color import *
 from .combobox import *
 from .dock import *
@@ -30,9 +31,10 @@ from .text import *
 from .utils import *
 
 # All declaration
-__all__ = ['base', 'color', 'combobox', 'core', 'dock', 'exceptions',
-           'radiobutton', 'spinbox', 'tabbar', 'text', 'utils']
+__all__ = ['base', 'checkbox', 'color', 'combobox', 'core', 'dock',
+           'exceptions', 'radiobutton', 'spinbox', 'tabbar', 'text', 'utils']
 __all__.extend(base.__all__)
+__all__.extend(checkbox.__all__)
 __all__.extend(color.__all__)
 __all__.extend(combobox.__all__)
 __all__.extend(core.__all__)

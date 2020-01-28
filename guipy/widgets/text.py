@@ -18,6 +18,7 @@ from matplotlib.font_manager import font_scalings
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
+from guipy import INT_TYPES
 from guipy.layouts import QW_QHBoxLayout
 from guipy.widgets import (
     BaseBox, QW_QDoubleSpinBox, QW_QLineEdit, get_box_value, set_box_value)
@@ -59,7 +60,7 @@ class FigureLabelBox(BaseBox):
     # Override __getitem__ to return the lineedit or fontsize box
     def __getitem__(self, key):
         # If key is an integer, return the corresponding box
-        if isinstance(key, int):
+        if isinstance(key, INT_TYPES):
             # If key is 0 or -2, return label_box
             if key in (0, -2):
                 return(self.label_box)

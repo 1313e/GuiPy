@@ -51,6 +51,11 @@ class BasePluginWidget(QW_QWidget, BasePlugin):
     def menu_actions(self):
         return(self.MENU_ACTIONS if hasattr(self, 'MENU_ACTIONS') else {})
 
+    # Property for statusbar widgets of this plugin widget
+    @property
+    def status_widgets(self):
+        return(self.STATUS_WIDGETS if hasattr(self, 'STATUS_WIDGETS') else [])
+
     # Property for toolbars of this plugin widget
     @property
     def toolbars(self):

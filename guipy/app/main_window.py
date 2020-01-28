@@ -20,7 +20,7 @@ import qtpy
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy import __version__, APP_NAME
+from guipy import __version__, APP_NAME, STR_TYPES
 from guipy.config import tr
 from guipy.plugins import DataTable, Figure
 from guipy.widgets import (
@@ -329,6 +329,10 @@ class MainWindow(QW_QMainWindow):
         # Add all toolbar actions of this plugin to the proper toolbars
         self.add_toolbar_actions(plugin.toolbar_actions)
 
+        # Add all status widgets of this plugin to the statusbar
+        for widget in plugin.status_widgets:
+            self.statusbar.addPermanentWidget(widget)
+
     # This function adds all actions defined in a dict to the proper menus
     def add_menu_actions(self, actions_dict):
         """
@@ -378,7 +382,7 @@ class MainWindow(QW_QMainWindow):
                 elif isinstance(action, QW_QMenu):
                     self.addMenu(action, menu)
                 # Else, if action is a string, add a new section
-                elif isinstance(action, str):
+                elif isinstance(action, STR_TYPES):
                     menu.addSection(action)
                 # Else, if action is an action, add a new action
                 elif isinstance(action, QW.QAction):

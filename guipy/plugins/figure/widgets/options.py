@@ -22,8 +22,8 @@ from guipy.plugins.figure.widgets.plot_entry import FigurePlotEntry
 from guipy.widgets import (
     DualSpinBox, FigureLabelBox, QW_QCheckBox, QW_QComboBox, QW_QDialog,
     QW_QGroupBox, QW_QLabel, QW_QMessageBox, QW_QStackedWidget, QW_QTabWidget,
-    QW_QToolButton, QW_QWidget, get_box_value, get_modified_box_signal,
-    set_box_value)
+    QW_QToolButton, QW_QWidget, ToggleBox, get_box_value,
+    get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['FigureOptionsDialog']
@@ -124,10 +124,6 @@ class FigureOptionsDialog(QW_QDialog):
         x_axis_layout.addRow("Label", x_label_box)
         self.x_label_box = x_label_box
 
-        # Make layout for setting the range on the x-axis
-        x_range_layout = QW_QHBoxLayout()
-        x_range_layout.setContentsMargins(0, 0, 0, 0)
-
         # Make a box for setting the range on the x-axis
         # TODO: Maybe use dual lineedits instead to eliminate range problem?
         # TODO: This would also allow for a cell or small formula to be used
@@ -138,7 +134,6 @@ class FigureOptionsDialog(QW_QDialog):
         x_max_box.setRange(-9999999, 9999999)
         x_max_box.setToolTip("Maximum value of the X-axis")
         set_box_value(x_range_box, self.axis.get_xlim())
-        x_range_box.setEnabled(False)
 
         # Connect signals for x_range_box
         get_modified_box_signal(x_range_box)[float, float].connect(
@@ -146,20 +141,14 @@ class FigureOptionsDialog(QW_QDialog):
         self.axis.callbacks.connect(
             'xlim_changed', lambda x: set_box_value(x_range_box, x.get_xlim()))
 
-        # Make a checkbox for enabling/disabling the use of this range
-        x_range_flag = QW_QCheckBox()
-        x_range_flag.setToolTip("Toggle the use of a manual X-axis range")
-        set_box_value(x_range_flag, False)
+        # Make togglebox for enabling/disaling the use of this range
+        x_range_togglebox = ToggleBox(
+            x_range_box, tooltip="Toggle the use of a manual X-axis range")
+        x_axis_layout.addRow("Range", x_range_togglebox)
 
-        # Connect signals for x_range_flag
-        get_modified_box_signal(x_range_flag).connect(x_range_box.setEnabled)
-        get_modified_box_signal(x_range_flag).connect(
+        # Connect signals for x_range_togglebox
+        get_modified_box_signal(x_range_togglebox)[bool].connect(
             lambda x: self.axis.set_autoscalex_on(not x))
-
-        # Add everything together
-        x_range_layout.addWidget(x_range_flag)
-        x_range_layout.addWidget(x_range_box)
-        x_axis_layout.addRow("Range", x_range_layout)
 
         # Make a box for setting the scale on the x-axis
         x_scale_box = QW_QComboBox()
@@ -185,10 +174,6 @@ class FigureOptionsDialog(QW_QDialog):
         y_axis_layout.addRow("Label", y_label_box)
         self.y_label_box = y_label_box
 
-        # Make layout for setting the range on the y-axis
-        y_range_layout = QW_QHBoxLayout()
-        y_range_layout.setContentsMargins(0, 0, 0, 0)
-
         # Make a box for setting the range on the y-axis
         y_range_box = DualSpinBox((float, float), r"<html>&le; Y &le;</html>")
         y_min_box, y_max_box = y_range_box[:]
@@ -197,7 +182,6 @@ class FigureOptionsDialog(QW_QDialog):
         y_max_box.setRange(-9999999, 9999999)
         y_max_box.setToolTip("Maximum value of the Y-axis")
         set_box_value(y_range_box, self.axis.get_ylim())
-        y_range_box.setEnabled(False)
 
         # Connect signals for y_range_box
         get_modified_box_signal(y_range_box)[float, float].connect(
@@ -205,20 +189,14 @@ class FigureOptionsDialog(QW_QDialog):
         self.axis.callbacks.connect(
             'ylim_changed', lambda y: set_box_value(y_range_box, y.get_ylim()))
 
-        # Make a checkbox for enabling/disabling the use of this range
-        y_range_flag = QW_QCheckBox()
-        y_range_flag.setToolTip("Toggle the use of a manual Y-axis range")
-        set_box_value(y_range_flag, False)
+        # Make togglebox for enabling/disabling the use of this range
+        y_range_togglebox = ToggleBox(
+            y_range_box, tooltip="Toggle the use of a manual Y-axis range")
+        y_axis_layout.addRow("Range", y_range_togglebox)
 
-        # Connect signals for y_range_flag
-        get_modified_box_signal(y_range_flag).connect(y_range_box.setEnabled)
-        get_modified_box_signal(y_range_flag).connect(
+        # Connect signals for y_range_togglebox
+        get_modified_box_signal(y_range_togglebox)[bool].connect(
             lambda y: self.axis.set_autoscaley_on(not y))
-
-        # Add everything together
-        y_range_layout.addWidget(y_range_flag)
-        y_range_layout.addWidget(y_range_box)
-        y_axis_layout.addRow("Range", y_range_layout)
 
         # Make a box for setting the scale on the y-axis
         y_scale_box = QW_QComboBox()
@@ -233,30 +211,21 @@ class FigureOptionsDialog(QW_QDialog):
         layout.addRow(props_group)
         props_layout = QW_QFormLayout(props_group)
 
-        # Make a layout for using a legend
-        legend_layout = QW_QHBoxLayout()
-        legend_layout.setContentsMargins(0, 0, 0, 0)
-        props_layout.addRow(legend_layout)
-
-        # Make a checkbox for using a legend
-        legend_flag = QW_QCheckBox("Legend")
-        legend_flag.setToolTip("Toggle the use of a figure legend")
-        set_box_value(legend_flag, False)
-        legend_layout.addWidget(legend_flag)
-        self.legend_flag = legend_flag
-
         # Make a combobox for choosing the location of the legend
         legend_loc_box = QW_QComboBox()
         legend_loc_box.addItems(mpl.legend.Legend.codes.keys())
         legend_loc_box.setToolTip("Location of the figure legend")
         set_box_value(legend_loc_box, rcParams['legend.loc'])
-        legend_loc_box.setEnabled(False)
-        legend_layout.addWidget(legend_loc_box)
-        self.legend_loc_box = legend_loc_box
+
+        # Make a togglebox for using a legend
+        legend_togglebox = ToggleBox(
+            legend_loc_box, "Legend",
+            tooltip="Toggle the use of a figure legend")
+        props_layout.addRow(legend_togglebox)
+        self.legend_togglebox = legend_togglebox
 
         # Connect signals
-        get_modified_box_signal(legend_flag).connect(legend_loc_box.setEnabled)
-        get_modified_box_signal(legend_flag).connect(self.set_legend)
+        get_modified_box_signal(legend_togglebox).connect(self.set_legend)
         get_modified_box_signal(legend_loc_box).connect(self.set_legend)
 
         # Return tab
@@ -413,11 +382,11 @@ class FigureOptionsDialog(QW_QDialog):
     @QC.Slot()
     def set_legend(self):
         # Obtain the legend_flag
-        flag = get_box_value(self.legend_flag)
+        flag, loc = get_box_value(self.legend_togglebox)
 
         # If flag is True, create a legend
         if flag:
-            self.axis.legend(loc=get_box_value(self.legend_loc_box))
+            self.axis.legend(loc=loc)
 
         # Else, remove the current one
         else:

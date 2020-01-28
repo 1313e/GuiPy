@@ -15,6 +15,7 @@ import numpy as np
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
+from guipy import FLOAT_TYPES, INT_TYPES, STR_TYPES
 from guipy.widgets.base import QW_QLabel, QW_QTabWidget, QW_QWidget
 
 # All declaration
@@ -312,14 +313,14 @@ def set_box_value(box, value, *value_sig):
 
     # Actions, Bools/Buttons (QAction, QAbstractButton)
     elif isinstance(box, (QW.QAction, QW.QAbstractButton)):
-        if isinstance(value, str):
+        if isinstance(value, STR_TYPES):
             box.setText(value)
         else:
             box.setChecked(value)
 
     # Items (QComboBox)
     elif isinstance(box, QW.QComboBox):
-        if isinstance(value, int):
+        if isinstance(value, INT_TYPES):
             box.setCurrentIndex(value)
         else:
             index = box.findText(value)
@@ -330,9 +331,9 @@ def set_box_value(box, value, *value_sig):
 
     # Tabs (QTabWidget)
     elif isinstance(box, QW.QTabWidget):
-        if isinstance(value, int):
+        if isinstance(value, INT_TYPES):
             box.setCurrentIndex(value)
-        elif isinstance(value, str) and isinstance(box, QW_QTabWidget):
+        elif isinstance(value, STR_TYPES) and isinstance(box, QW_QTabWidget):
             index = box.tabNames.index(value)
             box.setCurrentIndex(index)
         else:
@@ -344,9 +345,9 @@ def set_box_value(box, value, *value_sig):
 
     # Labels (QLabel)
     elif isinstance(box, QW.QLabel):
-        if isinstance(value, str):
+        if isinstance(value, STR_TYPES):
             box.setText(value)
-        elif isinstance(value, (int, float, np.integer, np.floating)):
+        elif isinstance(value, FLOAT_TYPES):
             box.setNum(value)
         elif isinstance(value, QG.QMovie):
             box.setMovie(value)

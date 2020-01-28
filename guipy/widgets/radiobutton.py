@@ -15,6 +15,7 @@ import numpy as np
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
+from guipy import INT_TYPES, STR_TYPES
 from guipy.layouts import QW_QGridLayout, QW_QHBoxLayout, QW_QVBoxLayout
 from guipy.widgets import (
     BaseBox, QW_QRadioButton, get_box_value, set_box_value)
@@ -69,7 +70,7 @@ class MultiRadioButton(BaseBox):
     # Override __getitem__ to return the requested radiobutton(s)
     def __getitem__(self, key):
         # If key is an integer, return the corresponding radiobutton
-        if isinstance(key, int):
+        if isinstance(key, INT_TYPES):
             # Try to return the requested radiobutton
             try:
                 return(self.buttons[key])
@@ -81,10 +82,28 @@ class MultiRadioButton(BaseBox):
         elif isinstance(key, slice):
             return(*map(self.__getitem__, range(*key.indices(self.N))),)
 
+        # If key is a string, try to return the corresponding radiobutton
+        elif isinstance(key, STR_TYPES):
+            # Count how many times the requested name appears
+            n_hits = self.names.count(key)
+
+            # Check if this name exists
+            if n_hits:
+                # If so, check if it appears exactly once
+                if(n_hits == 1):
+                    # If so as well, return the corresponding radiobutton
+                    return(self[self.names.index(key)])
+                else:
+                    # If not, raise error
+                    raise KeyError("Key %r is not unique" % (key))
+            else:
+                # If name does not exist, raise error
+                raise KeyError("Key %r not found" % (key))
+
         # Else, raise TypeError
         else:
-            raise TypeError("Index must be of type 'int' or 'slice', not type "
-                            "%r" % (type(key).__name__))
+            raise TypeError("Index must be of type 'int'; 'slice' or 'str', "
+                            "not type %r" % (type(key).__name__))
 
     # This function sets up the multi-radiobutton
     def init(self, n, layout):
@@ -94,18 +113,18 @@ class MultiRadioButton(BaseBox):
         """
 
         # Check what type of n has been provided
-        if isinstance(n, int):
+        if isinstance(n, INT_TYPES):
             # If n is an integer, set all names to empty strings
             names = ['']*n
-        elif hasattr(n, '__iter__'):
+        elif hasattr(n, '__iter__') and not isinstance(n, STR_TYPES):
             # Else, n must be an iterable of names
-            names = n
+            names = list(map(str, n))
             n = len(n)
         else:
             raise TypeError
 
         # Check what type of layout has been provided
-        if isinstance(layout, str):
+        if isinstance(layout, STR_TYPES):
             # If layout is a string, it is either 'horizontal' or 'vertical'
             if layout in ('h', 'horizontal', 'r', 'row'):
                 layout = QW_QHBoxLayout(self)
@@ -124,30 +143,26 @@ class MultiRadioButton(BaseBox):
         # Initialize empty list of radiobuttons
         self.buttons = []
 
-        # If layout is an instance of QBoxLayout, add all buttons one-by-one
-        if isinstance(layout, QW.QBoxLayout):
-            # Create all requested radiobuttons
-            for name in names:
-                # Create radiobutton
-                button = QW_QRadioButton(name)
-
-                # Add button to list and layout
-                self.buttons.append(button)
-                layout.addWidget(button)
-
-        # Else, add radiobuttons in order to the grid
+        # Create buttons iterator
+        if isinstance(layout, QW.QGridLayout):
+            iterator = zip(names, np.ndindex(n_rows, n_cols))
         else:
-            # Create all requested radiobuttons
-            for name, index in zip(names, np.ndindex(n_rows, n_cols)):
-                # Create radiobutton
-                button = QW_QRadioButton(name)
+            iterator = zip(names)
 
-                # Add button to list and layout
-                self.buttons.append(button)
-                layout.addWidget(button, *index)
+        # Create all requested radiobuttons
+        for item in iterator:
+            # Create radiobutton
+            button = QW_QRadioButton(item[0])
+
+            # Add button to list and layout
+            self.buttons.append(button)
+            layout.addWidget(button, *item[1:])
 
         # Save the number of radiobuttons
         self.N = len(self.buttons)
+
+        # Save the names
+        self.names = names[:self.N]
 
     # This function is automatically called whenever 'modified' is emitted
     @QC.Slot()
@@ -174,7 +189,7 @@ class MultiRadioButton(BaseBox):
 
         # If value_sig is not int, return its value signature
         if int not in value_sig:
-            return(get_box_value(self.buttons[index], *value_sig))
+            return(get_box_value(self[index], *value_sig))
         # Else, return its index
         else:
             return(index)
@@ -191,4 +206,4 @@ class MultiRadioButton(BaseBox):
 
         """
 
-        set_box_value(self.buttons[value], True)
+        set_box_value(self[value], True)

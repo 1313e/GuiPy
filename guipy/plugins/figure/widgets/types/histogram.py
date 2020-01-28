@@ -86,10 +86,13 @@ class HistogramType(BasePlotType):
         # As histograms cannot be modified, remove current one
         self.remove_hist()
 
+        # Obtain the number of requested bins
+        n_bins = get_box_value(self.n_bins_box)
+
         # Make a new histogram
         self.axis.hist(
             xcols,
-            bins=get_box_value(self.n_bins_box),
+            bins=n_bins if n_bins else self.n_bins_box.specialValueText(),
             cumulative=get_box_value(self.hist_cumul_box),
             orientation=get_box_value(self.hist_orient_box, str).lower())
 
