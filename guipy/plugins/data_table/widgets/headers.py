@@ -44,7 +44,7 @@ class BaseHeaderView(QW_QHeaderView):
         if double_clicked is not None:
             self.sectionDoubleClicked.connect(double_clicked)
 
-    # Override mouseClickEvent to select section for left and right clicking
+    # Override mousePressEvent to emit a signal when section is right-clicked
     def mousePressEvent(self, event):
         # If event is right clicking, emit sectionRightClicked signal
         if(event.button() == QC.Qt.RightButton):

@@ -242,7 +242,8 @@ class DataTable(BasePluginWidget):
             parent=self,
             caption="Export data table %r to..." % (name),
             basedir=name+'.npz',
-            filters=FORMATTERS.keys())
+            filters=FORMATTERS.keys(),
+            initial_filter='.npz')
 
         # If filepath is not empty, export data table
         if filepath:

@@ -11,13 +11,14 @@ Data Table Widget
 # Built-in imports
 
 # Package imports
-from qtpy import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy.layouts import QW_QHBoxLayout, QW_QVBoxLayout
 from guipy.plugins.data_table.widgets.view import DataTableView
 from guipy.widgets import (
-    DualSpinBox, QW_QLabel, QW_QWidget, get_modified_box_signal, set_box_value)
+    DualSpinBox, QW_QLabel, QW_QToolButton, QW_QWidget,
+    get_box_value, get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['DataTableWidget']
@@ -26,10 +27,6 @@ __all__ = ['DataTableWidget']
 # %% CLASS DEFINITIONS
 # Define class for the DataTable widget
 class DataTableWidget(QW_QWidget):
-    # Signals
-    n_rows_changed = QC.Signal(int)
-    n_cols_changed = QC.Signal(int)
-
     # Initialize DataTableWidget
     def __init__(self, parent=None, *args, **kwargs):
         # Call super constructor
@@ -58,11 +55,46 @@ class DataTableWidget(QW_QWidget):
         n_rows_box.setRange(0, 9999999)
         n_rows_box.setToolTip("Number of rows in this data table (max. %i)"
                               % (n_rows_box.maximum()))
-        get_modified_box_signal(n_rows_box).connect(self.n_rows_changed)
         n_cols_box.setRange(0, 702)
         n_cols_box.setToolTip("Number of columns in this data table (max. %i)"
                               % (n_cols_box.maximum()))
-        get_modified_box_signal(n_cols_box).connect(self.n_cols_changed)
+        self.dimensions_box = dimensions_box
+
+        # Create a layout for applying or reverting the dimensions
+        buttons_layout = QW_QHBoxLayout()
+        buttons_layout.setContentsMargins(0, 0, 0, 0)
+        buttons_layout.setSpacing(0)
+        dimensions_layout.addLayout(buttons_layout)
+
+        # If this theme has a 'cancel' icon, use it
+        if QG.QIcon.hasThemeIcon('cancel'):
+            rev_icon = QG.QIcon.fromTheme('cancel')
+        # Else, use a standard icon
+        else:
+            rev_icon = self.style().standardIcon(
+                QW.QStyle.SP_DialogCancelButton)
+
+        # Create a revert toolbutton
+        rev_but = QW_QToolButton()
+        rev_but.setToolTip("Revert to current data table dimensions")
+        rev_but.setIcon(rev_icon)
+        get_modified_box_signal(rev_but).connect(self.revert_table_dimensions)
+        buttons_layout.addWidget(rev_but)
+
+        # If this theme has an 'apply' icon, use it
+        if QG.QIcon.hasThemeIcon('apply'):
+            app_icon = QG.QIcon.fromTheme('apply')
+        # Else, use a standard icon
+        else:
+            app_icon = self.style().standardIcon(
+                QW.QStyle.SP_DialogApplyButton)
+
+        # Create an apply toolbutton
+        app_but = QW_QToolButton()
+        app_but.setToolTip("Apply new data table dimensions")
+        app_but.setIcon(app_icon)
+        get_modified_box_signal(app_but).connect(self.apply_table_dimensions)
+        buttons_layout.addWidget(app_but)
 
         # Add a stretcher
         dimensions_layout.addStretch()
@@ -71,8 +103,7 @@ class DataTableWidget(QW_QWidget):
         self.view = DataTableView(self, import_func)
 
         # Set initial values of the spinboxes
-        set_box_value(n_rows_box, self.view.rowCount())
-        set_box_value(n_cols_box, self.view.columnCount())
+        self.revert_table_dimensions()
 
         # Connect signals from data table view
         self.view.model().rowCountChanged.connect(
@@ -83,10 +114,6 @@ class DataTableWidget(QW_QWidget):
             lambda: n_rows_box.setEnabled(False))
         self.view.model().firstColumnInserted.connect(
             lambda: n_rows_box.setEnabled(True))
-
-        # Connect signals to data table view
-        self.n_rows_changed.connect(self.view.setRowCount)
-        self.n_cols_changed.connect(self.view.setColumnCount)
 
         # Add data_table to the layout
         layout.addWidget(self.view)
@@ -103,3 +130,23 @@ class DataTableWidget(QW_QWidget):
     @property
     def model(self):
         return(self.view.model())
+
+    # This function applies the table dimensions as requested by the user
+    @QC.Slot()
+    def apply_table_dimensions(self):
+        # Obtain the values of the dimensions_box
+        n_rows, n_cols = get_box_value(self.dimensions_box)
+
+        # Set the rows and columns in the model
+        self.view.setRowCount(n_rows)
+        self.view.setColumnCount(n_cols)
+
+    # This function reverts the table dimensions back to their current values
+    @QC.Slot()
+    def revert_table_dimensions(self):
+        # Obtain the current table dimensions
+        n_rows = self.view.rowCount()
+        n_cols = self.view.columnCount()
+
+        # Set the spinboxes to the proper values
+        set_box_value(self.dimensions_box, (n_rows, n_cols))

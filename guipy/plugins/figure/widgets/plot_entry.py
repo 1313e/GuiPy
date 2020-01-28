@@ -80,9 +80,10 @@ class FigurePlotEntry(QW_QWidget):
         # If this theme has a 'remove' icon, use it
         if QG.QIcon.hasThemeIcon('remove'):
             del_but.setIcon(QG.QIcon.fromTheme('remove'))
-        # Else, use a simple cross
+        # Else, use a standard icon
         else:
-            del_but.setText('X')
+            del_but.setIcon(del_but.style().standardIcon(
+                QW.QStyle.SP_DialogCloseButton))
 
         # Create a combobox for choosing a plot type
         plot_types = QW_QComboBox()

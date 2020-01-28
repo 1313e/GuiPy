@@ -84,6 +84,11 @@ class DataTableModel(QC.QAbstractTableModel):
             # Call the function to obtain the data
             self._data = import_func(self)
 
+            # Check if the data frame has the proper column names
+            if self._data.columns.dtype.type is np.int64:
+                renames = {i: to_base_26(i+1) for i in self._data.columns}
+                self._data.rename(columns=renames, inplace=True)
+
             # Notify other functions that columns have been inserted
             self.beginInsertColumns(QC.QModelIndex(), 0, self.columnCount()-1)
             self.endInsertColumns()
@@ -98,8 +103,8 @@ class DataTableModel(QC.QAbstractTableModel):
         # Emit columnCountChanged signal
         self.columnCountChanged.emit(self.columnCount())
 
-        # If first is equal to zero, emit firstColumnInserted signal
-        if not first:
+        # If first+last+1 is equal to count, emit firstColumnInserted signal
+        if(first+last+1 == self.columnCount()):
             self.firstColumnInserted.emit()
 
     # This function emits proper signals when columns have been removed
@@ -246,10 +251,6 @@ class DataTableModel(QC.QAbstractTableModel):
     @QC.Slot()
     @QC.Slot(QC.QModelIndex)
     def rowCount(self, parent=None):
-        # If parent is None, set it to QC.QModelIndex()
-        if parent is None:
-            parent = QC.QModelIndex()
-
         # Return row count
         if self._data.empty:
             return(0)
@@ -260,10 +261,6 @@ class DataTableModel(QC.QAbstractTableModel):
     @QC.Slot()
     @QC.Slot(QC.QModelIndex)
     def columnCount(self, parent=None):
-        # If parent is None, set it to QC.QModelIndex()
-        if parent is None:
-            parent = QC.QModelIndex()
-
         # Return column count
         return(self._data.shape[1])
 
@@ -337,10 +334,6 @@ class DataTableModel(QC.QAbstractTableModel):
     @QC.Slot(int, int)
     @QC.Slot(int, int, QC.QModelIndex)
     def clearRows(self, row, count=1, parent=None):
-        # If parent is None, set it to QC.QModelIndex()
-        if parent is None:
-            parent = QC.QModelIndex()
-
         # Clear the rows
         self._data.iloc[row:row+count] = np.nan
 
@@ -424,10 +417,6 @@ class DataTableModel(QC.QAbstractTableModel):
     @QC.Slot(int, int)
     @QC.Slot(int, int, QC.QModelIndex)
     def clearColumns(self, col, count=1, parent=None):
-        # If parent is None, set it to QC.QModelIndex()
-        if parent is None:
-            parent = QC.QModelIndex()
-
         # Clear the columns
         self._data.iloc[:, col:col+count] = np.nan
 
