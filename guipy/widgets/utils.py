@@ -86,10 +86,10 @@ def _processFileDialogArguments(parent=None, caption='', basedir=None,
         formats = list(formats)
 
         # Add 'All Supported Files' to formats
-        formats.append("All Supported Files (%s)" % (exts))
+        formats.append("All supported files (%s)" % (exts))
 
         # Add 'All Files' to formats
-        formats.append("All Files (*)")
+        formats.append("All files (*)")
 
         # Combine all formats into a single string
         filters = ';;'.join(formats)

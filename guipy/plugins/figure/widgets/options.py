@@ -105,6 +105,7 @@ class FigureOptionsDialog(QW_QDialog):
         get_modified_box_signal(title_box)[str, dict].connect(
             self.axis.set_title)
         layout.addRow("Title", title_box)
+        self.title_box = title_box
 
         # X-AXIS
         # Create a group box for the X-axis

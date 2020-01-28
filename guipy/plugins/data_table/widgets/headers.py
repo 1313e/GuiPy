@@ -34,7 +34,9 @@ class BaseHeaderView(QW_QHeaderView):
     # This function sets up the header view
     def init(self, context_menu, double_clicked=None):
         # Set up default properties
-        self.setSectionsClickable(True)
+        # TODO: Figure out how to avoid selecting all non-visible items when
+        # column/row is selected
+#        self.setSectionsClickable(True)
         self.setHighlightSections(True)
         self.setDropIndicatorShown(True)
         self.setContextMenuPolicy(QC.Qt.CustomContextMenu)

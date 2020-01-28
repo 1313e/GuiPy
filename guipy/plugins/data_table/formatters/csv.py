@@ -9,11 +9,11 @@ CSV Formatter
 
 # %% IMPORTS
 # Package imports
+import numpy as np
 import pandas as pd
 
 # GuiPy imports
 from guipy.plugins.data_table.formatters import BaseFormatter
-from guipy.widgets import QW_QMessageBox
 
 # All declaration
 __all__ = ['CSVFormatter']
@@ -36,18 +36,19 @@ class CSVFormatter(BaseFormatter):
 
     # Define the import from csv function
     def importer(self, filepath, parent=None):
-        # Ask the user if this file has a header
-        use_header = QW_QMessageBox.question(
-            parent.parent(), "Data import: %s" % (filepath),
-            "Use first row as the table header?",
-            QW_QMessageBox.Yes | QW_QMessageBox.No, QW_QMessageBox.Yes)
+        # Read in the first 2 lines of the CSV-file twice
+        df_header = pd.read_csv(filepath, skipinitialspace=True, nrows=2)
+        df_no_header = pd.read_csv(filepath, skipinitialspace=True, nrows=2,
+                                   header=None)
 
-        # Read in the CSV-file as a data frame accordingly
-        if(use_header == QW_QMessageBox.Yes):
-            data_frame = pd.read_csv(filepath, skipinitialspace=True)
-        else:
+        # Read in the CSV-file as a data frame depending on if it has a header
+        if np.all(df_header.dtypes.values == df_no_header.dtypes.values):
+            # If corresponding columns share dtypes, then it has no header
             data_frame = pd.read_csv(filepath, skipinitialspace=True,
                                      header=None)
+        else:
+            # Else, it must have a header
+            data_frame = pd.read_csv(filepath, skipinitialspace=True)
 
         # Return data_frame
         return(data_frame)
