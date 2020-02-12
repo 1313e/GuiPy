@@ -66,6 +66,7 @@ class HistogramType(BasePlotType):
         set_box_value(self.multi_data_box, color, index, 'hist_color_box')
 
     # This function draws the histogram plot
+    # TODO: Allow for the bin-width and a single bin-edge to be given instead?
     @QC.Slot()
     def draw_plot(self):
         # Obtain the x columns

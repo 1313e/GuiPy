@@ -12,6 +12,7 @@ Line Type
 
 # Package imports
 from matplotlib import rcParams
+import numpy as np
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
@@ -34,7 +35,7 @@ class LineType(BasePlotType):
     NAME = "Line"
     PREFIX = "line"
     AXIS_TYPE = "2D"
-    PROP_NAMES = ['Data2D', 'Line', 'LineMarker']
+    PROP_NAMES = ['Data1or2D', 'Line', 'LineMarker']
 
     # This function sets up the line plot
     def init(self, *args, **kwargs):
@@ -52,9 +53,18 @@ class LineType(BasePlotType):
     def draw_plot(self):
         # Obtain the x and y columns
         try:
-            xcol = get_box_value(self.x_data_box)[1]
+            # Obtain y column
             ycol = get_box_value(self.y_data_box)[1]
-        # If any of the columns cannot be called, return
+
+            # Check if the x column is currently enabled
+            if get_box_value(self.x_data_box[0]):
+                # If so, obtain xcol
+                xcol = get_box_value(self.x_data_box[1])[1]
+            else:
+                # If not, xcol is a NumPy array
+                xcol = np.arange(len(ycol)) if ycol is not None else None
+
+        # If any column cannot be called, return
         except IndexError:
             return
 
@@ -74,16 +84,18 @@ class LineType(BasePlotType):
             self.update_plot()
 
             # If the figure currently has no title, set it
+            xname = getattr(xcol, 'name', 'index')
+            yname = getattr(ycol, 'name')
             title_box = self.toolbar.options_dialog.title_box[0]
             if not get_box_value(title_box):
-                set_box_value(title_box, "%s vs. %s" % (xcol.name, ycol.name))
+                set_box_value(title_box, "%s vs. %s" % (xname, yname))
 
             # If the figure currently has no axes labels, set them
             x_label_box = self.toolbar.options_dialog.x_label_box[0]
             y_label_box = self.toolbar.options_dialog.y_label_box[0]
             if not (get_box_value(x_label_box) or get_box_value(y_label_box)):
-                set_box_value(x_label_box, xcol.name)
-                set_box_value(y_label_box, ycol.name)
+                set_box_value(x_label_box, xname)
+                set_box_value(y_label_box, yname)
         else:
             self.plot.set_xdata(xcol)
             self.plot.set_ydata(ycol)

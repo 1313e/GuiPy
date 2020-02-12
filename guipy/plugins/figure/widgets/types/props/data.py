@@ -15,11 +15,11 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
 from guipy.widgets import (
     DualComboBox, QW_QLineEdit, QW_QTabWidget, QW_QToolButton, QW_QWidget,
-    get_box_value, get_modified_box_signal, set_box_value)
+    ToggleBox, get_box_value, get_modified_box_signal, set_box_value)
 
 # All declaration
-__all__ = ['Data1DProp', 'Data2DProp', 'Data3DProp', 'MultiData1DProp',
-           'MultiData2DProp', 'MultiData3DProp']
+__all__ = ['Data1DProp', 'Data2DProp', 'Data1or2DProp', 'Data3DProp',
+           'MultiData1DProp', 'MultiData2DProp', 'MultiData3DProp']
 
 
 # %% CLASS DEFINITIONS
@@ -102,6 +102,40 @@ class Data2DProp(Data1DProp):
 
         # Return name and box
         return('Y-axis', y_data_box)
+
+
+# Define 'Data1or2D' plot property
+class Data1or2DProp(Data2DProp):
+    """
+    Provides the definition of the :class:`~Data1or2DProp` plot property.
+
+    This property contains boxes for setting the label and the X-axis; and
+    Y-axis data. The X-axis data is optional.
+
+    """
+
+    # Class attributes
+    NAME = "Data1or2D"
+
+    # This function creates and returns the optional x-axis data box
+    def x_data_box(self):
+        """
+        Creates a widget box for optionally setting the data for the X-axis and
+        returns it.
+
+        """
+
+        # Make a combobox for setting the x-axis data
+        x_data_box = ToggleBox(
+            DataColumnBox(self.data_table_plugin),
+            tooltip="Disable to automatically set the X-axis data.")
+        x_data_box.setToolTip("Data table and column to use for the X-axis "
+                              "data")
+        get_modified_box_signal(x_data_box).connect(self.draw_plot)
+        set_box_value(x_data_box, (False, (-1, -1)))
+
+        # Return name and box
+        return('X-axis', x_data_box)
 
 
 # Define 'Data3D' plot property

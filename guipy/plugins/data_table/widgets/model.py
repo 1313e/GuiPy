@@ -32,6 +32,7 @@ base_26 = list(string.ascii_uppercase)
 # HINT: https://doc.qt.io/qt-5/model-view-programming.html
 # TODO: Implement fetchMore system?
 # TODO: Implement drag/drop system (HINT+#using-drag-and-drop-with-item-views)
+# OPTIMIZE: Should Vaex be used for this instead of Pandas?
 class DataTableModel(QC.QAbstractTableModel):
     # Signals
     firstColumnInserted = QC.Signal()
@@ -265,6 +266,7 @@ class DataTableModel(QC.QAbstractTableModel):
         return(self._data.shape[1])
 
     # This function inserts rows before given row
+    # Vaex: df.concat
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
@@ -299,6 +301,7 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function removes rows starting at given row
+    # Vaex: df.take + df.to_copy?
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
@@ -341,6 +344,7 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function inserts columns before given col
+    # Vaex: df.add_column
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
@@ -375,6 +379,7 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function removes columns starting at given col
+    # Vaex: df.drop
     @QC.Slot()
     @QC.Slot(int)
     @QC.Slot(int, int)
@@ -424,6 +429,7 @@ class DataTableModel(QC.QAbstractTableModel):
         return(True)
 
     # This function sets the name of a column
+    # Vaex: df.rename_column
     @QC.Slot(int, str)
     def setColumnName(self, col, name):
         # If no name was given, use the base name
