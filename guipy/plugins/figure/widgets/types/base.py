@@ -56,6 +56,7 @@ class BasePlotType(QW_QWidget):
     def __init__(self, toolbar, parent=None, *args, **kwargs):
         # Save provided FigureToolbar object
         self.toolbar = toolbar
+        self.options = toolbar.options_dialog
         self.data_table_plugin = toolbar.data_table_plugin
         self.figure = toolbar.canvas.figure
         self.axis = self.figure.gca()
@@ -114,6 +115,10 @@ class BasePlotType(QW_QWidget):
             # Obtain a dictionary with all requirements of this property
             prop_kwargs = {req: getattr(self, req)
                            for req in plot_prop_class.requirements()}
+
+            # Add the 'enable_apply_button' to it
+            prop_kwargs['enable_apply_button'] =\
+                self.options.enable_apply_button
 
             # Initialize the property and add to layout
             prop_layout = plot_prop_class(**prop_kwargs)

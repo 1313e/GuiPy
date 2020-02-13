@@ -28,7 +28,7 @@ __all__ = ['LineMarkerProp', 'ScatterMarkerProp']
 class MarkerProp(BasePlotProp):
     # Class attributes
     DISPLAY_NAME = "Marker"
-    REQUIREMENTS = ['update_plot']
+    REQUIREMENTS = []
     WIDGET_NAMES = ['marker_style_box', 'marker_size_box', 'marker_color_box']
 
     # This function creates and returns a line style box
@@ -62,9 +62,6 @@ class MarkerProp(BasePlotProp):
         # Set initial value to the default value in MPL
         set_box_value(marker_style_box, self.DEFAULT_MARKER)
 
-        # Connect signals
-        get_modified_box_signal(marker_style_box).connect(self.update_plot)
-
         # Return name and box
         return('Style', marker_style_box)
 
@@ -84,9 +81,6 @@ class MarkerProp(BasePlotProp):
         # Set initial value to the default value in MPL
         set_box_value(marker_size_box, rcParams['lines.markersize'])
 
-        # Connect signals
-        get_modified_box_signal(marker_size_box).connect(self.update_plot)
-
         # Return name and box
         return('Size', marker_size_box)
 
@@ -100,9 +94,6 @@ class MarkerProp(BasePlotProp):
 
         # Make a color box
         marker_color_box = ColorBox()
-
-        # Connect signals
-        get_modified_box_signal(marker_color_box).connect(self.update_plot)
 
         # Return name and box
         return('Color', marker_color_box)

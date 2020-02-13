@@ -35,7 +35,7 @@ class Data1DProp(BasePlotProp):
     # Class attributes
     NAME = "Data1D"
     DISPLAY_NAME = "Data"
-    REQUIREMENTS = ['data_table_plugin', 'draw_plot', 'dataLabelChanged']
+    REQUIREMENTS = ['data_table_plugin', 'dataLabelChanged']
     WIDGET_NAMES = ['data_label_box', 'x_data_box']
 
     # This function creates and returns the data label box
@@ -66,7 +66,6 @@ class Data1DProp(BasePlotProp):
         x_data_box = DataColumnBox(self.data_table_plugin)
         x_data_box.setToolTip("Data table and column to use for the X-axis "
                               "data")
-        get_modified_box_signal(x_data_box).connect(self.draw_plot)
 
         # Return name and box
         return('X-axis', x_data_box)
@@ -98,7 +97,6 @@ class Data2DProp(Data1DProp):
         y_data_box = DataColumnBox(self.data_table_plugin)
         y_data_box.setToolTip("Data table and column to use for the Y-axis "
                               "data")
-        get_modified_box_signal(y_data_box).connect(self.draw_plot)
 
         # Return name and box
         return('Y-axis', y_data_box)
@@ -131,7 +129,6 @@ class Data1or2DProp(Data2DProp):
             tooltip="Disable to automatically set the X-axis data.")
         x_data_box.setToolTip("Data table and column to use for the X-axis "
                               "data")
-        get_modified_box_signal(x_data_box).connect(self.draw_plot)
         set_box_value(x_data_box, (False, (-1, -1)))
 
         # Return name and box
@@ -164,7 +161,6 @@ class Data3DProp(Data2DProp):
         z_data_box = DataColumnBox(self.data_table_plugin)
         z_data_box.setToolTip("Data table and column to use for the Z-axis "
                               "data")
-        get_modified_box_signal(z_data_box).connect(self.draw_plot)
 
         # Return name and box
         return('Z-axis', z_data_box)

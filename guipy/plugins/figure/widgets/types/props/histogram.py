@@ -39,7 +39,7 @@ class HistogramProp(BasePlotProp):
     # Class attributes
     NAME = "Histogram"
     DISPLAY_NAME = "Histogram"
-    REQUIREMENTS = ['draw_plot', 'update_plot']
+    REQUIREMENTS = []
     WIDGET_NAMES = ['n_bins_box', 'hist_orient_box', 'hist_cumul_box']
 
     # This function creates and returns a bins box
@@ -60,9 +60,6 @@ class HistogramProp(BasePlotProp):
         # Set initial value to 'auto'
         set_box_value(n_bins_box, 0)
 
-        # Connect signals
-        get_modified_box_signal(n_bins_box).connect(self.draw_plot)
-
         # Return name and box
         return('# of bins', n_bins_box)
 
@@ -77,9 +74,6 @@ class HistogramProp(BasePlotProp):
         # Make a checkbox
         hist_cumul_box = QW_QCheckBox('Cumulative')
         hist_cumul_box.setToolTip("Toggle the use of a cumulative histogram")
-
-        # Connect signals
-        get_modified_box_signal(hist_cumul_box).connect(self.draw_plot)
 
         # Return name and box
         return(hist_cumul_box,)
@@ -97,9 +91,6 @@ class HistogramProp(BasePlotProp):
         hist_orient_box.setToolTip("The orientation of the histogram")
         set_box_value(hist_orient_box, 'Vertical')
 
-        # Connect signals
-        get_modified_box_signal(hist_orient_box).connect(self.draw_plot)
-
         # Return name and box
         return('Orientation', hist_orient_box)
 
@@ -116,7 +107,7 @@ class HistDataProp(Data1DProp):
 
     # Class attributes
     NAME = "HistData"
-    REQUIREMENTS = [*Data1DProp.REQUIREMENTS, 'update_plot']
+    REQUIREMENTS = [*Data1DProp.REQUIREMENTS]
     WIDGET_NAMES = [*Data1DProp.WIDGET_NAMES, 'hist_color_box']
 
     # This function creates a histogram color box
@@ -129,9 +120,6 @@ class HistDataProp(Data1DProp):
 
         # Make a color box
         hist_color_box = ColorBox()
-
-        # Connect signals
-        get_modified_box_signal(hist_color_box).connect(self.update_plot)
 
         # Return name and box
         return('Color', hist_color_box)

@@ -19,11 +19,12 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from guipy.layouts import (
     QW_QFormLayout, QW_QHBoxLayout, QW_QVBoxLayout)
 from guipy.plugins.figure.widgets.plot_entry import FigurePlotEntry
+from guipy.plugins.figure.widgets.types import BasePlotType
 from guipy.widgets import (
-    DualSpinBox, FigureLabelBox, QW_QCheckBox, QW_QComboBox, QW_QDialog,
+    BaseBox, DualSpinBox, FigureLabelBox, QW_QComboBox, QW_QDialog,
     QW_QGroupBox, QW_QLabel, QW_QMessageBox, QW_QStackedWidget, QW_QTabWidget,
-    QW_QToolButton, QW_QWidget, ToggleBox, get_box_value,
-    get_modified_box_signal, set_box_value)
+    QW_QToolButton, ToggleBox, get_box_value, get_modified_box_signal,
+    set_box_value)
 
 # All declaration
 __all__ = ['FigureOptionsDialog']
@@ -32,6 +33,10 @@ __all__ = ['FigureOptionsDialog']
 # %% CLASS DEFINITIONS
 # Define class for the Figure options dialog
 class FigureOptionsDialog(QW_QDialog):
+    # Create applying and discarding signals
+    applying = QC.Signal()
+    discarding = QC.Signal()
+
     # Initialize FigureOptionsDialog
     def __init__(self, toolbar, *args, **kwargs):
         # Save provided FigureToolbar object
@@ -69,10 +74,125 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Add a buttonbox
         button_box = QW.QDialogButtonBox()
+        button_box.clicked.connect(self.buttonWasPressed)
         layout.addWidget(button_box)
-        close_but = button_box.addButton(button_box.Close)
-        get_modified_box_signal(close_but).connect(
-            self.toolbar.toggle_options_dialog)
+        self.button_box = button_box
+
+        # Add an 'Ok' button
+        ok_but = button_box.addButton(button_box.Ok)
+        ok_but.setToolTip("Apply current changes and close the figure options "
+                          "menu")
+
+        # Add a 'Cancel' button
+        cancel_but = button_box.addButton(button_box.Cancel)
+        cancel_but.setToolTip("Discard current changes and close the figure "
+                              "options menu")
+        self.cancel_but = cancel_but
+
+        # Add an 'Apply' button
+        apply_but = button_box.addButton(button_box.Apply)
+        apply_but.setToolTip("Apply current figure options")
+        self.apply_but = apply_but
+        self.disable_apply_button()
+
+        # Add a 'Refresh' button
+        refresh_but = button_box.addButton('Refresh', button_box.ActionRole)
+        refresh_but.setToolTip("Refresh figure using current figure options")
+
+        # Create a slot dict for all buttons
+        self.slot_dict = {
+            button_box.AcceptRole: [
+                self.apply_options,
+                self.toolbar.toggle_options_dialog,
+                self.refresh_figure],
+            button_box.RejectRole: [
+                self.discard_options,
+                self.toolbar.toggle_options_dialog,
+                self.refresh_figure],
+            button_box.ApplyRole: [
+                self.apply_options],
+            button_box.ActionRole: [
+                self.refresh_figure]}
+
+    # This function is called whenever a button is pressed
+    @QC.Slot(QW.QAbstractButton)
+    def buttonWasPressed(self, button):
+        """
+        Handles the actions that should be carried out when the provided
+        `button` is pressed.
+
+        """
+
+        # Obtain the role of the provided button
+        but_role = self.button_box.buttonRole(button)
+
+        # Obtain the button's slots that must be called
+        slots = self.slot_dict[but_role]
+
+        # Call all slots defined in slots
+        for slot in slots:
+            slot()
+
+    # This function applies the new figure options values
+    @QC.Slot()
+    def apply_options(self):
+        """
+        Applies all current values of all figure options.
+
+        """
+
+        # Emit the applying signal
+        self.applying.emit()
+
+        # Apply all new values
+        pass
+
+        # Disable the apply button
+        self.disable_apply_button()
+
+    # This function enables the apply button
+    @QC.Slot()
+    def enable_apply_button(self):
+        """
+        Qt slot that enables the apply button at the bottom of the figure
+        options dialog.
+        The apply button is enabled if at least one change has been made to any
+        figure option.
+
+        """
+
+        self.apply_but.setEnabled(True)
+
+    # This function disables the apply button
+    @QC.Slot()
+    def disable_apply_button(self):
+        """
+        Qt slot that disables the apply button at the bottom of the figure
+        options dialog.
+        The apply button is disabled whenever no changes have been made to any
+        figure option.
+
+        """
+
+        self.apply_but.setEnabled(False)
+
+    # This function discards all changes to the figure options
+    @QC.Slot()
+    def discard_options(self):
+        """
+        Discards the current values of all figure options and sets them back to
+        their saved values.
+
+        """
+
+        # Emit the discarding signal
+        self.discarding.emit()
+
+        # Discard all current changes
+        pass
+
+        # Disable the apply button
+        self.disable_apply_button()
 
     # This function creates the options tabwidget for the selected plot type
     def create_options_tabs(self, index=None):
@@ -91,7 +211,8 @@ class FigureOptionsDialog(QW_QDialog):
     # This function creates the 'Figure' tab
     def create_figure_tab(self):
         # Create a tab
-        tab = QW_QWidget()
+        tab = BaseBox()
+        get_modified_box_signal(tab).connect(self.enable_apply_button)
 
         # Create layout
         layout = QW_QFormLayout(tab)
@@ -141,7 +262,7 @@ class FigureOptionsDialog(QW_QDialog):
         self.axis.callbacks.connect(
             'xlim_changed', lambda x: set_box_value(x_range_box, x.get_xlim()))
 
-        # Make togglebox for enabling/disaling the use of this range
+        # Make togglebox for enabling/disabling the use of this range
         x_range_togglebox = ToggleBox(
             x_range_box, tooltip="Toggle the use of a manual X-axis range")
         x_axis_layout.addRow("Range", x_range_togglebox)
@@ -234,7 +355,8 @@ class FigureOptionsDialog(QW_QDialog):
     # This function creates the 'Plots' tab
     def create_plots_tab(self):
         # Create a tab
-        tab = QW_QWidget()
+        tab = BaseBox()
+        get_modified_box_signal(tab).connect(self.enable_apply_button)
 
         # Create layout
         layout = QW_QFormLayout(tab)
@@ -357,8 +479,8 @@ class FigureOptionsDialog(QW_QDialog):
         # Check if the event involves anything for which the popup should close
         if((event.type() == QC.QEvent.KeyPress) and
            event.key() in (QC.Qt.Key_Escape,)):
-            # Toggle the options dialog
-            self.toolbar.toggle_options_dialog()
+            # Act as if the 'Cancel' button was clicked
+            self.cancel_but.click()
             return(True)
 
         # Else, process events as normal
@@ -366,11 +488,19 @@ class FigureOptionsDialog(QW_QDialog):
             return(super().eventFilter(widget, event))
 
     # This function refreshes the figure
-    # TODO: Write system that stores all changes made (figure + plots) and
-    # applies them whenever this function is called
-    # TODO: Add a 'Refresh' button in the options menu as well
     @QC.Slot()
     def refresh_figure(self):
+        # Loop over all plot entries
+        for plot_entry in map(self.plot_pages.widget,
+                              range(self.plot_pages.count())):
+            # Obtain the actual plot entry
+            plot_entry = plot_entry.plot_entry
+
+            # Draw and update this plot if it is a plot type
+            if isinstance(plot_entry, BasePlotType):
+                plot_entry.draw_plot()
+                plot_entry.update_plot()
+
         # Update the figure
         if self.axis.legend_ is not None:
             self.set_legend()

@@ -85,7 +85,3 @@ class FigureToolbar(NavigationToolbar2QT):
         self.options_dialog.setVisible(self.options_dialog.isHidden())
         set_box_value(self.dialog_but,
                       self.labels[self.options_dialog.isHidden()])
-
-        # Refresh the figure if the dialog was closed
-        if self.options_dialog.isHidden():
-            self.options_dialog.refresh_figure()

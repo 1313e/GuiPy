@@ -10,6 +10,7 @@ Base Plot Properties
 # %% IMPORTS
 # GuiPy imports
 from guipy.layouts import QW_QFormLayout
+from guipy.widgets import get_modified_box_signal
 
 # All declaration
 __all__ = ['BasePlotProp']
@@ -95,6 +96,9 @@ class BasePlotProp(QW_QFormLayout):
 
             # Register the widget
             self.widgets[widget_name] = out[-1]
+
+            # Connect the widget to enable apply button when modified
+            get_modified_box_signal(out[-1]).connect(self.enable_apply_button)
 
             # Add widget to the layout
             self.addRow(*out)

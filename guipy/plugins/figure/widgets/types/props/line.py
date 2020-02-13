@@ -37,7 +37,7 @@ class LineProp(BasePlotProp):
     # Class attributes
     NAME = "Line"
     DISPLAY_NAME = "Line"
-    REQUIREMENTS = ['update_plot']
+    REQUIREMENTS = []
     WIDGET_NAMES = ['line_style_box', 'line_width_box', 'line_color_box']
 
     # This function creates and returns a line style box
@@ -71,9 +71,6 @@ class LineProp(BasePlotProp):
         # Set initial value to the default value in MPL
         set_box_value(line_style_box, rcParams['lines.linestyle'])
 
-        # Connect signals
-        get_modified_box_signal(line_style_box).connect(self.update_plot)
-
         # Return name and box
         return('Style', line_style_box)
 
@@ -94,9 +91,6 @@ class LineProp(BasePlotProp):
         # Set initial value to the default value in MPL
         set_box_value(line_width_box, rcParams['lines.linewidth'])
 
-        # Connect signals
-        get_modified_box_signal(line_width_box).connect(self.update_plot)
-
         # Return name and box
         return('Width', line_width_box)
 
@@ -110,9 +104,6 @@ class LineProp(BasePlotProp):
 
         # Make a color box
         line_color_box = ColorBox()
-
-        # Connect signals
-        get_modified_box_signal(line_color_box).connect(self.update_plot)
 
         # Return name and box
         return('Color', line_color_box)
