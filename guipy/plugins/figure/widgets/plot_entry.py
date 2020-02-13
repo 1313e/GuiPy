@@ -69,6 +69,7 @@ class FigurePlotEntry(BaseBox):
         set_box_value(name_box, self.name)
         get_modified_box_signal(name_box).connect(self.entryNameChanged)
         name_layout.addWidget(name_box)
+        get_modified_box_signal(name_box).disconnect(self.modified)
         self.name_box = name_box
 
         # Add a toolbutton for deleting this plot entry

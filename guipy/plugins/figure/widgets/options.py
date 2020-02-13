@@ -67,7 +67,7 @@ class FigureOptionsDialog(QW_QDialog):
         layout = QW_QVBoxLayout(self)
 
         # Add the options tabs to it
-        self.options_tabs = self.create_options_tabs(0)
+        self.options_tabs = self.create_options_tabs()
         layout.addWidget(self.options_tabs)
 
         # Add stretch
@@ -134,69 +134,8 @@ class FigureOptionsDialog(QW_QDialog):
         for slot in slots:
             slot()
 
-    # This function applies the new figure options values
-    @QC.Slot()
-    def apply_options(self):
-        """
-        Applies all current values of all figure options.
-
-        """
-
-        # Emit the applying signal
-        self.applying.emit()
-
-        # Apply all new values
-        pass
-
-        # Disable the apply button
-        self.disable_apply_button()
-
-    # This function enables the apply button
-    @QC.Slot()
-    def enable_apply_button(self):
-        """
-        Qt slot that enables the apply button at the bottom of the figure
-        options dialog.
-        The apply button is enabled if at least one change has been made to any
-        figure option.
-
-        """
-
-        self.apply_but.setEnabled(True)
-
-    # This function disables the apply button
-    @QC.Slot()
-    def disable_apply_button(self):
-        """
-        Qt slot that disables the apply button at the bottom of the figure
-        options dialog.
-        The apply button is disabled whenever no changes have been made to any
-        figure option.
-
-        """
-
-        self.apply_but.setEnabled(False)
-
-    # This function discards all changes to the figure options
-    @QC.Slot()
-    def discard_options(self):
-        """
-        Discards the current values of all figure options and sets them back to
-        their saved values.
-
-        """
-
-        # Emit the discarding signal
-        self.discarding.emit()
-
-        # Discard all current changes
-        pass
-
-        # Disable the apply button
-        self.disable_apply_button()
-
-    # This function creates the options tabwidget for the selected plot type
-    def create_options_tabs(self, index=None):
+    # This function creates the options tabwidget
+    def create_options_tabs(self):
         # Create a tab widget
         tab_widget = QW_QTabWidget(browse_tabs=False)
 
@@ -443,6 +382,7 @@ class FigureOptionsDialog(QW_QDialog):
             return
 
         # Show a warning message asking if the user really wants to remove it
+        # TODO: Should this be removed once changes can be discarded?
         button_clicked = QW_QMessageBox.warning(
             self, "WARNING: Delete plot",
             ("Are you sure you want to delete the plot with name <b>%s</b>? "
@@ -524,3 +464,64 @@ class FigureOptionsDialog(QW_QDialog):
         # Else, remove the current one
         else:
             self.axis.legend_.remove()
+
+    # This function applies the new figure options values
+    @QC.Slot()
+    def apply_options(self):
+        """
+        Applies all current values of all figure options.
+
+        """
+
+        # Emit the applying signal
+        self.applying.emit()
+
+        # Apply all new values
+        pass
+
+        # Disable the apply button
+        self.disable_apply_button()
+
+    # This function enables the apply button
+    @QC.Slot()
+    def enable_apply_button(self):
+        """
+        Qt slot that enables the apply button at the bottom of the figure
+        options dialog.
+        The apply button is enabled if at least one change has been made to any
+        figure option.
+
+        """
+
+        self.apply_but.setEnabled(True)
+
+    # This function disables the apply button
+    @QC.Slot()
+    def disable_apply_button(self):
+        """
+        Qt slot that disables the apply button at the bottom of the figure
+        options dialog.
+        The apply button is disabled whenever no changes have been made to any
+        figure option.
+
+        """
+
+        self.apply_but.setEnabled(False)
+
+    # This function discards all changes to the figure options
+    @QC.Slot()
+    def discard_options(self):
+        """
+        Discards the current values of all figure options and sets them back to
+        their saved values.
+
+        """
+
+        # Emit the discarding signal
+        self.discarding.emit()
+
+        # Discard all current changes
+        pass
+
+        # Disable the apply button
+        self.disable_apply_button()
