@@ -100,8 +100,8 @@ class MainWindow(QW_QMainWindow):
 
     # Override closeEvent to automatically close all plugins
     def closeEvent(self, *args, **kwargs):
-        # Close all plugins in plugin_list
-        for plugin in self.plugins.items():
+        # Close all plugins in plugins dict
+        for plugin in self.plugins.values():
             plugin.close()
 
         # Call super event
