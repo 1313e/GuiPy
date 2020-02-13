@@ -179,6 +179,7 @@ class MultiDataNDProp(BasePlotProp):
     DISPLAY_NAME = "Data"
     REQUIREMENTS = ['options']
     WIDGET_NAMES = ['multi_data_box']
+    USE_OPTIONS_ENTRY = False
 
     # Initialize multi data property
     def __init__(self, data_prop, *args, **kwargs):
@@ -234,17 +235,20 @@ class MultiDataNDProp(BasePlotProp):
         data_prop = BaseBox()
         get_modified_box_signal(data_prop).connect(self.tab_widget.modified)
 
-        # Obtain a dictionary with all requirements of this property
-        prop_kwargs = {req: getattr(self, req)
-                       for req in self.data_prop.requirements()}
+        # Create dictionary with basic requirements of this property
+        prop_kwargs = {
+            'enable_apply_button': self.options.enable_apply_button,
+            'add_options_entry': self.options.add_options_entry,
+            'remove_options_entry': self.options.remove_options_entry}
+
+        # Add a dictionary with all requirements of this property
+        prop_kwargs.update({req: getattr(self, req)
+                            for req in self.data_prop.requirements()})
 
         # Replace the dataLabelChanged requirement with a different function
         prop_kwargs['dataLabelChanged'] =\
             lambda text: self.dataLabelChanged.emit(
                 self.tab_widget.indexOf(data_prop), text)
-
-        # Add 'enable_apply_button' method
-        prop_kwargs['enable_apply_button'] = self.options.enable_apply_button
 
         # Create the DataND prop
         prop_layout = self.data_prop(**prop_kwargs)
@@ -725,3 +729,25 @@ class DataColumnBox(DualComboBox):
         # Else, return (None, None)
         else:
             return(None, None)
+
+    # This function sets the data table and column
+    def set_box_value(self, value):
+        """
+        Sets the current value of the data table and its associated column to
+        `value`.
+
+        Parameters
+        ----------
+        value : tuple
+            A tuple containing the data table and its associated column,
+            formatted as `(data_table, data_column)`.
+
+        """
+
+        # If value[0] is None, value is equal to (-1, -1)
+        if value[0] is None:
+            value = (-1, -1)
+
+        # Set the table and column
+        set_box_value(self.tables_box, value[0])
+        set_box_value(self.columns_box, value[1])

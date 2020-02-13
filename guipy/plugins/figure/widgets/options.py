@@ -53,6 +53,9 @@ class FigureOptionsDialog(QW_QDialog):
 
     # This function sets up the figure options dialog
     def init(self):
+        # Initialize empty dict of options
+        self.options_dict = {}
+
         # Install event filter
         self.installEventFilter(self)
 
@@ -134,6 +137,16 @@ class FigureOptionsDialog(QW_QDialog):
         for slot in slots:
             slot()
 
+    # This function adds the provided widget as an options entry
+    def add_options_entry(self, widget):
+        # Add widget as an entry to options_dict
+        self.options_dict[widget] = get_box_value(widget)
+
+    # This function removes the provided widget as an options entry
+    def remove_options_entry(self, widget):
+        # Remove widget as an entry to options_dict
+        self.options_dict.pop(widget)
+
     # This function creates the options tabwidget
     def create_options_tabs(self):
         # Create a tab widget
@@ -163,6 +176,7 @@ class FigureOptionsDialog(QW_QDialog):
         title_box[1].setToolTip("Title size")
         set_box_value(title_box,
                       ('', {'fontsize': rcParams['axes.titlesize']}))
+        self.add_options_entry(title_box)
         get_modified_box_signal(title_box)[str, dict].connect(
             self.axis.set_title)
         layout.addRow("Title", title_box)
@@ -180,6 +194,7 @@ class FigureOptionsDialog(QW_QDialog):
         x_label_box[1].setToolTip("Label size")
         set_box_value(x_label_box,
                       ('', {'fontsize': rcParams['axes.labelsize']}))
+        self.add_options_entry(x_label_box)
         get_modified_box_signal(x_label_box)[str, dict].connect(
             self.axis.set_xlabel)
         x_axis_layout.addRow("Label", x_label_box)
@@ -205,6 +220,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Make togglebox for enabling/disabling the use of this range
         x_range_togglebox = ToggleBox(
             x_range_box, tooltip="Toggle the use of a manual X-axis range")
+        self.add_options_entry(x_range_togglebox)
         x_axis_layout.addRow("Range", x_range_togglebox)
 
         # Connect signals for x_range_togglebox
@@ -215,6 +231,7 @@ class FigureOptionsDialog(QW_QDialog):
         x_scale_box = QW_QComboBox()
         x_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
         x_scale_box.setToolTip("Value scale of the X-axis")
+        self.add_options_entry(x_scale_box)
         get_modified_box_signal(x_scale_box).connect(self.axis.set_xscale)
         x_axis_layout.addRow("Scale", x_scale_box)
 
@@ -230,6 +247,7 @@ class FigureOptionsDialog(QW_QDialog):
         y_label_box[1].setToolTip("Label size")
         set_box_value(y_label_box,
                       ('', {'fontsize': rcParams['axes.labelsize']}))
+        self.add_options_entry(y_label_box)
         get_modified_box_signal(y_label_box)[str, dict].connect(
             self.axis.set_ylabel)
         y_axis_layout.addRow("Label", y_label_box)
@@ -253,6 +271,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Make togglebox for enabling/disabling the use of this range
         y_range_togglebox = ToggleBox(
             y_range_box, tooltip="Toggle the use of a manual Y-axis range")
+        self.add_options_entry(y_range_togglebox)
         y_axis_layout.addRow("Range", y_range_togglebox)
 
         # Connect signals for y_range_togglebox
@@ -263,6 +282,7 @@ class FigureOptionsDialog(QW_QDialog):
         y_scale_box = QW_QComboBox()
         y_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
         y_scale_box.setToolTip("Value scale of the Y-axis")
+        self.add_options_entry(y_scale_box)
         get_modified_box_signal(y_scale_box).connect(self.axis.set_yscale)
         y_axis_layout.addRow("Scale", y_scale_box)
 
@@ -282,6 +302,7 @@ class FigureOptionsDialog(QW_QDialog):
         legend_togglebox = ToggleBox(
             legend_loc_box, "Legend",
             tooltip="Toggle the use of a figure legend")
+        self.add_options_entry(legend_togglebox)
         props_layout.addRow(legend_togglebox)
         self.legend_togglebox = legend_togglebox
 
@@ -477,7 +498,8 @@ class FigureOptionsDialog(QW_QDialog):
         self.applying.emit()
 
         # Apply all new values
-        pass
+        for widget in self.options_dict.keys():
+            self.options_dict[widget] = get_box_value(widget)
 
         # Disable the apply button
         self.disable_apply_button()
@@ -521,7 +543,9 @@ class FigureOptionsDialog(QW_QDialog):
         self.discarding.emit()
 
         # Discard all current changes
-        pass
+        for widget, value in self.options_dict.items():
+            set_box_value(widget, value)
+            self.options_dict[widget] = value
 
         # Disable the apply button
         self.disable_apply_button()

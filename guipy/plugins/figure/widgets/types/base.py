@@ -103,6 +103,9 @@ class BasePlotType(QW_QWidget):
 
     # This function creates the type layout
     def create_type_layout(self):
+        # Create empty list of properties
+        self.props = []
+
         # Create layout for this plot type
         layout = QW_QFormLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -112,19 +115,22 @@ class BasePlotType(QW_QWidget):
             # Obtain the PlotProp class associated with this property
             plot_prop_class = PLOT_PROPS[prop_name]
 
-            # Obtain a dictionary with all requirements of this property
-            prop_kwargs = {req: getattr(self, req)
-                           for req in plot_prop_class.requirements()}
+            # Create dictionary with basic requirements of this property
+            prop_kwargs = {
+                'enable_apply_button': self.options.enable_apply_button,
+                'add_options_entry': self.options.add_options_entry,
+                'remove_options_entry': self.options.remove_options_entry}
 
-            # Add the 'enable_apply_button' to it
-            prop_kwargs['enable_apply_button'] =\
-                self.options.enable_apply_button
+            # Add a dictionary with all requirements of this property to it
+            prop_kwargs.update({req: getattr(self, req)
+                                for req in plot_prop_class.requirements()})
 
             # Initialize the property and add to layout
             prop_layout = plot_prop_class(**prop_kwargs)
             prop_group = QW_QGroupBox(prop_layout.display_name())
             prop_group.setLayout(prop_layout)
             layout.addRow(prop_group)
+            self.props.append(prop_layout)
 
             # Register all widgets in this property as instance attributes
             for widget_name, widget in prop_layout.widgets.items():
@@ -159,3 +165,12 @@ class BasePlotType(QW_QWidget):
         """
 
         raise NotImplementedError(self.__class__)
+
+    # Override closeEvent to close all props before closing type
+    def closeEvent(self, *args, **kwargs):
+        # Close all props
+        for prop in self.props:
+            prop.close()
+
+        # Call super event
+        super().closeEvent(*args, **kwargs)

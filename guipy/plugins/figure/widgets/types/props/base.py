@@ -48,6 +48,7 @@ class BasePlotProp(QW_QFormLayout):
     DISPLAY_NAME = ""
     REQUIREMENTS = []
     WIDGET_NAMES = []
+    USE_OPTIONS_ENTRY = True
 
     # Initialize this plot property
     def __init__(self, parent=None, **kwargs):
@@ -77,6 +78,11 @@ class BasePlotProp(QW_QFormLayout):
     def widget_names(cls):
         return(cls.WIDGET_NAMES)
 
+    # Class method for obtaining the 'use_options_entry' of this plot property
+    @classmethod
+    def use_options_entry(cls):
+        return(cls.USE_OPTIONS_ENTRY)
+
     # This function sets up the plot property
     def init(self, **kwargs):
         # Save all provided kwargs as instance attributes
@@ -95,10 +101,26 @@ class BasePlotProp(QW_QFormLayout):
             out = func()
 
             # Register the widget
-            self.widgets[widget_name] = out[-1]
+            widget = out[-1]
+            self.widgets[widget_name] = widget
 
             # Connect the widget to enable apply button when modified
-            get_modified_box_signal(out[-1]).connect(self.enable_apply_button)
+            get_modified_box_signal(widget).connect(self.enable_apply_button)
+
+            # Add widget as an options entry if requested
+            if self.use_options_entry():
+                self.add_options_entry(widget)
 
             # Add widget to the layout
             self.addRow(*out)
+
+    # Create a close method
+    def close(self, *args, **kwargs):
+        # Remove all widgets from options entries dict and close them
+        for widget in self.widgets.values():
+            # If this property uses an option entry, remove the widget
+            if self.use_options_entry():
+                self.remove_options_entry(widget)
+
+            # Close widget
+            widget.close()
