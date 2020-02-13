@@ -107,13 +107,13 @@ class FigureOptionsDialog(QW_QDialog):
         # Create a slot dict for all buttons
         self.slot_dict = {
             button_box.AcceptRole: [
+                self.refresh_figure,
                 self.apply_options,
-                self.toolbar.toggle_options_dialog,
-                self.refresh_figure],
+                self.toolbar.toggle_options_dialog],
             button_box.RejectRole: [
                 self.discard_options,
-                self.toolbar.toggle_options_dialog,
-                self.refresh_figure],
+                self.refresh_figure,
+                self.toolbar.toggle_options_dialog],
             button_box.ApplyRole: [
                 self.apply_options],
             button_box.ActionRole: [
@@ -559,7 +559,6 @@ class FigureOptionsDialog(QW_QDialog):
         # Discard all current changes
         for widget, value in self.options_dict.items():
             set_box_value(widget, value)
-            self.options_dict[widget] = value
 
         # Disable the apply button
         self.disable_apply_button()
