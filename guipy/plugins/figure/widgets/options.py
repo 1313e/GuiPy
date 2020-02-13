@@ -149,6 +149,7 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Add widget as an entry to options_dict
         self.options_dict[widget] = get_box_value(widget)
+        get_modified_box_signal(widget).connect(self.enable_apply_button)
 
     # This function removes the provided widget as an options entry
     def remove_options_entry(self, widget):

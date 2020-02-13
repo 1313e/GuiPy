@@ -107,12 +107,13 @@ class BasePlotProp(QW_QFormLayout):
             widget = out[-1]
             self.widgets[widget_name] = widget
 
-            # Connect the widget to enable apply button when modified
-            get_modified_box_signal(widget).connect(self.enable_apply_button)
-
             # Add widget as an options entry if requested
             if self.track_values():
                 self.add_options_entry(widget)
+            # Else, solely connect the modified signal to the apply button
+            else:
+                get_modified_box_signal(widget).connect(
+                    self.enable_apply_button)
 
             # Add widget to the layout
             self.addRow(*out)
