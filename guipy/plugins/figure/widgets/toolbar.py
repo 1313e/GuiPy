@@ -59,14 +59,6 @@ class FigureToolbar(NavigationToolbar2QT):
         self.insertWidget(action_0, dialog_but)
         self.dialog_but = dialog_but
 
-        # Create button for refreshing the figure
-        refresh_but = QW_QPushButton("Refresh")
-        refresh_but.setShortcut(QC.Qt.Key_F5)
-        get_modified_box_signal(refresh_but).connect(
-            self.options_dialog.refresh_figure)
-        refresh_but.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
-        self.insertWidget(action_0, refresh_but)
-
         # Insert separator
         self.insertSeparator(action_0)
 
