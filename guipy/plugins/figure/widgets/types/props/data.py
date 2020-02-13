@@ -129,7 +129,7 @@ class Data1or2DProp(Data2DProp):
             tooltip="Disable to automatically set the X-axis data.")
         x_data_box.setToolTip("Data table and column to use for the X-axis "
                               "data")
-        set_box_value(x_data_box, (False, (-1, -1)))
+        set_box_value(x_data_box, (False, (None, None)))
 
         # Return name and box
         return('X-axis', x_data_box)
@@ -563,7 +563,7 @@ class DataColumnBox(DualComboBox):
         # Set initial contents of columns_box
         self.data_table = None
         self.model = None
-        self.set_box_value((-1, -1))
+        self.set_box_value((None, None))
 
     # This function sets the tooltip of an item in the tables box
     @QC.Slot(int, str)
@@ -746,8 +746,10 @@ class DataColumnBox(DualComboBox):
 
         # If value[0] is None, value is equal to (-1, -1)
         if value[0] is None:
-            value = (-1, -1)
-
-        # Set the table and column
-        set_box_value(self.tables_box, value[0])
-        set_box_value(self.columns_box, value[1])
+            set_box_value(self.tables_box, -1)
+            set_box_value(self.columns_box, -1)
+        else:
+            table_name = self.tab_widget.tabText(
+                self.tab_widget.indexOf(value[0]))
+            set_box_value(self.tables_box, table_name)
+            set_box_value(self.columns_box, value[1].name)
