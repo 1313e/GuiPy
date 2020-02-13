@@ -239,19 +239,6 @@ def get_modified_box_signal(box, *signal_sig):
         return(box.currentIndexChanged if int in signal_sig else
                box.currentTextChanged)
 
-    # Tabs (QTabWidget)
-    elif isinstance(box, QW_QTabWidget):
-        if int in signal_sig:
-            return(box.currentIndexChanged)
-        elif str in signal_sig:
-            return(box.currentTextChanged)
-        elif QW.QWidget in signal_sig:
-            return(box.currentWidgetChanged)
-        else:
-            return(box.currentChanged)
-    elif isinstance(box, QW.QTabWidget):
-        return(box.currentChanged)
-
     # Strings (QLineEdit)
     elif isinstance(box, QW.QLineEdit):
         return(box.textChanged)

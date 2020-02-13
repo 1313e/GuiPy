@@ -107,7 +107,6 @@ class HistDataProp(Data1DProp):
 
     # Class attributes
     NAME = "HistData"
-    REQUIREMENTS = [*Data1DProp.REQUIREMENTS]
     WIDGET_NAMES = [*Data1DProp.WIDGET_NAMES, 'hist_color_box']
 
     # This function creates a histogram color box
@@ -137,7 +136,8 @@ class MultiHistDataProp(MultiDataNDProp):
 
     # Class attributes
     NAME = "MultiHistData"
-    REQUIREMENTS = [*HistDataProp.REQUIREMENTS, 'hist_tab_added']
+    REQUIREMENTS = [*MultiDataNDProp.REQUIREMENTS, *HistDataProp.REQUIREMENTS,
+                    'hist_tab_added']
 
     # Initialize hist data property
     def __init__(self, *args, **kwargs):

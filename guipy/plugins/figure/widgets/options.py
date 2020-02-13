@@ -375,6 +375,7 @@ class FigureOptionsDialog(QW_QDialog):
         plot_entries = QW_QComboBox()
         plot_entries.setToolTip("Select the plot entry you wish to edit")
         plot_layout.addWidget(plot_entries)
+        get_modified_box_signal(plot_entries).disconnect(tab.modified)
         self.plot_entries = plot_entries
 
         # Add a toolbutton for adding a new plot entry
@@ -423,6 +424,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Add it to the plot_entries and plot_pages
         self.plot_entries.addItem(name)
         self.plot_pages.addWidget(plot_entry)
+        get_modified_box_signal(plot_entry).connect(self.enable_apply_button)
 
         # Set the shown entry to the new entry
         set_box_value(self.plot_entries, index)

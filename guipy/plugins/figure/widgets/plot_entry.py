@@ -17,7 +17,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from guipy.layouts import QW_QHBoxLayout, QW_QFormLayout
 from guipy.plugins.figure.widgets.types import PLOT_TYPES
 from guipy.widgets import (
-    QW_QComboBox, QW_QLineEdit, QW_QToolButton, QW_QWidget,
+    BaseBox, QW_QComboBox, QW_QLineEdit, QW_QToolButton, QW_QWidget,
     get_modified_box_signal, set_box_value)
 
 # All declaration
@@ -28,7 +28,7 @@ __all__ = ['FigurePlotEntry']
 # Create custom class for making a plot entry
 # TODO: Allow for individual plots to be toggled (toggled QGroupBox?)
 # TODO: Write custom QGroupBox that can have a QComboBox as its title?
-class FigurePlotEntry(QW_QWidget):
+class FigurePlotEntry(BaseBox):
     # Signals
     entryNameChanged = QC.Signal(str)
     entryRemoveRequested = QC.Signal()

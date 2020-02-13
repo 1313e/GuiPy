@@ -157,6 +157,6 @@ class HistogramType(BasePlotType):
     # This function sets the label of a plot
     @QC.Slot(int, str)
     def set_plot_label(self, index, label):
-        # If histogram currently exists, set its label
-        if self.plot[index] is not None:
+        # If histogram currently exists, set its associated label
+        if self.plot is not None:
             self.plot[index].set_label(label)

@@ -14,7 +14,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 # GuiPy imports
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
 from guipy.widgets import (
-    DualComboBox, QW_QLineEdit, QW_QTabWidget, QW_QToolButton, QW_QWidget,
+    BaseBox, DualComboBox, QW_QLineEdit, QW_QTabWidget, QW_QToolButton,
     ToggleBox, get_box_value, get_modified_box_signal, set_box_value)
 
 # All declaration
@@ -177,6 +177,7 @@ class MultiDataNDProp(BasePlotProp):
 
     # Class attributes
     DISPLAY_NAME = "Data"
+    REQUIREMENTS = ['options']
     WIDGET_NAMES = ['multi_data_box']
 
     # Initialize multi data property
@@ -230,7 +231,8 @@ class MultiDataNDProp(BasePlotProp):
         """
 
         # Create a default widget for the new DataND prop
-        data_prop = QW_QWidget()
+        data_prop = BaseBox()
+        get_modified_box_signal(data_prop).connect(self.tab_widget.modified)
 
         # Obtain a dictionary with all requirements of this property
         prop_kwargs = {req: getattr(self, req)
@@ -240,6 +242,9 @@ class MultiDataNDProp(BasePlotProp):
         prop_kwargs['dataLabelChanged'] =\
             lambda text: self.dataLabelChanged.emit(
                 self.tab_widget.indexOf(data_prop), text)
+
+        # Add 'enable_apply_button' method
+        prop_kwargs['enable_apply_button'] = self.options.enable_apply_button
 
         # Create the DataND prop
         prop_layout = self.data_prop(**prop_kwargs)
@@ -280,12 +285,21 @@ class MultiDataNDProp(BasePlotProp):
         # Check if there is still more than a single tab
         self.tab_widget.setTabsClosable(self.tab_widget.count() > 1)
 
-        # Redraw the plot
-        self.draw_plot()
-
 
 # Define custom QTabWidget for holding the multi data
 class MultiDataTabWidget(QW_QTabWidget):
+    # Define signals
+    modified = QC.Signal()
+
+    # Override constructor to connect some signals
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+        # Connect signals
+        self.tabWasInserted.connect(self.modified)
+        self.tabWasRemoved.connect(self.modified)
+
     # Define special get_box_value method
     def get_box_value(self, *value_sig):
         """
@@ -457,7 +471,7 @@ class MultiData1DProp(MultiDataNDProp):
 
     # Class attributes
     NAME = "MultiData1D"
-    REQUIREMENTS = [*Data1DProp.REQUIREMENTS]
+    REQUIREMENTS = [*MultiDataNDProp.REQUIREMENTS, *Data1DProp.REQUIREMENTS]
 
     # Initialize multi 1D data property
     def __init__(self, *args, **kwargs):
@@ -476,7 +490,7 @@ class MultiData2DProp(MultiDataNDProp):
 
     # Class attributes
     NAME = "MultiData2D"
-    REQUIREMENTS = [*Data2DProp.REQUIREMENTS]
+    REQUIREMENTS = [*MultiDataNDProp.REQUIREMENTS, *Data2DProp.REQUIREMENTS]
 
     # Initialize multi 2D data property
     def __init__(self, *args, **kwargs):
@@ -495,7 +509,7 @@ class MultiData3DProp(MultiDataNDProp):
 
     # Class attributes
     NAME = "MultiData3D"
-    REQUIREMENTS = [*Data3DProp.REQUIREMENTS]
+    REQUIREMENTS = [*MultiDataNDProp.REQUIREMENTS, *Data3DProp.REQUIREMENTS]
 
     # Initialize multi 3D data property
     def __init__(self, *args, **kwargs):
