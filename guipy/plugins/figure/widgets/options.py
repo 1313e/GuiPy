@@ -57,6 +57,7 @@ class FigureOptionsDialog(QW_QDialog):
         self.installEventFilter(self)
 
         # Set dialog properties
+        self.setWindowModality(QC.Qt.ApplicationModal)
         self.setWindowFlags(
             QC.Qt.Dialog |
             QC.Qt.FramelessWindowHint |
@@ -476,7 +477,7 @@ class FigureOptionsDialog(QW_QDialog):
         # Move the dialog there
         self.move(dialog_pos)
 
-    # Override eventFilter to filter out clicks, ESC and Enter
+    # Override eventFilter to filter out ESC presses
     def eventFilter(self, widget, event):
         # Check if the event involves anything for which the popup should close
         if((event.type() == QC.QEvent.KeyPress) and
