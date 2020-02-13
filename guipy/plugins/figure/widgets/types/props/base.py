@@ -41,6 +41,9 @@ class BasePlotProp(QW_QFormLayout):
     The widgets will also be registered as instance attributes with the same
     name as their construction method.
 
+    The `track_values` is a bool that specifies if all widgets in this
+    plot property should have their values tracked. This is *True* by default.
+
     """
 
     # Define class attributes
@@ -48,7 +51,7 @@ class BasePlotProp(QW_QFormLayout):
     DISPLAY_NAME = ""
     REQUIREMENTS = []
     WIDGET_NAMES = []
-    USE_OPTIONS_ENTRY = True
+    TRACK_VALUES = True
 
     # Initialize this plot property
     def __init__(self, parent=None, **kwargs):
@@ -78,10 +81,10 @@ class BasePlotProp(QW_QFormLayout):
     def widget_names(cls):
         return(cls.WIDGET_NAMES)
 
-    # Class method for obtaining the 'use_options_entry' of this plot property
+    # Class method for obtaining the 'track_values' of this plot property
     @classmethod
-    def use_options_entry(cls):
-        return(cls.USE_OPTIONS_ENTRY)
+    def track_values(cls):
+        return(cls.TRACK_VALUES)
 
     # This function sets up the plot property
     def init(self, **kwargs):
@@ -108,7 +111,7 @@ class BasePlotProp(QW_QFormLayout):
             get_modified_box_signal(widget).connect(self.enable_apply_button)
 
             # Add widget as an options entry if requested
-            if self.use_options_entry():
+            if self.track_values():
                 self.add_options_entry(widget)
 
             # Add widget to the layout
@@ -119,7 +122,7 @@ class BasePlotProp(QW_QFormLayout):
         # Remove all widgets from options entries dict and close them
         for widget in self.widgets.values():
             # If this property uses an option entry, remove the widget
-            if self.use_options_entry():
+            if self.track_values():
                 self.remove_options_entry(widget)
 
             # Close widget

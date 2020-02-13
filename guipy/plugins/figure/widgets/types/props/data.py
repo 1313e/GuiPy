@@ -179,7 +179,7 @@ class MultiDataNDProp(BasePlotProp):
     DISPLAY_NAME = "Data"
     REQUIREMENTS = ['options']
     WIDGET_NAMES = ['multi_data_box']
-    USE_OPTIONS_ENTRY = False
+    TRACK_VALUES = False
 
     # Initialize multi data property
     def __init__(self, data_prop, *args, **kwargs):

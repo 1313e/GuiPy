@@ -101,7 +101,8 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Add a 'Refresh' button
         refresh_but = button_box.addButton('Refresh', button_box.ActionRole)
-        refresh_but.setToolTip("Refresh figure using current figure options")
+        refresh_but.setToolTip("Refresh figure using current figure options "
+                               "without applying them")
 
         # Create a slot dict for all buttons
         self.slot_dict = {
@@ -139,11 +140,24 @@ class FigureOptionsDialog(QW_QDialog):
 
     # This function adds the provided widget as an options entry
     def add_options_entry(self, widget):
+        """
+        Adds the provided `widget` as an options entry to this options dialog.
+        This allows for the values of `widget` to be tracked and potentially
+        discarded/reverted.
+
+        """
+
         # Add widget as an entry to options_dict
         self.options_dict[widget] = get_box_value(widget)
 
     # This function removes the provided widget as an options entry
     def remove_options_entry(self, widget):
+        """
+        Removes the options entry associated with the provided `widget`, no
+        longer tracking its values.
+
+        """
+
         # Remove widget as an entry to options_dict
         self.options_dict.pop(widget)
 
