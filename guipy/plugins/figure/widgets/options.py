@@ -475,9 +475,8 @@ class FigureOptionsDialog(QW_QDialog):
             # Obtain the actual plot entry
             plot_entry = plot_entry.plot_entry
 
-            # Draw and update this plot if it is a plot type
+            # Update this plot if it is a plot type
             if isinstance(plot_entry, BasePlotType):
-                plot_entry.draw_plot()
                 plot_entry.update_plot()
 
         # Update the figure

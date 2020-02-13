@@ -98,8 +98,8 @@ class BasePlotType(QW_QWidget):
         # Save that currently no line exists
         self.plot = None
 
-        # Attempt to draw the plot to check if that does not raise errors
-        self.draw_plot()
+        # Attempt to update the plot to check if that does not raise errors
+        self.update_plot()
 
     # This function creates the type layout
     def create_type_layout(self):
@@ -136,21 +136,21 @@ class BasePlotType(QW_QWidget):
             for widget_name, widget in prop_layout.widgets.items():
                 setattr(self, widget_name, widget)
 
-    # Define draw_plot method
+    # Define update_plot method
     @QC.Slot()
-    def draw_plot(self):
+    def update_plot(self):
         """
-        Draws the current plot.
+        Draws and updates the current plot.
 
         """
 
         raise NotImplementedError(self.__class__)
 
-    # Define update_plot method
+    # Define remove_plot method
     @QC.Slot()
-    def update_plot(self):
+    def remove_plot(self):
         """
-        Updates the current plot.
+        Removes the current plot.
 
         """
 
@@ -166,8 +166,12 @@ class BasePlotType(QW_QWidget):
 
         raise NotImplementedError(self.__class__)
 
-    # Override closeEvent to close all props before closing type
+    # Override closeEvent to remove all plots and props
     def closeEvent(self, *args, **kwargs):
+        # Remove the plots from the figure if they exist
+        if self.plot is not None:
+            self.remove_plot()
+
         # Close all props
         for prop in self.props:
             prop.close()

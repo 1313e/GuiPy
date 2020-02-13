@@ -56,14 +56,17 @@ class ScatterType(BasePlotType):
             ycol = get_box_value(self.y_data_box)[1]
         # If any of the columns cannot be called, return
         except IndexError:
+            self.remove_plot()
             return
 
         # If either xcol or ycol is None, return
         if xcol is None or ycol is None:
+            self.remove_plot()
             return
 
         # If xcol and ycol are not the same shape, return
         if(len(xcol) != len(ycol)):
+            self.remove_plot()
             return
 
         # If the current saved scatter is not already in the figure, make one
@@ -72,7 +75,6 @@ class ScatterType(BasePlotType):
             self.plot = self.axis.plot(xcol, ycol)[0]
             self.plot.set_linestyle('')
             set_box_value(self.data_label_box, self.plot.get_label())
-            self.update_plot()
 
             # If the figure currently has no title, set it
             title_box = self.toolbar.options_dialog.title_box[0]
@@ -92,6 +94,9 @@ class ScatterType(BasePlotType):
     # This function updates the 2D scatter plot
     @QC.Slot()
     def update_plot(self):
+        # Draw the plot
+        self.draw_plot()
+
         # If scatter currently exists, update it
         if self.plot is not None:
             # Update marker style, size and color
@@ -100,14 +105,15 @@ class ScatterType(BasePlotType):
             self.plot.set_markeredgecolor(get_box_value(self.marker_color_box))
             self.plot.set_markerfacecolor(get_box_value(self.marker_color_box))
 
-    # Override closeEvent to remove the plot from the figure when closed
-    def closeEvent(self, *args, **kwargs):
+    # This function removes the 2D scatter plot
+    @QC.Slot()
+    def remove_plot(self):
         # Remove the plot from the figure if it exists
         if self.plot in self.axis.lines:
             self.axis.lines.remove(self.plot)
 
-        # Call super event
-        super().closeEvent(*args, **kwargs)
+            # Set plot to None
+            self.plot = None
 
     # This function sets the label of a plot
     @QC.Slot(str)

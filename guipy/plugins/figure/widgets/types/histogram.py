@@ -74,10 +74,12 @@ class HistogramType(BasePlotType):
             xcols = get_box_value(self.multi_data_box, 'x_data_box', 1)
         # If any column cannot be called, return
         except IndexError:
+            self.remove_plot()
             return
 
         # If any of the xcols contains None, return as well
         if pd.isna(xcols).any():
+            self.remove_plot()
             return
 
 #        # Determine if a custom value range is requested
@@ -85,7 +87,7 @@ class HistogramType(BasePlotType):
 #        value_range = value_range[1:] if value_range[0] else None
 
         # As histograms cannot be modified, remove current one
-        self.remove_hist()
+        self.remove_plot()
 
         # Obtain the number of requested bins
         n_bins = get_box_value(self.n_bins_box)
@@ -111,12 +113,12 @@ class HistogramType(BasePlotType):
                 label = self.plot[i].get_label()
                 set_box_value(self.multi_data_box, label, i, 'data_label_box')
 
-        # Update the plot
-        self.update_plot()
-
     # This function updates the histogram plot
     @QC.Slot()
     def update_plot(self):
+        # Draw the plot
+        self.draw_plot()
+
         # If histograms currently exist, update them
         if self.plot is not None:
             for i, plot in enumerate(self.plot):
@@ -129,7 +131,7 @@ class HistogramType(BasePlotType):
 
     # This function removes the histogram from the figure
     @QC.Slot()
-    def remove_hist(self):
+    def remove_plot(self):
         """
         Removes all histograms handled by this instance from the current
         figure.
@@ -146,13 +148,8 @@ class HistogramType(BasePlotType):
                 # And remove the container for it as well
                 self.axis.containers.remove(plot)
 
-    # Override closeEvent to remove the plots from the figure when closed
-    def closeEvent(self, *args, **kwargs):
-        # Remove the plots from the figure if they exist
-        self.remove_hist()
-
-        # Call super event
-        super().closeEvent(*args, **kwargs)
+            # Set plot to None
+            self.plot = None
 
     # This function sets the label of a plot
     @QC.Slot(int, str)

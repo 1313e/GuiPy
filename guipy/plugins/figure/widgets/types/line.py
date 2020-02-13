@@ -66,14 +66,17 @@ class LineType(BasePlotType):
 
         # If any column cannot be called, return
         except IndexError:
+            self.remove_plot()
             return
 
         # If either xcol or ycol is None, return
         if xcol is None or ycol is None:
+            self.remove_plot()
             return
 
         # If xcol and ycol are not the same shape, return
         if(len(xcol) != len(ycol)):
+            self.remove_plot()
             return
 
         # If the current saved line is not already in the figure, make one
@@ -81,7 +84,6 @@ class LineType(BasePlotType):
             # Make and update plot
             self.plot = self.axis.plot(xcol, ycol)[0]
             set_box_value(self.data_label_box, self.plot.get_label())
-            self.update_plot()
 
             # If the figure currently has no title, set it
             xname = getattr(xcol, 'name', 'index')
@@ -103,6 +105,9 @@ class LineType(BasePlotType):
     # This function updates the 2D line plot
     @QC.Slot()
     def update_plot(self):
+        # Draw the plot
+        self.draw_plot()
+
         # If line currently exists, update it
         if self.plot is not None:
             # Update line style, width and color
@@ -116,14 +121,15 @@ class LineType(BasePlotType):
             self.plot.set_markeredgecolor(get_box_value(self.marker_color_box))
             self.plot.set_markerfacecolor(get_box_value(self.marker_color_box))
 
-    # Override closeEvent to remove the plot from the figure when closed
-    def closeEvent(self, *args, **kwargs):
+    # This function removes the 2D line plot
+    @QC.Slot()
+    def remove_plot(self):
         # Remove the plot from the figure if it exists
         if self.plot in self.axis.lines:
             self.axis.lines.remove(self.plot)
 
-        # Call super event
-        super().closeEvent(*args, **kwargs)
+            # Set plot to None
+            self.plot = None
 
     # This function sets the label of a plot
     @QC.Slot(str)
