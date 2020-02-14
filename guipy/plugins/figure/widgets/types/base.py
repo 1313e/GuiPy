@@ -140,7 +140,8 @@ class BasePlotType(QW_QWidget):
     @QC.Slot()
     def update_plot(self):
         """
-        Draws and updates the current plot.
+        Draws and updates the current plot. This function must implement a
+        check for whether updating is necessary/required.
 
         """
 

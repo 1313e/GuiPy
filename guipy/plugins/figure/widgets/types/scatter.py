@@ -87,9 +87,18 @@ class ScatterType(BasePlotType):
             if not (get_box_value(x_label_box) or get_box_value(y_label_box)):
                 set_box_value(x_label_box, xcol.name)
                 set_box_value(y_label_box, ycol.name)
+
+        # If it does exist, check if it requires updating
         else:
-            self.plot.set_xdata(xcol)
-            self.plot.set_ydata(ycol)
+            # Obtain the data currently used for this plot
+            xcol_cur = self.plot.get_xdata()
+            ycol_cur = self.plot.get_ydata()
+
+            # If there are differences, update plot
+            if not (xcol_cur == xcol).all():
+                self.plot.set_xdata(xcol)
+            if not (ycol_cur == ycol).all():
+                self.plot.set_ydata(ycol)
 
     # This function updates the 2D scatter plot
     @QC.Slot()

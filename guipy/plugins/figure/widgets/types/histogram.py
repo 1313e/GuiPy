@@ -12,6 +12,7 @@ Histogram Type
 
 # Package imports
 from matplotlib import rcParams
+import numpy as np
 import pandas as pd
 from qtpy import QtCore as QC, QtWidgets as QW
 
@@ -47,6 +48,9 @@ class HistogramType(BasePlotType):
 
         # Manually call hist_tab_added
         self.hist_tab_added(0)
+
+        # Set current hist_kwargs to None
+        self.hist_kwargs = None
 
     # This function is called whenever a new histogram data tab is added
     @QC.Slot(int)
@@ -86,18 +90,30 @@ class HistogramType(BasePlotType):
 #        value_range = get_box_value(self.hist_range_box)
 #        value_range = value_range[1:] if value_range[0] else None
 
+        # Obtain the histogram keyword arguments
+        bins = get_box_value(self.n_bins_box)
+        hist_kwargs = {
+            'bins': bins if bins else self.n_bins_box.specialValueText(),
+            'cumulative': get_box_value(self.hist_cumul_box),
+            'orientation': get_box_value(self.hist_orient_box, str).lower()}
+
+        # Check if this histogram should be drawn
+        if self.plot is not None:
+            # Check all arguments except data
+            if not all(map(lambda k: (hist_kwargs[k] == self.hist_kwargs[k]),
+                           hist_kwargs.keys())):
+                pass
+
+            # If all are the same, check data
+            elif((len(xcols) == len(self.hist_kwargs['xcols'])) and
+                 all(map(np.array_equal, xcols, self.hist_kwargs['xcols']))):
+                return
+
         # As histograms cannot be modified, remove current one
         self.remove_plot()
 
-        # Obtain the number of requested bins
-        n_bins = get_box_value(self.n_bins_box)
-
         # Make a new histogram
-        self.axis.hist(
-            xcols,
-            bins=n_bins if n_bins else self.n_bins_box.specialValueText(),
-            cumulative=get_box_value(self.hist_cumul_box),
-            orientation=get_box_value(self.hist_orient_box, str).lower())
+        self.axis.hist(xcols, **hist_kwargs)
 
         # Save the made histogram(s)
         self.plot = self.axis.containers[-len(xcols):]
@@ -112,6 +128,10 @@ class HistogramType(BasePlotType):
             else:
                 label = self.plot[i].get_label()
                 set_box_value(self.multi_data_box, label, i, 'data_label_box')
+
+        # Save what arguments were used for this histogram
+        hist_kwargs['xcols'] = xcols
+        self.hist_kwargs = hist_kwargs
 
     # This function updates the histogram plot
     @QC.Slot()
@@ -148,8 +168,9 @@ class HistogramType(BasePlotType):
                 # And remove the container for it as well
                 self.axis.containers.remove(plot)
 
-            # Set plot to None
+            # Set plot and hist_kwargs to None
             self.plot = None
+            self.hist_kwargs = None
 
     # This function sets the label of a plot
     @QC.Slot(int, str)
