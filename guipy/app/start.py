@@ -20,6 +20,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 # GuiPy imports
 from guipy import APP_NAME
 from guipy.app.main_window import MainWindow
+from guipy.config import read_config
 
 # All declaration
 __all__ = ['main']
@@ -32,6 +33,9 @@ def main():
     *GuiPy* application.
 
     """
+
+    # Read in the configuration files of GuiPy
+    read_config()
 
     # Obtain application instance
     qapp = QW.QApplication.instance()

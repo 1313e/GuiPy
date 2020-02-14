@@ -15,11 +15,14 @@ import numpy as np
 from os import path
 
 # All declaration
-__all__ = ['APP_NAME', 'DIR_PATH', 'FLOAT_TYPES', 'INT_TYPES', 'STR_TYPES']
+__all__ = ['APP_NAME', 'CONFIG_DIR', 'CONFIG_NAME', 'DIR_PATH', 'FLOAT_TYPES',
+           'INT_TYPES', 'STR_TYPES']
 
 
 # %% GUI GLOBALS
 APP_NAME = 'GuiPy'                                  # Name of application
+CONFIG_DIR = '.guipy'                               # Name of config directory
+CONFIG_NAME = 'guipy.ini'                           # Name of config file
 DIR_PATH = path.abspath(path.dirname(__file__))     # Path to GUI directory
 
 

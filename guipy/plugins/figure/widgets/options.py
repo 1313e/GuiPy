@@ -12,10 +12,10 @@ Figure Options
 
 # Package imports
 import matplotlib as mpl
-from matplotlib import rcParams
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
+from guipy import CONFIG
 from guipy.layouts import (
     QW_QFormLayout, QW_QHBoxLayout, QW_QVBoxLayout)
 from guipy.plugins.figure.widgets.plot_entry import FigurePlotEntry
@@ -190,7 +190,7 @@ class FigureOptionsDialog(QW_QDialog):
         title_box[0].setToolTip("Figure title")
         title_box[1].setToolTip("Title size")
         set_box_value(title_box,
-                      ('', {'fontsize': rcParams['axes.titlesize']}))
+                      ('', {'fontsize': CONFIG['rcParams']['axes.titlesize']}))
         self.add_options_entry(title_box)
         get_modified_box_signal(title_box)[str, dict].connect(
             self.axis.set_title)
@@ -208,7 +208,7 @@ class FigureOptionsDialog(QW_QDialog):
         x_label_box[0].setToolTip("Label of the X-axis")
         x_label_box[1].setToolTip("Label size")
         set_box_value(x_label_box,
-                      ('', {'fontsize': rcParams['axes.labelsize']}))
+                      ('', {'fontsize': CONFIG['rcParams']['axes.labelsize']}))
         self.add_options_entry(x_label_box)
         get_modified_box_signal(x_label_box)[str, dict].connect(
             self.axis.set_xlabel)
@@ -261,7 +261,7 @@ class FigureOptionsDialog(QW_QDialog):
         y_label_box[0].setToolTip("Label of the Y-axis")
         y_label_box[1].setToolTip("Label size")
         set_box_value(y_label_box,
-                      ('', {'fontsize': rcParams['axes.labelsize']}))
+                      ('', {'fontsize': CONFIG['rcParams']['axes.labelsize']}))
         self.add_options_entry(y_label_box)
         get_modified_box_signal(y_label_box)[str, dict].connect(
             self.axis.set_ylabel)
@@ -311,7 +311,7 @@ class FigureOptionsDialog(QW_QDialog):
         legend_loc_box = QW_QComboBox()
         legend_loc_box.addItems(mpl.legend.Legend.codes.keys())
         legend_loc_box.setToolTip("Location of the figure legend")
-        set_box_value(legend_loc_box, rcParams['legend.loc'])
+        set_box_value(legend_loc_box, CONFIG['rcParams']['legend.loc'])
 
         # Make a togglebox for using a legend
         legend_togglebox = ToggleBox(

@@ -9,15 +9,14 @@ Line Property
 
 # %% IMPORTS
 # Package imports
-from matplotlib import rcParams
 from matplotlib.lines import lineStyles
 from qtpy import QtCore as QC
 
 # GuiPy imports
+from guipy import CONFIG
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
 from guipy.widgets import (
-    ColorBox, QW_QComboBox, QW_QDoubleSpinBox, get_modified_box_signal,
-    set_box_value)
+    ColorBox, QW_QComboBox, QW_QDoubleSpinBox, set_box_value)
 
 # All declaration
 __all__ = ['LineProp']
@@ -69,7 +68,7 @@ class LineProp(BasePlotProp):
             line_style_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
 
         # Set initial value to the default value in MPL
-        set_box_value(line_style_box, rcParams['lines.linestyle'])
+        set_box_value(line_style_box, CONFIG['rcParams']['lines.linestyle'])
 
         # Return name and box
         return('Style', line_style_box)
@@ -89,7 +88,7 @@ class LineProp(BasePlotProp):
         line_width_box.setSuffix(" pts")
 
         # Set initial value to the default value in MPL
-        set_box_value(line_width_box, rcParams['lines.linewidth'])
+        set_box_value(line_width_box, CONFIG['rcParams']['lines.linewidth'])
 
         # Return name and box
         return('Width', line_width_box)

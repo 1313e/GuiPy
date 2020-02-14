@@ -9,7 +9,6 @@ Histogram Property
 
 # %% IMPORTS
 # Package imports
-from matplotlib import rcParams
 from qtpy import QtCore as QC
 
 # GuiPy imports
