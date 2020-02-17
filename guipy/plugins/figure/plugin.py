@@ -16,6 +16,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 # GuiPy imports
 from guipy.layouts import QW_QVBoxLayout
 from guipy.plugins.base import BasePluginWidget
+#from guipy.plugins.figure.config import MPLrcParamsConfigPage
 from guipy.plugins.figure.widgets import FigureWidget
 from guipy.widgets import (
     EditableTabBar, QW_QAction, QW_QTabWidget, set_box_value)
@@ -29,6 +30,7 @@ __all__ = ['Figure']
 class Figure(BasePluginWidget):
     # Properties
     TITLE = "Figure"
+#    CONFIG_PAGES = [MPLrcParamsConfigPage]
     LOCATION = QC.Qt.RightDockWidgetArea
 
     # Initialize Figure plugin

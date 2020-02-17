@@ -16,7 +16,6 @@ that allow for certain plugins to be standardized.
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.config import tr
 from guipy.widgets import QW_QWidget
 
 # All declaration
@@ -26,43 +25,16 @@ __all__ = ['BasePlugin', 'BasePluginWidget']
 # %% CLASS DEFINITIONS
 # Define base class for making plugins
 class BasePlugin(object):
-    # Property for title of this plugin
-    @property
-    def title(self):
-        # Return title if it is defined, or raise error if not
-        if hasattr(self, 'TITLE'):
-            return(tr(self.TITLE))
-        else:
-            raise NotImplementedError
+    # Define class attributes
+    TITLE = ''
+    CONFIG_PAGES = []
+    MENU_ACTIONS = {}
+    STATUS_WIDGETS = []
+    TOOLBARS = []
+    TOOLBAR_ACTIONS = {}
 
 
 # Define base class for making plugin widgets
 class BasePluginWidget(QW_QWidget, BasePlugin):
     # Define class attributes
     LOCATION = QC.Qt.LeftDockWidgetArea
-
-    # Property for location of this plugin widget
-    @property
-    def location(self):
-        return(self.LOCATION)
-
-    # Property for top-level menu actions of this plugin widget
-    @property
-    def menu_actions(self):
-        return(self.MENU_ACTIONS if hasattr(self, 'MENU_ACTIONS') else {})
-
-    # Property for statusbar widgets of this plugin widget
-    @property
-    def status_widgets(self):
-        return(self.STATUS_WIDGETS if hasattr(self, 'STATUS_WIDGETS') else [])
-
-    # Property for toolbars of this plugin widget
-    @property
-    def toolbars(self):
-        return(self.TOOLBARS if hasattr(self, 'TOOLBARS') else [])
-
-    # Property for toolbar actions of this plugin widget
-    @property
-    def toolbar_actions(self):
-        return(self.TOOLBAR_ACTIONS if hasattr(self, 'TOOLBAR_ACTIONS')
-               else {})

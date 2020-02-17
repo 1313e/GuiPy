@@ -21,8 +21,8 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import __version__, APP_NAME, STR_TYPES
-from guipy.config import tr
-from guipy.plugins import DataTable, Figure
+from guipy.config import CONFIG, tr
+from guipy.plugins import BasePluginWidget, DataTable, Figure
 from guipy.widgets import (
     BaseDockWidget, QW_QAction, QW_QMainWindow, QW_QMenu, QW_QMessageBox,
     QW_QToolBar, create_exception_handler)
@@ -290,48 +290,68 @@ class MainWindow(QW_QMainWindow):
         # Initialize empty dict with plugins
         self.plugins = {}
 
-        # Initialize the DataTable plugin
-        data_table = DataTable(self)
-        self.add_dockwidget(data_table)
+        # Initialize and add the DataTable plugin
+        data_table = self.add_plugin(DataTable)
 
-        # Initialize the Figure plugin
-        self.add_dockwidget(Figure(data_table, self))
+        # Initialize and add the Figure plugin
+        self.add_plugin(Figure, data_table)
+
+    # This function adds a plugin to the main window
+    def add_plugin(self, plugin_class, *args, **kwargs):
+        """
+        Initializes a provided `plugin_class` using the given `args` and
+        `kwargs`, adds it as a plugin to this main window and returns it.
+        If `plugin_class` is associated with a widget, it will be added as a
+        dock widget to this main window as well.
+
+        """
+
+        # Initialize provided plugin_class
+        plugin_obj = plugin_class(*args, parent=self, **kwargs)
+
+        # Add plugin_obj to dict of all current plugins
+        self.plugins[plugin_obj.TITLE] = plugin_obj
+
+        # Add all menu actions of this plugin_obj to the proper menus
+        self.add_menu_actions(plugin_obj.MENU_ACTIONS)
+
+        # Add all toolbars of this plugin_obj to the main window
+        for toolbar in plugin_obj.TOOLBARS:
+            self.addToolBar(toolbar)
+
+        # Add all toolbar actions of this plugin_obj to the proper toolbars
+        self.add_toolbar_actions(plugin_obj.TOOLBAR_ACTIONS)
+
+        # Add all status widgets of this plugin_obj to the statusbar
+        for widget in plugin_obj.STATUS_WIDGETS:
+            self.statusbar.addPermanentWidget(widget)
+
+        # Check if this plugin_obj is an instance of BasePluginWidget
+        if isinstance(plugin_obj, BasePluginWidget):
+            # If so, add it as a dock widget as well
+            self.add_dockwidget(plugin_obj)
+
+        # Return the created plugin_obj
+        return(plugin_obj)
 
     # This function adds a dock widget to the main window
-    def add_dockwidget(self, plugin):
+    def add_dockwidget(self, plugin_obj):
         """
-        Adds a provided `plugin` as a dock widget to this main window.
+        Adds a provided `plugin_obj` as a dock widget to this main window.
 
         """
 
         # Create a dock widget object
-        dock_widget = BaseDockWidget(plugin.title, self)
+        dock_widget = BaseDockWidget(tr(plugin_obj.TITLE), self)
 
         # Add provided plugin as a widget to it
-        dock_widget.setWidget(plugin)
+        dock_widget.setWidget(plugin_obj)
 
         # Add dock_widget to the main window
-        self.addDockWidget(plugin.location, dock_widget)
+        self.addDockWidget(plugin_obj.LOCATION, dock_widget)
 
         # Add action for toggling the dock widget
         self.add_menu_actions({'View/Docks': [dock_widget.toggleViewAction()]})
-
-        # Add plugin to dict of all current plugins
-        self.plugins[plugin.title] = plugin
-
-        # Add all menu actions of this plugin to the proper menus
-        self.add_menu_actions(plugin.menu_actions)
-
-        # Add all toolbars of this plugin to the main window
-        for toolbar in plugin.toolbars:
-            self.addToolBar(toolbar)
-
-        # Add all toolbar actions of this plugin to the proper toolbars
-        self.add_toolbar_actions(plugin.toolbar_actions)
-
-        # Add all status widgets of this plugin to the statusbar
-        for widget in plugin.status_widgets:
-            self.statusbar.addPermanentWidget(widget)
 
     # This function adds all actions defined in a dict to the proper menus
     def add_menu_actions(self, actions_dict):

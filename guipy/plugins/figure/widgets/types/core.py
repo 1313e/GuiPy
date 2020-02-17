@@ -45,8 +45,8 @@ def register_plot_type(plot_type_class):
     """
 
     # Register the plot_type
-    name = plot_type_class.name()
-    axis_type = plot_type_class.axis_type()
+    name = plot_type_class.NAME
+    axis_type = plot_type_class.AXIS_TYPE
     PLOT_TYPES[axis_type][name] = plot_type_class
 
 

@@ -45,7 +45,7 @@ def register_plot_prop(plot_prop_class):
     """
 
     # Register the plot property
-    PLOT_PROPS[plot_prop_class.name()] = plot_prop_class
+    PLOT_PROPS[plot_prop_class.NAME] = plot_prop_class
 
 
 # This function imports all pre-defined plot properties and registers them

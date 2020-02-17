@@ -67,26 +67,6 @@ class BasePlotType(QW_QWidget):
         # Set up the plot entry box
         self.init(*args, **kwargs)
 
-    # Class method for obtaining the name of this plot type
-    @classmethod
-    def name(cls):
-        return(cls.NAME)
-
-    # Class method for obtaining the prefix of this plot type
-    @classmethod
-    def prefix(cls):
-        return(cls.PREFIX)
-
-    # Class method for obtaining the axis type of this plot type
-    @classmethod
-    def axis_type(cls):
-        return(cls.AXIS_TYPE)
-
-    # Class method for obtaining the property names of this plot type
-    @classmethod
-    def prop_names(cls):
-        return(cls.PROP_NAMES)
-
     # This function sets up the plot type
     def init(self):
         # Create layout for this line plot
@@ -111,7 +91,7 @@ class BasePlotType(QW_QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Loop over all required plot props
-        for prop_name in self.prop_names():
+        for prop_name in self.PROP_NAMES:
             # Obtain the PlotProp class associated with this property
             plot_prop_class = PLOT_PROPS[prop_name]
 
@@ -123,11 +103,11 @@ class BasePlotType(QW_QWidget):
 
             # Add a dictionary with all requirements of this property to it
             prop_kwargs.update({req: getattr(self, req)
-                                for req in plot_prop_class.requirements()})
+                                for req in plot_prop_class.REQUIREMENTS})
 
             # Initialize the property and add to layout
             prop_layout = plot_prop_class(**prop_kwargs)
-            prop_group = QW_QGroupBox(prop_layout.display_name())
+            prop_group = QW_QGroupBox(prop_layout.DISPLAY_NAME)
             prop_group.setLayout(prop_layout)
             layout.addRow(prop_group)
             self.props.append(prop_layout)

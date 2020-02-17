@@ -123,7 +123,7 @@ class FigurePlotEntry(BaseBox):
             # Initialize the proper entry
             plot_type = PLOT_TYPES['2D'][plot_type]
             plot_entry = plot_type(self.toolbar)
-            entry_name = "%i_%s" % (self.index, plot_type.prefix())
+            entry_name = "%i_%s" % (self.index, plot_type.PREFIX)
 
         # Insert the new plot entry
         self.layout.insertRow(index, plot_entry)

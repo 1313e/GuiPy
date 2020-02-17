@@ -243,7 +243,7 @@ class MultiDataNDProp(BasePlotProp):
 
         # Add a dictionary with all requirements of this property
         prop_kwargs.update({req: getattr(self, req)
-                            for req in self.data_prop.requirements()})
+                            for req in self.data_prop.REQUIREMENTS})
 
         # Replace the dataLabelChanged requirement with a different function
         prop_kwargs['dataLabelChanged'] =\

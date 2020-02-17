@@ -61,31 +61,6 @@ class BasePlotProp(QW_QFormLayout):
         # Set up the plot property
         self.init(**kwargs)
 
-    # Class method for obtaining the name of this plot property
-    @classmethod
-    def name(cls):
-        return(cls.NAME)
-
-    # Class method for obtaining the display name of this plot property
-    @classmethod
-    def display_name(cls):
-        return(cls.DISPLAY_NAME)
-
-    # Class method for obtaining the requirements of this plot property
-    @classmethod
-    def requirements(cls):
-        return(cls.REQUIREMENTS)
-
-    # Class method for obtaining the widget names of this plot property
-    @classmethod
-    def widget_names(cls):
-        return(cls.WIDGET_NAMES)
-
-    # Class method for obtaining the 'track_values' of this plot property
-    @classmethod
-    def track_values(cls):
-        return(cls.TRACK_VALUES)
-
     # This function sets up the plot property
     def init(self, **kwargs):
         # Save all provided kwargs as instance attributes
@@ -96,7 +71,7 @@ class BasePlotProp(QW_QFormLayout):
         self.widgets = {}
 
         # Loop over all items in self.widget_names
-        for widget_name in self.widget_names():
+        for widget_name in self.WIDGET_NAMES:
             # Obtain the function to get this widget
             func = getattr(self, widget_name)
 
@@ -108,7 +83,7 @@ class BasePlotProp(QW_QFormLayout):
             self.widgets[widget_name] = widget
 
             # Add widget as an options entry if requested
-            if self.track_values():
+            if self.TRACK_VALUES:
                 self.add_options_entry(widget)
             # Else, solely connect the modified signal to the apply button
             else:
@@ -123,7 +98,7 @@ class BasePlotProp(QW_QFormLayout):
         # Remove all widgets from options entries dict and close them
         for widget in self.widgets.values():
             # If this property uses an option entry, remove the widget
-            if self.track_values():
+            if self.TRACK_VALUES:
                 self.remove_options_entry(widget)
 
             # Close widget
