@@ -15,7 +15,6 @@ import numpy as np
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy import CONFIG
 from guipy.plugins.figure.widgets.types import BasePlotType
 from guipy.widgets import get_box_value, set_box_value
 
@@ -35,7 +34,7 @@ class LineType(BasePlotType):
     NAME = "Line"
     PREFIX = "line"
     AXIS_TYPE = "2D"
-    PROP_NAMES = ['Data1or2D', 'Line', 'LineMarker']
+    PROP_NAMES = [*BasePlotType.PROP_NAMES, 'Data1or2D', 'Line', 'LineMarker']
 
     # This function sets up the line plot
     def init(self, *args, **kwargs):
@@ -44,7 +43,8 @@ class LineType(BasePlotType):
 
         # Set the starting color to be the number of lines already present
         n_lines = len(self.axis.lines)
-        color = "C%i" % (n_lines % len(CONFIG['rcParams']['axes.prop_cycle']))
+        color = "C%i" % (n_lines % len(self.get_option('rcParams',
+                                                       'axes.prop_cycle')))
         set_box_value(self.line_color_box, color)
         set_box_value(self.marker_color_box, color)
 

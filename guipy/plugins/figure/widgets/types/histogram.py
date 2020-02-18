@@ -16,7 +16,6 @@ import pandas as pd
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy import CONFIG
 from guipy.plugins.figure.widgets.types import BasePlotType
 from guipy.widgets import get_box_value, set_box_value
 
@@ -36,7 +35,7 @@ class HistogramType(BasePlotType):
     NAME = "Histogram"
     PREFIX = "hist"
     AXIS_TYPE = "2D"
-    PROP_NAMES = ['MultiHistData', 'Histogram']
+    PROP_NAMES = [*BasePlotType.PROP_NAMES, 'MultiHistData', 'Histogram']
 
     # Signals
     dataLabelChanged = QC.Signal(int, str)
@@ -66,7 +65,8 @@ class HistogramType(BasePlotType):
         n_tabs = self.multi_data_box.count()
 
         # Use this number to cycle through MPL's color cycler
-        color = "C%i" % (n_tabs-1 % len(CONFIG['rcParams']['axes.prop_cycle']))
+        color = "C%i" % (n_tabs-1 % len(self.get_option('rcParams',
+                                                        'axes.prop_cycle')))
         set_box_value(self.multi_data_box, color, index, 'hist_color_box')
 
     # This function draws the histogram plot

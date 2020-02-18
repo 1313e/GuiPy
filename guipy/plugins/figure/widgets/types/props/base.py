@@ -49,7 +49,7 @@ class BasePlotProp(QW_QFormLayout):
     # Define class attributes
     NAME = ""
     DISPLAY_NAME = ""
-    REQUIREMENTS = []
+    REQUIREMENTS = ['options']
     WIDGET_NAMES = []
     TRACK_VALUES = True
 
@@ -66,6 +66,9 @@ class BasePlotProp(QW_QFormLayout):
         # Save all provided kwargs as instance attributes
         for name, value in kwargs.items():
             setattr(self, name, value)
+
+        # Save specific methods of provided options
+        self.get_option = self.options.get_option
 
         # Initialize empty dict of registered widgets
         self.widgets = {}
@@ -84,11 +87,11 @@ class BasePlotProp(QW_QFormLayout):
 
             # Add widget as an options entry if requested
             if self.TRACK_VALUES:
-                self.add_options_entry(widget)
+                self.options.add_options_entry(widget)
             # Else, solely connect the modified signal to the apply button
             else:
                 get_modified_box_signal(widget).connect(
-                    self.enable_apply_button)
+                    self.options.enable_apply_button)
 
             # Add widget to the layout
             self.addRow(*out)
@@ -99,7 +102,7 @@ class BasePlotProp(QW_QFormLayout):
         for widget in self.widgets.values():
             # If this property uses an option entry, remove the widget
             if self.TRACK_VALUES:
-                self.remove_options_entry(widget)
+                self.options.remove_options_entry(widget)
 
             # Close widget
             widget.close()

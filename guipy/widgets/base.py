@@ -42,6 +42,25 @@ class QW_QWidget(QW.QWidget):
 
     """
 
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+        # Retrieve certain methods from parent
+        self.get_parent_methods()
+
+    # This function retrieves a set of methods from the parent if possible
+    def get_parent_methods(self):
+        # Obtain parent widget
+        parent = self.parentWidget()
+
+        # If this widget has a parent, retrieve a few methods if possible
+        if parent is not None:
+            # Retrieve the 'get_option' method if it exists
+            if(not hasattr(self, 'get_option') and
+               hasattr(parent, 'get_option')):
+                self.get_option = parent.get_option
+
     # Override setStatusTip to auto translate
     def setStatusTip(self, text):
         super().setStatusTip(tr(text))
@@ -49,6 +68,27 @@ class QW_QWidget(QW.QWidget):
     # Override setToolTip to auto translate
     def setToolTip(self, text):
         super().setToolTip(tr(text))
+
+    # Override childEvent to add 'get_option' if it exists to all children
+    def childEvent(self, event):
+        """
+        Special :meth:`~PyQt5.QtCore.QObject.childEvent` event that
+        automatically adds calls the :meth:`~get_parent_methods` method on any
+        widget that becomes a child of this widget.
+
+        """
+
+        # If this event involved a child being added, check child object
+        if(event.type() == QC.QEvent.ChildAdded):
+            # Obtain child object
+            child = event.child()
+
+            # If this child has the 'get_parent_methods' method, call it
+            if hasattr(child, 'get_parent_methods'):
+                child.get_parent_methods()
+
+        # Call and return super method
+        return(super().childEvent(event))
 
 
 # %% CLASS DEFINITIONS

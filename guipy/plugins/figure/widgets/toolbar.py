@@ -17,8 +17,8 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 # GuiPy imports
 from guipy.plugins.figure.widgets.options import FigureOptionsDialog
 from guipy.widgets import (
-    QW_QLabel, QW_QPushButton, get_box_value, get_modified_box_signal,
-    set_box_value)
+    QW_QLabel, QW_QPushButton, QW_QToolBar, get_box_value,
+    get_modified_box_signal, set_box_value)
 
 # All declaration
 __all__ = ['FigureToolbar']
@@ -26,7 +26,7 @@ __all__ = ['FigureToolbar']
 
 # %% CLASS DEFINITIONS
 # Custom FigureToolbar class
-class FigureToolbar(NavigationToolbar2QT):
+class FigureToolbar(NavigationToolbar2QT, QW_QToolBar):
     # Initialize FigureToolbar class
     def __init__(self, data_table_plugin_obj, canvas, parent=None):
         # Save provided data table plugin object
@@ -34,6 +34,9 @@ class FigureToolbar(NavigationToolbar2QT):
 
         # Call super constructor
         super().__init__(canvas, parent, coordinates=False)
+
+        # Retrieve parent methods
+        self.get_parent_methods()
 
         # Set up figure toolbar
         self.init()

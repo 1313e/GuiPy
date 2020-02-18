@@ -9,7 +9,6 @@ Marker Property
 
 # %% IMPORTS
 # Package imports
-from matplotlib import rcParams
 from matplotlib.lines import lineMarkers
 from qtpy import QtCore as QC
 
@@ -28,8 +27,8 @@ __all__ = ['LineMarkerProp', 'ScatterMarkerProp']
 class MarkerProp(BasePlotProp):
     # Class attributes
     DISPLAY_NAME = "Marker"
-    REQUIREMENTS = []
-    WIDGET_NAMES = ['marker_style_box', 'marker_size_box', 'marker_color_box']
+    WIDGET_NAMES = [*BasePlotProp.WIDGET_NAMES, 'marker_style_box',
+                    'marker_size_box', 'marker_color_box']
 
     # This function creates and returns a line style box
     def marker_style_box(self):
@@ -60,7 +59,7 @@ class MarkerProp(BasePlotProp):
             marker_style_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
 
         # Set initial value to the default value in MPL
-        set_box_value(marker_style_box, self.DEFAULT_MARKER)
+        set_box_value(marker_style_box, self.default_marker)
 
         # Return name and box
         return('Style', marker_style_box)
@@ -79,7 +78,8 @@ class MarkerProp(BasePlotProp):
         marker_size_box.setSuffix(" pts")
 
         # Set initial value to the default value in MPL
-        set_box_value(marker_size_box, rcParams['lines.markersize'])
+        set_box_value(marker_size_box,
+                      self.get_option('rcParams', 'lines.markersize'))
 
         # Return name and box
         return('Size', marker_size_box)
@@ -112,7 +112,11 @@ class LineMarkerProp(MarkerProp):
 
     # Class attributes
     NAME = "LineMarker"
-    DEFAULT_MARKER = rcParams['lines.marker']
+
+    # This property holds the default marker used for line plots
+    @property
+    def default_marker(self):
+        return(self.get_option('rcParams', 'lines.marker'))
 
 
 # Define 'ScatterMarker' plot property
@@ -128,4 +132,8 @@ class ScatterMarkerProp(MarkerProp):
 
     # Class attributes
     NAME = "ScatterMarker"
-    DEFAULT_MARKER = rcParams['scatter.marker']
+
+    # This property holds the default marker used for scatter plots
+    @property
+    def default_marker(self):
+        return(self.get_option('rcParams', 'scatter.marker'))

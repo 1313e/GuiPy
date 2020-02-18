@@ -38,8 +38,8 @@ class HistogramProp(BasePlotProp):
     # Class attributes
     NAME = "Histogram"
     DISPLAY_NAME = "Histogram"
-    REQUIREMENTS = []
-    WIDGET_NAMES = ['n_bins_box', 'hist_orient_box', 'hist_cumul_box']
+    WIDGET_NAMES = [*BasePlotProp.WIDGET_NAMES, 'n_bins_box',
+                    'hist_orient_box', 'hist_cumul_box']
 
     # This function creates and returns a bins box
     def n_bins_box(self):

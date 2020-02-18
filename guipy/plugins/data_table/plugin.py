@@ -81,9 +81,11 @@ class DataTable(BasePluginWidget):
     def add_actions(self):
         # Initialize empty action lists for this plugin
         self.MENU_ACTIONS = {
+            **BasePluginWidget.MENU_ACTIONS,
             'File': [],
             'File/New': []}
         self.TOOLBAR_ACTIONS = {
+            **BasePluginWidget.TOOLBAR_ACTIONS,
             'File': []}
 
         # Add new tab action to file/new menu

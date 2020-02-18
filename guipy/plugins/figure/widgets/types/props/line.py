@@ -13,7 +13,6 @@ from matplotlib.lines import lineStyles
 from qtpy import QtCore as QC
 
 # GuiPy imports
-from guipy import CONFIG
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
 from guipy.widgets import (
     ColorBox, QW_QComboBox, QW_QDoubleSpinBox, set_box_value)
@@ -36,8 +35,8 @@ class LineProp(BasePlotProp):
     # Class attributes
     NAME = "Line"
     DISPLAY_NAME = "Line"
-    REQUIREMENTS = []
-    WIDGET_NAMES = ['line_style_box', 'line_width_box', 'line_color_box']
+    WIDGET_NAMES = [*BasePlotProp.WIDGET_NAMES, 'line_style_box',
+                    'line_width_box', 'line_color_box']
 
     # This function creates and returns a line style box
     def line_style_box(self):
@@ -68,7 +67,8 @@ class LineProp(BasePlotProp):
             line_style_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
 
         # Set initial value to the default value in MPL
-        set_box_value(line_style_box, CONFIG['rcParams']['lines.linestyle'])
+        set_box_value(line_style_box,
+                      self.get_option('rcParams', 'lines.linestyle'))
 
         # Return name and box
         return('Style', line_style_box)
@@ -88,7 +88,8 @@ class LineProp(BasePlotProp):
         line_width_box.setSuffix(" pts")
 
         # Set initial value to the default value in MPL
-        set_box_value(line_width_box, CONFIG['rcParams']['lines.linewidth'])
+        set_box_value(line_width_box,
+                      self.get_option('rcParams', 'lines.linewidth'))
 
         # Return name and box
         return('Width', line_width_box)

@@ -68,6 +68,9 @@ class MainWindow(QW_QMainWindow):
 
         """
 
+        # Read in the configuration of GuiPy
+        CONFIG.read_config()
+
         # Make sure that the viewer is deleted when window is closed
         self.setAttribute(QC.Qt.WA_DeleteOnClose)
 
@@ -97,6 +100,9 @@ class MainWindow(QW_QMainWindow):
 
         # Set the exception handler to an internal message window
         sys.excepthook = create_exception_handler(self)
+
+        # Write the current GuiPy configuration to file
+        CONFIG.write_config()
 
     # Override closeEvent to automatically close all plugins
     def closeEvent(self, *args, **kwargs):

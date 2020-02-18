@@ -14,7 +14,6 @@ Scatter Type
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy import CONFIG
 from guipy.plugins.figure.widgets.types import BasePlotType
 from guipy.widgets import get_box_value, set_box_value
 
@@ -35,7 +34,7 @@ class ScatterType(BasePlotType):
     NAME = "Scatter"
     PREFIX = "scatter"
     AXIS_TYPE = "2D"
-    PROP_NAMES = ['Data2D', 'ScatterMarker']
+    PROP_NAMES = [*BasePlotType.PROP_NAMES, 'Data2D', 'ScatterMarker']
 
     # This function sets up the scatter plot
     def init(self, *args, **kwargs):
@@ -44,7 +43,8 @@ class ScatterType(BasePlotType):
 
         # Set the starting color to be the number of scatters already present
         n_lines = len(self.axis.lines)
-        color = "C%i" % (n_lines % len(CONFIG['rcParams']['axes.prop_cycle']))
+        color = "C%i" % (n_lines % len(self.get_option('rcParams',
+                                                       'axes.prop_cycle')))
         set_box_value(self.marker_color_box, color)
 
     # This function draws the 2D scatter plot

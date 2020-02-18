@@ -61,6 +61,9 @@ class BasePlotType(QW_QWidget):
         self.figure = toolbar.canvas.figure
         self.axis = self.figure.gca()
 
+        # Save the option getter
+        self.get_option = self.options.get_option
+
         # Call super constructor
         super().__init__(parent)
 
@@ -95,17 +98,12 @@ class BasePlotType(QW_QWidget):
             # Obtain the PlotProp class associated with this property
             plot_prop_class = PLOT_PROPS[prop_name]
 
-            # Create dictionary with basic requirements of this property
-            prop_kwargs = {
-                'enable_apply_button': self.options.enable_apply_button,
-                'add_options_entry': self.options.add_options_entry,
-                'remove_options_entry': self.options.remove_options_entry}
-
-            # Add a dictionary with all requirements of this property to it
-            prop_kwargs.update({req: getattr(self, req)
-                                for req in plot_prop_class.REQUIREMENTS})
+            # Create a dictionary with all requirements of this property
+            prop_kwargs = {req: getattr(self, req)
+                           for req in plot_prop_class.REQUIREMENTS}
 
             # Initialize the property and add to layout
+            # TODO: Create a collapsable QGroupBox widget
             prop_layout = plot_prop_class(**prop_kwargs)
             prop_group = QW_QGroupBox(prop_layout.DISPLAY_NAME)
             prop_group.setLayout(prop_layout)

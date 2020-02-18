@@ -35,8 +35,9 @@ class Data1DProp(BasePlotProp):
     # Class attributes
     NAME = "Data1D"
     DISPLAY_NAME = "Data"
-    REQUIREMENTS = ['data_table_plugin', 'dataLabelChanged']
-    WIDGET_NAMES = ['data_label_box', 'x_data_box']
+    REQUIREMENTS = [*BasePlotProp.REQUIREMENTS, 'data_table_plugin',
+                    'dataLabelChanged']
+    WIDGET_NAMES = [*BasePlotProp.WIDGET_NAMES, 'data_label_box', 'x_data_box']
 
     # This function creates and returns the data label box
     def data_label_box(self):
@@ -177,8 +178,7 @@ class MultiDataNDProp(BasePlotProp):
 
     # Class attributes
     DISPLAY_NAME = "Data"
-    REQUIREMENTS = ['options']
-    WIDGET_NAMES = ['multi_data_box']
+    WIDGET_NAMES = [*BasePlotProp.WIDGET_NAMES, 'multi_data_box']
     TRACK_VALUES = False
 
     # Initialize multi data property
@@ -235,15 +235,9 @@ class MultiDataNDProp(BasePlotProp):
         data_prop = BaseBox()
         get_modified_box_signal(data_prop).connect(self.tab_widget.modified)
 
-        # Create dictionary with basic requirements of this property
-        prop_kwargs = {
-            'enable_apply_button': self.options.enable_apply_button,
-            'add_options_entry': self.options.add_options_entry,
-            'remove_options_entry': self.options.remove_options_entry}
-
-        # Add a dictionary with all requirements of this property
-        prop_kwargs.update({req: getattr(self, req)
-                            for req in self.data_prop.REQUIREMENTS})
+        # Create a dictionary with all requirements of this property
+        prop_kwargs = {req: getattr(self, req)
+                       for req in self.data_prop.REQUIREMENTS}
 
         # Replace the dataLabelChanged requirement with a different function
         prop_kwargs['dataLabelChanged'] =\
