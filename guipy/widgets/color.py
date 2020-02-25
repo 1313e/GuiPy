@@ -160,7 +160,7 @@ class ColorBox(BaseBox):
 
         Parameters
         ----------
-        color : str
+        color : str or tuple of length {3, 4}
             The matplotlib color that must be converted.
             If `color` is a float string, an error will be raised, as Qt5 does
             not accept those.
@@ -187,10 +187,10 @@ class ColorBox(BaseBox):
 
         # Convert to Qt RGBA values
         color = QG.QColor(
-            int(r*255),
-            int(g*255),
-            int(b*255),
-            int(a*255))
+            round(r*255),
+            round(g*255),
+            round(b*255),
+            round(a*255))
 
         # Return color
         return(color)
@@ -512,20 +512,16 @@ class ColorMapBox(BaseBox):
         # Obtain the RGBA values of the colormap
         # TODO: Figure out why setting 256 to cmap.N does not work for N > 256
         x = np.linspace(0, 1, 256)
-        rgba = cmap(x)
+        mplRGBA = cmap(x)
 
         # Convert to Qt RGBA values
-        rgba = [QG.QColor(
-            int(r*255),
-            int(g*255),
-            int(b*255),
-            int(a*255)).rgba() for r, g, b, a in rgba]
+        qtRGBA = [ColorBox.convert_to_qcolor(RGBA).rgba() for RGBA in mplRGBA]
 
         # Create an image object
         image = QG.QImage(256, 1, QG.QImage.Format_Indexed8)
 
         # Set the value of every pixel in this image
-        image.setColorTable(rgba)
+        image.setColorTable(qtRGBA)
         for i in range(256):
             image.setPixel(i, 0, i)
 
