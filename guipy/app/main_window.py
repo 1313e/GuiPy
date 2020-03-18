@@ -33,6 +33,7 @@ __all__ = ['MainWindow']
 
 # %% CLASS DEFINITIONS
 # Define class for main window
+# TODO: Write a lock-file system for GuiPy
 class MainWindow(QW_QMainWindow):
     """
     Defines the :class:`~MainWindow` class for *GuiPy*.

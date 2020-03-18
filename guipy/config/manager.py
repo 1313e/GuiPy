@@ -82,8 +82,7 @@ class ConfigManager(object):
 
         # If the config file does not exist, make an empty one
         if not path.exists(config_file):
-            with open(config_file, 'w'):
-                pass
+            os.mknod(config_file, 0o644)
 
         # Return config_file
         return(config_file)
