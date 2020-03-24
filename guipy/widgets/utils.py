@@ -14,7 +14,7 @@ import os
 from sys import platform
 
 # Package imports
-from e13tools.utils import docstring_substitute
+import e13tools as e13
 from sortedcontainers import SortedSet as sset
 
 # GuiPy imports
@@ -127,7 +127,7 @@ def _processFileDialogArguments(parent=None, caption='', basedir=None,
 
 # %% FUNCTION DEFINITIONS
 # Define custom getOpenFileName function that automatically applies filters
-@docstring_substitute(optional=optional_doc)
+@e13.docstring_substitute(optional=optional_doc)
 def getOpenFileName(*args, **kwargs):
     """
     Wrapper for the :func:`~PyQt5.QtWidgets.QFileDialog.getOpenFileName`
@@ -153,7 +153,7 @@ def getOpenFileName(*args, **kwargs):
 
 
 # Define custom getOpenFileNames function that automatically applies filters
-@docstring_substitute(optional=optional_doc)
+@e13.docstring_substitute(optional=optional_doc)
 def getOpenFileNames(*args, **kwargs):
     """
     Wrapper for the :func:`~PyQt5.QtWidgets.QFileDialog.getOpenFileNames`
@@ -179,7 +179,7 @@ def getOpenFileNames(*args, **kwargs):
 
 
 # Define custom getSaveFileName function that automatically applies filters
-@docstring_substitute(optional=optional_doc)
+@e13.docstring_substitute(optional=optional_doc)
 def getSaveFileName(*args, **kwargs):
     """
     Wrapper for the :func:`~PyQt5.QtWidgets.QFileDialog.getSaveFileName`
