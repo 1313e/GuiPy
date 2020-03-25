@@ -297,24 +297,27 @@ class MainWindow(QW_QMainWindow):
         # Initialize empty dict with plugins
         self.plugins = {}
 
-        # Initialize and add the DataTable plugin
-        data_table = self.add_plugin(DataTable)
-
-        # Initialize and add the Figure plugin
-        self.add_plugin(Figure, data_table)
+        # Initialize and add all the plugins
+        self.add_plugin(DataTable)
+        self.add_plugin(Figure)
 
     # This function adds a plugin to the main window
-    def add_plugin(self, plugin_class, *args, **kwargs):
+    def add_plugin(self, plugin_class, **kwargs):
         """
-        Initializes a provided `plugin_class` using the given `args` and
-        `kwargs`, adds it as a plugin to this main window and returns it.
+        Initializes a provided `plugin_class` using its requirements and the
+        given `kwargs`, adds it as a plugin to this main window and returns it.
         If `plugin_class` is associated with a widget, it will be added as a
         dock widget to this main window as well.
 
         """
 
+        # Obtain all the plugin requirements of the provided plugin_class
+        req_plugins = {req: self.plugins.get(req)
+                       for req in plugin_class.REQ_PLUGINS}
+
         # Initialize provided plugin_class
-        plugin_obj = plugin_class(*args, parent=self, **kwargs)
+        plugin_obj = plugin_class(req_plugins=req_plugins, parent=self,
+                                  **kwargs)
 
         # Add plugin_obj to dict of all current plugins
         self.plugins[plugin_obj.TITLE] = plugin_obj

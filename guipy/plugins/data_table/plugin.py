@@ -36,12 +36,12 @@ class DataTable(BasePluginWidget):
     LOCATION = QC.Qt.LeftDockWidgetArea
 
     # Initialize DataTable plugin
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         # Call super constructor
-        super().__init__(parent)
+        super().__init__(*args, **kwargs)
 
         # Set up the data table plugin
-        self.init(*args, **kwargs)
+        self.init()
 
     # This function sets up the data table plugin
     def init(self):

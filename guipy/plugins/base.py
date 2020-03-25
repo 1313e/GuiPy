@@ -31,12 +31,16 @@ class BasePlugin(object):
     TITLE = ''
     CONFIG_PAGES = []
     MENU_ACTIONS = {}
+    REQ_PLUGINS = []
     STATUS_WIDGETS = []
     TOOLBARS = []
     TOOLBAR_ACTIONS = {}
 
     # Initialize plugin
-    def __init__(self):
+    def __init__(self, req_plugins):
+        # Save provided req_plugins
+        self.req_plugins = req_plugins
+
         # Add config pages
         self.add_config_pages()
 

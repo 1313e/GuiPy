@@ -32,17 +32,18 @@ class Figure(BasePluginWidget):
     TITLE = "Figure"
     CONFIG_PAGES = [*BasePluginWidget.CONFIG_PAGES, MPLrcParamsConfigPage]
     LOCATION = QC.Qt.RightDockWidgetArea
+    REQ_PLUGINS = [*BasePluginWidget.REQ_PLUGINS, "Data table"]
 
     # Initialize Figure plugin
-    def __init__(self, data_table_obj, parent=None, *args, **kwargs):
-        # Save provided data table object
-        self.data_table = data_table_obj
-
+    def __init__(self, *args, **kwargs):
         # Call super constructor
-        super().__init__(parent)
+        super().__init__(*args, **kwargs)
+
+        # Extract data_table_obj
+        self.data_table = self.req_plugins['Data table']
 
         # Set up the figure plugin
-        self.init(*args, **kwargs)
+        self.init()
 
     # This function sets up the figure plugin
     def init(self):
