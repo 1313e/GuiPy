@@ -21,7 +21,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import __version__, APP_NAME, STR_TYPES
-from guipy.config import CONFIG, tr
+from guipy.config import CONFIG, GeneralConfigPage, tr
 from guipy.plugins import BasePluginWidget, DataTable, Figure
 from guipy.widgets import (
     BaseDockWidget, QW_QAction, QW_QMainWindow, QW_QMenu, QW_QMessageBox,
@@ -89,6 +89,9 @@ class MainWindow(QW_QMainWindow):
 
         # Create toolbars
         self.create_toolbars()
+
+        # Add all default config pages
+        self.add_config_pages()
 
         # Add all required plugins
         self.add_plugins()
@@ -286,6 +289,16 @@ class MainWindow(QW_QMainWindow):
 
         # Add all actions to the top-level menu
         self.add_menu_actions(actions)
+
+    # This function adds all general config pages to the main window
+    def add_config_pages(self):
+        """
+        Adds all general config pages to the main window.
+
+        """
+
+        # Initialize all config pages
+        GeneralConfigPage()
 
     # This function adds all plugins to the main window
     def add_plugins(self):

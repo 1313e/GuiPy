@@ -28,9 +28,9 @@ class BaseConfigPage(QW_QWidget):
     NAME = ''
 
     # Initialize config page
-    def __init__(self, section_name, parent=None):
+    def __init__(self, section_name=None, parent=None):
         # Save the config section name
-        self.section_name = section_name
+        self.section_name = self.NAME if section_name is None else section_name
 
         # Call super constructor
         super().__init__(parent)
