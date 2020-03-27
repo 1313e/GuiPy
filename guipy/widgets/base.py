@@ -39,6 +39,11 @@ class QWidget(QW.QWidget):
 
     """
 
+    # Signals
+    focusReceived = QC.Signal()
+    focusLost = QC.Signal()
+
+    # Initialize QWidget
     def __init__(self, *args, **kwargs):
         # Call super constructor
         super().__init__(*args, **kwargs)
@@ -86,6 +91,22 @@ class QWidget(QW.QWidget):
 
         # Call and return super method
         return(super().childEvent(event))
+
+    # Override focusInEvent to emit a signal whenever it is triggered
+    def focusInEvent(self, event):
+        # Call and return super method
+        return(super().focusInEvent(event))
+
+        # Emit signal
+        self.focusReceived.emit()
+
+    # Override focusOutEvent to emit a signal whenever it is triggered
+    def focusOutEvent(self, event):
+        # Call and return super method
+        return(super().focusOutEvent(event))
+
+        # Emit signal
+        self.focusLost.emit()
 
 
 # %% CLASS DEFINITIONS

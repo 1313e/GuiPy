@@ -89,6 +89,11 @@ class DualSpinBox(GW.BaseBox):
 
         """
 
+        # Make dict with different line-edits
+        box_types = {
+            float: GW.QDoubleSpinBox,
+            int: GW.QSpinBox}
+
         # Save provided types
         self.types = types
 
@@ -98,12 +103,12 @@ class DualSpinBox(GW.BaseBox):
 
         # Create two spinboxes with the provided types
         # LEFT
-        left_box = GW.QSpinBox() if types[0] is int else GW.QDoubleSpinBox()
+        left_box = box_types[types[0]]()
         box_layout.addWidget(left_box)
         self.left_box = left_box
 
         # RIGHT
-        right_box = GW.QSpinBox() if types[1] is int else GW.QDoubleSpinBox()
+        right_box = box_types[types[1]]()
         box_layout.addWidget(right_box)
         self.right_box = right_box
 
