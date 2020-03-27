@@ -17,13 +17,14 @@ from .core import *
 
 # Import base modules
 from . import (
-    checkbox, color, combobox, dock, exceptions, radiobutton, spinbox, tabbar,
-    text, utils)
+    checkbox, color, combobox, dock, exceptions, lineedit, radiobutton,
+    spinbox, tabbar, text, utils)
 from .checkbox import *
 from .color import *
 from .combobox import *
 from .dock import *
 from .exceptions import *
+from .lineedit import *
 from .radiobutton import *
 from .spinbox import *
 from .tabbar import *
@@ -32,7 +33,8 @@ from .utils import *
 
 # All declaration
 __all__ = ['base', 'checkbox', 'color', 'combobox', 'core', 'dock',
-           'exceptions', 'radiobutton', 'spinbox', 'tabbar', 'text', 'utils']
+           'exceptions', 'lineedit', 'radiobutton', 'spinbox', 'tabbar',
+           'text', 'utils']
 __all__.extend(base.__all__)
 __all__.extend(checkbox.__all__)
 __all__.extend(color.__all__)
@@ -40,6 +42,7 @@ __all__.extend(combobox.__all__)
 __all__.extend(core.__all__)
 __all__.extend(dock.__all__)
 __all__.extend(exceptions.__all__)
+__all__.extend(lineedit.__all__)
 __all__.extend(radiobutton.__all__)
 __all__.extend(spinbox.__all__)
 __all__.extend(tabbar.__all__)

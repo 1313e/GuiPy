@@ -16,7 +16,8 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import FLOAT_TYPES, INT_TYPES, STR_TYPES
-from guipy.widgets.base import QW_QLabel, QW_QTabWidget, QW_QWidget
+from guipy.widgets.base import (
+    QLabel as GW_QLabel, QTabWidget as GW_QTabWidget, QWidget as GW_QWidget)
 
 # All declaration
 __all__ = ['BaseBox', 'get_box_value', 'get_modified_box_signal',
@@ -27,7 +28,7 @@ __all__ = ['BaseBox', 'get_box_value', 'get_modified_box_signal',
 # Make base class for custom boxes
 # As QW.QWidget is a strict class (in C++), this cannot be an ABC
 # TODO: Create a DualBaseBox class for dual widgets?
-class BaseBox(QW_QWidget):
+class BaseBox(GW_QWidget):
     """
     Defines the :class:`~BaseBox` base class.
 
@@ -244,7 +245,7 @@ def get_modified_box_signal(box, *signal_sig):
         return(box.textChanged)
 
     # Labels (QLabel)
-    elif isinstance(box, QW_QLabel):
+    elif isinstance(box, GW_QLabel):
         return(box.contentsChanged)
     elif isinstance(box, QW.QLabel):
         raise NotImplementedError("Default QW.QLabel has no modified signal "
@@ -320,7 +321,7 @@ def set_box_value(box, value, *value_sig):
     elif isinstance(box, QW.QTabWidget):
         if isinstance(value, INT_TYPES):
             box.setCurrentIndex(value)
-        elif isinstance(value, STR_TYPES) and isinstance(box, QW_QTabWidget):
+        elif isinstance(value, STR_TYPES) and isinstance(box, GW_QTabWidget):
             index = box.tabNames.index(value)
             box.setCurrentIndex(index)
         else:

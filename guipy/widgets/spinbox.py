@@ -15,10 +15,8 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import INT_TYPES
-from guipy.layouts import QW_QHBoxLayout
-from guipy.widgets import (
-    BaseBox, QW_QDoubleSpinBox, QW_QLabel, QW_QSpinBox, get_box_value,
-    set_box_value)
+from guipy import layouts as GL, widgets as GW
+from guipy.widgets import get_box_value, set_box_value
 
 # All declaration
 __all__ = ['DualSpinBox']
@@ -26,7 +24,7 @@ __all__ = ['DualSpinBox']
 
 # %% CLASS DEFINITIONS
 # Make class with two spinboxes
-class DualSpinBox(BaseBox):
+class DualSpinBox(GW.BaseBox):
     """
     Defines the :class:`~DualSpinBox` class.
 
@@ -95,23 +93,23 @@ class DualSpinBox(BaseBox):
         self.types = types
 
         # Create the box_layout
-        box_layout = QW_QHBoxLayout(self)
+        box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
 
         # Create two spinboxes with the provided types
         # LEFT
-        left_box = QW_QSpinBox() if types[0] is int else QW_QDoubleSpinBox()
+        left_box = GW.QSpinBox() if types[0] is int else GW.QDoubleSpinBox()
         box_layout.addWidget(left_box)
         self.left_box = left_box
 
         # RIGHT
-        right_box = QW_QSpinBox() if types[1] is int else QW_QDoubleSpinBox()
+        right_box = GW.QSpinBox() if types[1] is int else GW.QDoubleSpinBox()
         box_layout.addWidget(right_box)
         self.right_box = right_box
 
         # If sep is not None, create label and add it
         if sep is not None:
-            sep_label = QW_QLabel(sep)
+            sep_label = GW.QLabel(sep)
             sep_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
             box_layout.insertWidget(1, sep_label)
 

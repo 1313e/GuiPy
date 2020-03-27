@@ -15,11 +15,10 @@ import matplotlib.pyplot as plt
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import QW_QVBoxLayout
+from guipy import layouts as GL, widgets as GW
 from guipy.plugins.figure.widgets.canvas import FigureCanvas
 from guipy.plugins.figure.widgets.manager import FigureManager
 from guipy.plugins.figure.widgets.toolbar import FigureToolbar
-from guipy.widgets import QW_QWidget
 
 # All declaration
 __all__ = ['FigureWidget']
@@ -27,7 +26,7 @@ __all__ = ['FigureWidget']
 
 # %% CLASS DEFINITIONS
 # Define class for the Figure widget
-class FigureWidget(QW_QWidget):
+class FigureWidget(GW.QWidget):
     # Initialize FigureWidget
     def __init__(self, data_table_plugin_obj, num, parent=None, *args,
                  **kwargs):
@@ -44,7 +43,7 @@ class FigureWidget(QW_QWidget):
     # This function sets up the figure widget
     def init(self):
         # Create a layout
-        layout = QW_QVBoxLayout(self)
+        layout = GL.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Initialize figure

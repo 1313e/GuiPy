@@ -18,8 +18,8 @@ import e13tools as e13
 from sortedcontainers import SortedSet as sset
 
 # GuiPy imports
-from guipy.config import FILE_EXTS, FILE_FORMATS, tr
-from guipy.widgets import QW_QFileDialog
+from guipy import widgets as GW
+from guipy.config import FILE_EXTS, FILE_FORMATS
 
 # All declaration
 __all__ = ['getOpenFileName', 'getOpenFileNames', 'getSaveFileName']
@@ -57,9 +57,6 @@ def _processFileDialogArguments(parent=None, caption='', basedir=None,
     # If basedir is None, set it to the current directory
     if basedir is None:
         basedir = os.getcwd()
-
-    # Translate the caption
-    caption = tr(caption)
 
     # Check what filters are given and act accordingly
     if filters is None:
@@ -105,9 +102,9 @@ def _processFileDialogArguments(parent=None, caption='', basedir=None,
     # Do not use native dialog on Linux, as it is pretty bad
     if platform.startswith('linux'):
         if options is None:
-            options = QW_QFileDialog.DontUseNativeDialog
+            options = GW.QFileDialog.DontUseNativeDialog
         else:
-            options = options | QW_QFileDialog.DontUseNativeDialog
+            options = options | GW.QFileDialog.DontUseNativeDialog
 
     # Create dict with all arguments
     args_dict = {
@@ -149,7 +146,7 @@ def getOpenFileName(*args, **kwargs):
     args_dict = _processFileDialogArguments(*args, **kwargs)
 
     # Open the file opening system and return the result
-    return(QW_QFileDialog.getOpenFileName(**args_dict))
+    return(GW.QFileDialog.getOpenFileName(**args_dict))
 
 
 # Define custom getOpenFileNames function that automatically applies filters
@@ -175,7 +172,7 @@ def getOpenFileNames(*args, **kwargs):
     args_dict = _processFileDialogArguments(*args, **kwargs)
 
     # Open the file opening system and return the result
-    return(QW_QFileDialog.getOpenFileNames(**args_dict))
+    return(GW.QFileDialog.getOpenFileNames(**args_dict))
 
 
 # Define custom getSaveFileName function that automatically applies filters
@@ -201,4 +198,4 @@ def getSaveFileName(*args, **kwargs):
     args_dict = _processFileDialogArguments(*args, **kwargs)
 
     # Open the file saving system and return the result
-    return(QW_QFileDialog.getSaveFileName(**args_dict))
+    return(GW.QFileDialog.getSaveFileName(**args_dict))

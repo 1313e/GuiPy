@@ -14,11 +14,9 @@ Figure Plot Entry
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import QW_QHBoxLayout, QW_QFormLayout
+from guipy import layouts as GL, widgets as GW
 from guipy.plugins.figure.widgets.types import PLOT_TYPES
-from guipy.widgets import (
-    BaseBox, QW_QComboBox, QW_QLineEdit, QW_QToolButton, QW_QWidget,
-    get_modified_box_signal, set_box_value)
+from guipy.widgets import get_modified_box_signal, set_box_value
 
 # All declaration
 __all__ = ['FigurePlotEntry']
@@ -28,7 +26,7 @@ __all__ = ['FigurePlotEntry']
 # Create custom class for making a plot entry
 # TODO: Allow for individual plots to be toggled (toggled QGroupBox?)
 # TODO: Write custom QGroupBox that can have a QComboBox as its title?
-class FigurePlotEntry(BaseBox):
+class FigurePlotEntry(GW.BaseBox):
     # Signals
     entryNameChanged = QC.Signal(str)
     entryRemoveRequested = QC.Signal()
@@ -55,16 +53,16 @@ class FigurePlotEntry(BaseBox):
     # HINT: Use pd.plot?
     def create_entry_layout(self):
         # Create layout
-        layout = QW_QFormLayout(self)
+        layout = GL.QFormLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.layout = layout
 
         # Create a name editor layout
-        name_layout = QW_QHBoxLayout()
+        name_layout = GL.QHBoxLayout()
         layout.addRow('Name', name_layout)
 
         # Create entry name editor
-        name_box = QW_QLineEdit()
+        name_box = GW.QLineEdit()
         name_box.setToolTip("Name of this plot entry")
         set_box_value(name_box, self.name)
         get_modified_box_signal(name_box).connect(self.entryNameChanged)
@@ -73,7 +71,7 @@ class FigurePlotEntry(BaseBox):
         self.name_box = name_box
 
         # Add a toolbutton for deleting this plot entry
-        del_but = QW_QToolButton()
+        del_but = GW.QToolButton()
         del_but.setToolTip("Delete this plot entry")
         get_modified_box_signal(del_but).connect(self.entryRemoveRequested)
         name_layout.addWidget(del_but)
@@ -87,7 +85,7 @@ class FigurePlotEntry(BaseBox):
                 QW.QStyle.SP_DialogCloseButton))
 
         # Create a combobox for choosing a plot type
-        plot_types = QW_QComboBox()
+        plot_types = GW.QComboBox()
         plot_types.addItems(PLOT_TYPES['2D'])
         plot_types.setToolTip("Select the plot type you wish to use for this "
                               "plot entry")
@@ -100,7 +98,7 @@ class FigurePlotEntry(BaseBox):
         layout.addSeparator()
 
         # Create a dummy entry to start off
-        self.plot_entry = QW_QWidget()
+        self.plot_entry = GW.QWidget()
         layout.addRow(self.plot_entry)
 
     # This function sets the currently used plot type
@@ -115,7 +113,7 @@ class FigurePlotEntry(BaseBox):
 
         # If the plot_type is empty, create dummy widget
         if not plot_type:
-            plot_entry = QW_QWidget()
+            plot_entry = GW.QWidget()
             entry_name = self.name
 
         # Else, initialize the requested type

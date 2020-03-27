@@ -12,9 +12,8 @@ Base Plot Types
 from qtpy import QtCore as QC
 
 # GuiPy imports
-from guipy.layouts import QW_QFormLayout
+from guipy import layouts as GL, widgets as GW
 from guipy.plugins.figure.widgets.types.props import PLOT_PROPS
-from guipy.widgets import QW_QGroupBox, QW_QWidget
 
 # All declaration
 __all__ = ['BasePlotType']
@@ -22,7 +21,7 @@ __all__ = ['BasePlotType']
 
 # %% CLASS DEFINITIONS
 # Define BasePlotType base class
-class BasePlotType(QW_QWidget):
+class BasePlotType(GW.QWidget):
     """
     Provides a base class definition that must be subclassed by all figure plot
     types.
@@ -90,7 +89,7 @@ class BasePlotType(QW_QWidget):
         self.props = []
 
         # Create layout for this plot type
-        layout = QW_QFormLayout(self)
+        layout = GL.QFormLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Loop over all required plot props
@@ -105,7 +104,7 @@ class BasePlotType(QW_QWidget):
             # Initialize the property and add to layout
             # TODO: Create a collapsable QGroupBox widget
             prop_layout = plot_prop_class(**prop_kwargs)
-            prop_group = QW_QGroupBox(prop_layout.DISPLAY_NAME)
+            prop_group = GW.QGroupBox(prop_layout.DISPLAY_NAME)
             prop_group.setLayout(prop_layout)
             layout.addRow(prop_group)
             self.props.append(prop_layout)

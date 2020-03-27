@@ -14,8 +14,8 @@ Provides a collection of base functions to standardize the configuration of
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
+from guipy import widgets as GW
 from guipy.config.manager import CONFIG
-from guipy.widgets import QW_QWidget
 
 # All declaration
 __all__ = ['BaseConfigPage']
@@ -23,7 +23,7 @@ __all__ = ['BaseConfigPage']
 
 # %% CLASS DEFINITIONS
 # Define base class for making config pages
-class BaseConfigPage(QW_QWidget):
+class BaseConfigPage(GW.QWidget):
     # Define class attributes
     NAME = ''
 

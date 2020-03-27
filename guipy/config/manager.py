@@ -14,6 +14,7 @@ import os
 from os import path
 
 # Package imports
+from qtpy import QtCore as QC
 from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
@@ -32,6 +33,20 @@ class ConfigManager(object):
         self.config = sdict()
         self.parser = ConfigParser(interpolation=None)
         self.config_pages = sdict()
+
+    # Initialize config manager for actual use in GuiPy
+    def _init(self, parent=None):
+        # Save provided parent
+        self.parent = parent
+
+        # Read in the configuration file
+        self.read_config()
+
+        # Add core config pages
+        self._add_config_pages()
+
+        # Save the current system locale
+        self.locale = QC.QLocale.system()
 
     # This function returns the value of a specific config
     def get_option(self, section, option):
@@ -86,6 +101,20 @@ class ConfigManager(object):
 
         # Return config_file
         return(config_file)
+
+    # This function adds the core config pages to the config manager
+    def _add_config_pages(self):
+        """
+        Adds the core config pages to the config manager, which are required by
+        *GuiPy* itself.
+
+        """
+
+        # Import all required config pages
+        from guipy.config import GeneralConfigPage
+
+        # Add 'General' config page
+        GeneralConfigPage()
 
     # This function adds a config page to the config manager
     def add_config_page(self, config_page):

@@ -14,7 +14,7 @@ Data Table Headers
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy.widgets import QW_QHeaderView
+from guipy import widgets as GW
 
 # All declaration
 __all__ = ['BaseHeaderView', 'HorizontalHeaderView', 'VerticalHeaderView']
@@ -22,7 +22,7 @@ __all__ = ['BaseHeaderView', 'HorizontalHeaderView', 'VerticalHeaderView']
 
 # %% CLASS DEFINITIONS
 # Define base class for the headers of the data table
-class BaseHeaderView(QW_QHeaderView):
+class BaseHeaderView(GW.QHeaderView):
     # Signal
     sectionRightClicked = QC.Signal(int)
 

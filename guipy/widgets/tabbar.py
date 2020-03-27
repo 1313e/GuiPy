@@ -14,7 +14,8 @@ Tab Bars
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy.widgets import QW_QLineEdit, QW_QTabBar, get_box_value
+from guipy import widgets as GW
+from guipy.widgets import get_box_value
 
 # All declaration
 __all__ = ['EditableTabBar', 'TabNameEditor']
@@ -22,7 +23,7 @@ __all__ = ['EditableTabBar', 'TabNameEditor']
 
 # %% CLASS DEFINITIONS
 # Custom QTabBar definition that allows for tab names to be edited
-class EditableTabBar(QW_QTabBar):
+class EditableTabBar(GW.QTabBar):
     # Initialize EditableTabBar class
     def __init__(self, parent=None, *args, **kwargs):
         # Call super constructor
@@ -52,7 +53,7 @@ class EditableTabBar(QW_QTabBar):
 
 
 # Custom QLineEdit used for renaming a tab
-class TabNameEditor(QW_QLineEdit):
+class TabNameEditor(GW.QLineEdit):
     def __init__(self, tabbar_obj, *args, **kwargs):
         # Save provided tabbar_obj
         self.tabbar = tabbar_obj

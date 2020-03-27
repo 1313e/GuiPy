@@ -15,9 +15,8 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import INT_TYPES
-from guipy.layouts import QW_QHBoxLayout
-from guipy.widgets import (
-    BaseBox, QW_QComboBox, QW_QLabel, get_box_value, set_box_value)
+from guipy import layouts as GL, widgets as GW
+from guipy.widgets import get_box_value, set_box_value
 
 # All declaration
 __all__ = ['DualComboBox', 'EditableComboBox']
@@ -25,7 +24,7 @@ __all__ = ['DualComboBox', 'EditableComboBox']
 
 # %% CLASS DEFINITIONS
 # Make class with two comboboxes
-class DualComboBox(BaseBox):
+class DualComboBox(GW.BaseBox):
     """
     Defines the :class:`~DualComboBox` class.
 
@@ -91,23 +90,23 @@ class DualComboBox(BaseBox):
         """
 
         # Create the box_layout
-        box_layout = QW_QHBoxLayout(self)
+        box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
 
         # Create two comboboxes with the provided editability
         # LEFT
-        left_box = EditableComboBox() if editable[0] else QW_QComboBox()
+        left_box = EditableComboBox() if editable[0] else GW.QComboBox()
         box_layout.addWidget(left_box)
         self.left_box = left_box
 
         # RIGHT
-        right_box = EditableComboBox() if editable[1] else QW_QComboBox()
+        right_box = EditableComboBox() if editable[1] else GW.QComboBox()
         box_layout.addWidget(right_box)
         self.right_box = right_box
 
         # If sep is not None, create label and add it
         if sep is not None:
-            sep_label = QW_QLabel(sep)
+            sep_label = GW.QLabel(sep)
             sep_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
             box_layout.insertWidget(1, sep_label)
 
@@ -158,7 +157,7 @@ class DualComboBox(BaseBox):
 
 
 # Create custom QComboBox class that is editable
-class EditableComboBox(QW_QComboBox):
+class EditableComboBox(GW.QComboBox):
     """
     Defines the :class:`~QW_QEditableComboBox` class.
 

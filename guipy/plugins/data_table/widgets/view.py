@@ -14,16 +14,13 @@ Data Table View
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import QW_QFormLayout
+from guipy import layouts as GL, widgets as GW
 from guipy.plugins.data_table.widgets.headers import (
     HorizontalHeaderView, VerticalHeaderView)
 from guipy.plugins.data_table.widgets.model import DataTableModel, to_base_26
 from guipy.plugins.data_table.widgets.selection_model import (
     DataTableSelectionModel)
-from guipy.widgets import (
-    QW_QAction, QW_QComboBox, QW_QDialog, QW_QLabel, QW_QLineEdit, QW_QMenu,
-    QW_QTableView, QW_QToolTip, get_box_value, get_modified_box_signal,
-    set_box_value)
+from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
 
 # All declaration
 __all__ = ['DataTableView']
@@ -33,7 +30,7 @@ __all__ = ['DataTableView']
 # Define table view widget for the DataTable plugin
 # TODO: Save all data in the widget before resizing
 # HINT: https://doc.qt.io/qt-5/model-view-programming.html
-class DataTableView(QW_QTableView):
+class DataTableView(GW.QTableView):
     # Initialize DataTableView class
     def __init__(self, parent=None, *args, **kwargs):
         # Call super constructor
@@ -130,38 +127,38 @@ class DataTableView(QW_QTableView):
     # This function creates the horizontal header context menu
     def create_horizontal_header_context_menu(self):
         # Create context menu
-        menu = QW_QMenu('H_Header', parent=self)
+        menu = GW.QMenu('H_Header', parent=self)
 
         # Add insert_above action to menu
-        insert_above_act = QW_QAction(
+        insert_above_act = GW.QAction(
             self, "Insert column left",
             statustip="Insert a new column left of this one",
             triggered=self.insert_cols)
         menu.addAction(insert_above_act)
 
         # Add insert_below action to menu
-        insert_below_act = QW_QAction(
+        insert_below_act = GW.QAction(
             self, "Insert column right",
             statustip="Insert a new column right of this one",
             triggered=self.insert_cols_after)
         menu.addAction(insert_below_act)
 
         # Add remove action to menu
-        remove_act = QW_QAction(
+        remove_act = GW.QAction(
             self, "Remove column",
             statustip="Remove this column",
             triggered=self.remove_cols)
         menu.addAction(remove_act)
 
         # Add clear action to menu
-        clear_act = QW_QAction(
+        clear_act = GW.QAction(
             self, "Clear column",
             statustip="Clear this column",
             triggered=self.clear_cols)
         menu.addAction(clear_act)
 
         # Add hide action to menu
-        hide_act = QW_QAction(
+        hide_act = GW.QAction(
             self, "Hide column",
             statustip="Hide this column",
             triggered=self.hide_cols)
@@ -176,38 +173,38 @@ class DataTableView(QW_QTableView):
     # This function creates the vertical header context menu
     def create_vertical_header_context_menu(self):
         # Create context menu
-        menu = QW_QMenu('V_Header', parent=self)
+        menu = GW.QMenu('V_Header', parent=self)
 
         # Add insert_above action to menu
-        insert_above_act = QW_QAction(
+        insert_above_act = GW.QAction(
             self, "Insert row above",
             statustip="Insert a new row above this one",
             triggered=self.insert_rows)
         menu.addAction(insert_above_act)
 
         # Add insert_below action to menu
-        insert_below_act = QW_QAction(
+        insert_below_act = GW.QAction(
             self, "Insert row below",
             statustip="Insert a new row below this one",
             triggered=self.insert_rows_after)
         menu.addAction(insert_below_act)
 
         # Add remove action to menu
-        remove_act = QW_QAction(
+        remove_act = GW.QAction(
             self, "Remove row",
             statustip="Remove this row",
             triggered=self.remove_rows)
         menu.addAction(remove_act)
 
         # Add clear action to menu
-        clear_act = QW_QAction(
+        clear_act = GW.QAction(
             self, "Clear row",
             statustip="Clear this row",
             triggered=self.clear_rows)
         menu.addAction(clear_act)
 
         # Add hide action to menu
-        hide_act = QW_QAction(
+        hide_act = GW.QAction(
             self, "Hide row",
             statustip="Hide this row",
             triggered=self.hide_rows)
@@ -314,7 +311,7 @@ class DataTableView(QW_QTableView):
 
 
 # Define class for showing a popup editor for the horizontal header
-class HorizontalHeaderPopup(QW_QDialog):
+class HorizontalHeaderPopup(GW.QDialog):
     # Initialize HorizontalHeaderPopup class
     def __init__(self, data_table_view_obj, *args, **kwargs):
         # Save provided DataTableView object
@@ -370,15 +367,15 @@ class HorizontalHeaderPopup(QW_QDialog):
             QC.Qt.FramelessWindowHint)
 
         # Create a form layout
-        layout = QW_QFormLayout(self)
+        layout = GL.QFormLayout(self)
 
         # Add a label stating the base name of the column
-        self.base_name_label = QW_QLabel("")
+        self.base_name_label = GW.QLabel("")
         self.base_name_label.setAlignment(QC.Qt.AlignCenter)
         layout.addRow(self.base_name_label)
 
         # Create a n_val label
-        n_val_box = QW_QLabel()
+        n_val_box = GW.QLabel()
         n_val_box.setToolTip("Number of values in this column")
 
         # Add it to the layout
@@ -386,7 +383,7 @@ class HorizontalHeaderPopup(QW_QDialog):
         self.n_val_box = n_val_box
 
         # Create a name line-edit
-        name_box = QW_QLineEdit()
+        name_box = GW.QLineEdit()
         name_box.setToolTip("Set a custom name for this column or leave empty "
                             "to use its default name")
         get_modified_box_signal(name_box).connect(self.column_name_changed)
@@ -396,7 +393,7 @@ class HorizontalHeaderPopup(QW_QDialog):
         self.name_box = name_box
 
         # Create a dtype combobox
-        dtype_box = QW_QComboBox()
+        dtype_box = GW.QComboBox()
         dtype_box.setToolTip("Set the data type for this column")
         dtype_box.addItems(self.model.dtypes.values())
         dtype_box.popup_hidden.connect(lambda: name_box.setFocus(True))
@@ -446,11 +443,11 @@ class HorizontalHeaderPopup(QW_QDialog):
         # If this name is not valid, show tooltip with error
         if not self.check_column_name(name):
             err_msg = "This name is either invalid or already taken!"
-            QW_QToolTip.showText(pos, err_msg, self.name_box)
+            GW.QToolTip.showText(pos, err_msg, self.name_box)
 
         # If it is valid, disable any previous tooltip
         else:
-            QW_QToolTip.hideText()
+            GW.QToolTip.hideText()
 
     # This function checks if a given name could be used for a given column
     # TODO: Should I use a QG.QValidator for this?

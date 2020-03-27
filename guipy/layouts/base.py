@@ -14,13 +14,12 @@ that allow for certain layouts to be standardized.
 from qtpy import QtWidgets as QW
 
 # All declaration
-__all__ = ['QW_QFormLayout', 'QW_QGridLayout', 'QW_QHBoxLayout',
-           'QW_QVBoxLayout']
+__all__ = ['QFormLayout', 'QGridLayout', 'QHBoxLayout', 'QVBoxLayout']
 
 
 # %% CLASS DEFINITIONS
 # Make subclass of QW.QFormLayout to add separator function
-class QW_QFormLayout(QW.QFormLayout):
+class QFormLayout(QW.QFormLayout):
     # This function adds a horizontal separator to the layout
     def addSeparator(self):
         # Create frame object
@@ -35,7 +34,7 @@ class QW_QFormLayout(QW.QFormLayout):
 
 
 # Make subclass of QW.QGridLayout to add separator function
-class QW_QGridLayout(QW.QGridLayout):
+class QGridLayout(QW.QGridLayout):
     # This function adds a separator to the layout
     def addSeparator(self, *, row=None, column=None):
         # Create frame object
@@ -53,7 +52,7 @@ class QW_QGridLayout(QW.QGridLayout):
 
 
 # Make subclass of QW.QHBoxLayout to add separator function
-class QW_QHBoxLayout(QW.QHBoxLayout):
+class QHBoxLayout(QW.QHBoxLayout):
     # This function adds a vertical separator to the layout
     def addSeparator(self):
         # Create frame object
@@ -68,7 +67,7 @@ class QW_QHBoxLayout(QW.QHBoxLayout):
 
 
 # Make subclass of QW.QVBoxLayout to add separator function
-class QW_QVBoxLayout(QW.QVBoxLayout):
+class QVBoxLayout(QW.QVBoxLayout):
     # This function adds a horizontal separator to the layout
     def addSeparator(self):
         # Create frame object

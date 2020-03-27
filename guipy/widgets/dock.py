@@ -15,7 +15,7 @@ Provides the base definition of the dock widgets used in *GuiPy*.
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.widgets import QW_QDockWidget
+from guipy import widgets as GW
 
 # All declaration
 __all__ = ['BaseDockWidget']
@@ -23,7 +23,7 @@ __all__ = ['BaseDockWidget']
 
 # %% CLASS DEFINITIONS
 # Make base class for dock widgets
-class BaseDockWidget(QW_QDockWidget):
+class BaseDockWidget(GW.QDockWidget):
     # Signals
     dockClosed = QC.Signal()
 

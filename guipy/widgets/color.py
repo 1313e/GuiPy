@@ -22,11 +22,9 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from sortedcontainers import SortedDict as sdict, SortedSet as sset
 
 # GuiPy imports
-from guipy.layouts import QW_QHBoxLayout
-from guipy.widgets import (
-    BaseBox, QW_QComboBox, QW_QLabel, get_box_value, get_modified_box_signal,
-    set_box_value)
-from guipy.widgets.combobox import EditableComboBox
+from guipy import layouts as GL, widgets as GW
+from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
+from guipy.widgets.combobox import EditableComboBox as GW_EditableComboBox
 
 # All declaration
 __all__ = ['ColorBox', 'ColorMapBox']
@@ -34,7 +32,7 @@ __all__ = ['ColorBox', 'ColorMapBox']
 
 # %% CLASS DEFINITIONS
 # Make class with a special box for setting the color of a plotted line
-class ColorBox(BaseBox):
+class ColorBox(GW.BaseBox):
     """
     Defines the :class:`~ColorBox` class.
 
@@ -67,7 +65,7 @@ class ColorBox(BaseBox):
         """
 
         # Create the box layout
-        box_layout = QW_QHBoxLayout(self)
+        box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
         self.setToolTip("Color to be used for the corresponding plot type")
 
@@ -96,7 +94,7 @@ class ColorBox(BaseBox):
         """
 
         # Create the color label
-        color_label = QW_QLabel()
+        color_label = GW.QLabel()
 
         # Set some properties
         color_label.setFrameShape(QW.QFrame.StyledPanel)
@@ -128,7 +126,7 @@ class ColorBox(BaseBox):
         cum_len = np.cumsum(list(map(len, colors)))
 
         # Make combobox for colors
-        color_box = EditableComboBox()
+        color_box = GW_EditableComboBox()
 
         # Fill combobox with all colors
         for i, color in enumerate(chain(*colors)):
@@ -397,7 +395,7 @@ class ColorBox(BaseBox):
 
 
 # Make class with a special box for setting the colormap of a plotted hexbin
-class ColorMapBox(BaseBox):
+class ColorMapBox(GW.BaseBox):
     """
     Defines the :class:`~ColorMapBox` class.
 
@@ -458,12 +456,12 @@ class ColorMapBox(BaseBox):
             ColorMapBox.cmap_icons = cmap_icons
 
         # Create a layout for this widget
-        box_layout = QW_QHBoxLayout(self)
+        box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
         self.setToolTip("Colormap to be used for the corresponding plot type")
 
         # Create a combobox for cmaps
-        cmaps_box = QW_QComboBox()
+        cmaps_box = GW.QComboBox()
         for cmap in chain(*cmaps):
             cmap_icon = self.cmap_icons[cmap]
             cmaps_box.addItem(cmap_icon, cmap)

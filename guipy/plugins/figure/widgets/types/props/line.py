@@ -13,9 +13,9 @@ from matplotlib.lines import lineStyles
 from qtpy import QtCore as QC
 
 # GuiPy imports
+from guipy import widgets as GW
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
-from guipy.widgets import (
-    ColorBox, QW_QComboBox, QW_QDoubleSpinBox, set_box_value)
+from guipy.widgets import set_box_value
 
 # All declaration
 __all__ = ['LineProp']
@@ -58,7 +58,7 @@ class LineProp(BasePlotProp):
             LineProp.LINESTYLES = linestyles
 
         # Make combobox for linestyles
-        line_style_box = QW_QComboBox()
+        line_style_box = GW.QComboBox()
         line_style_box.setToolTip("Linestyle to be used for this line plot")
 
         # Populate box with all supported linestyles
@@ -82,7 +82,7 @@ class LineProp(BasePlotProp):
         """
 
         # Make a double spinbox for linewidth
-        line_width_box = QW_QDoubleSpinBox()
+        line_width_box = GW.QDoubleSpinBox()
         line_width_box.setToolTip("Width of the plotted line")
         line_width_box.setRange(0, 9999999)
         line_width_box.setSuffix(" pts")
@@ -103,7 +103,7 @@ class LineProp(BasePlotProp):
         """
 
         # Make a color box
-        line_color_box = ColorBox()
+        line_color_box = GW.ColorBox()
 
         # Return name and box
         return('Color', line_color_box)

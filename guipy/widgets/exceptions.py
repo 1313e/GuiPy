@@ -16,10 +16,7 @@ from traceback import format_exception_only, format_tb
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import QW_QGridLayout, QW_QVBoxLayout
-from guipy.widgets import (
-    QW_QDialog, QW_QLabel, QW_QMessageBox, QW_QTextEdit, QW_QWidget)
-
+from guipy import layouts as GL, widgets as GW
 
 # All declaration
 __all__ = ['ExceptionDialog', 'create_exception_handler']
@@ -27,7 +24,7 @@ __all__ = ['ExceptionDialog', 'create_exception_handler']
 
 # %% CLASS DEFINITIONS
 # Make special class for showing exception details
-class ExceptionDialog(QW_QDialog):
+class ExceptionDialog(GW.QDialog):
     """
     Defines the :class:`~ExceptionDialog` class.
 
@@ -79,7 +76,7 @@ class ExceptionDialog(QW_QDialog):
         """
 
         # Create a window layout
-        grid_layout = QW_QGridLayout(self)
+        grid_layout = GL.QGridLayout(self)
         grid_layout.setColumnStretch(2, 1)
         grid_layout.setRowStretch(3, 1)
 
@@ -95,8 +92,8 @@ class ExceptionDialog(QW_QDialog):
             QC.Qt.WindowCloseButtonHint)
 
         # Set the icon of the exception on the left
-        icon_label = QW_QLabel()
-        pixmap = QW_QMessageBox.standardIcon(QW_QMessageBox.Critical)
+        icon_label = GW.QLabel()
+        pixmap = GW.QMessageBox.standardIcon(GW.QMessageBox.Critical)
         icon_label.setPixmap(pixmap)
         grid_layout.addWidget(icon_label, 0, 0, 2, 1, QC.Qt.AlignTop)
 
@@ -107,7 +104,7 @@ class ExceptionDialog(QW_QDialog):
 
         # Set the text of the exception
         exc_str = self.format_exception()
-        exc_label = QW_QLabel(exc_str)
+        exc_label = GW.QLabel(exc_str)
         grid_layout.addWidget(exc_label, 0, 2, 1, 1)
 
         # Create a button box for the buttons
@@ -169,11 +166,11 @@ class ExceptionDialog(QW_QDialog):
         """
 
         # Create a traceback box
-        traceback_box = QW_QWidget()
+        traceback_box = GW.QWidget()
         traceback_box.setHidden(True)
 
         # Create layout
-        layout = QW_QVBoxLayout(traceback_box)
+        layout = GL.QVBoxLayout(traceback_box)
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Add a horizontal line to the layout
@@ -183,7 +180,7 @@ class ExceptionDialog(QW_QDialog):
         tb_str = self.format_traceback()
 
         # Add a textedit to the layout
-        tb_text_box = QW_QTextEdit(traceback_box)
+        tb_text_box = GW.QTextEdit(traceback_box)
         tb_text_box.setMinimumHeight(100)
         tb_text_box.setFocusPolicy(QC.Qt.NoFocus)
         tb_text_box.setReadOnly(True)

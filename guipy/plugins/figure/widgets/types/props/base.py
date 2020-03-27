@@ -9,7 +9,7 @@ Base Plot Properties
 
 # %% IMPORTS
 # GuiPy imports
-from guipy.layouts import QW_QFormLayout
+from guipy import layouts as GL
 from guipy.widgets import get_modified_box_signal
 
 # All declaration
@@ -18,7 +18,7 @@ __all__ = ['BasePlotProp']
 
 # %% CLASS DEFINITIONS
 # Define BasePlotProp base class
-class BasePlotProp(QW_QFormLayout):
+class BasePlotProp(GL.QFormLayout):
     """
     Provides a base class definition that must be subclassed by all figure
     plot properties.

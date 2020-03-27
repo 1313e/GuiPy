@@ -12,13 +12,11 @@ Histogram Property
 from qtpy import QtCore as QC
 
 # GuiPy imports
-from guipy.layouts import QW_QHBoxLayout
+from guipy import layouts as GL, widgets as GW
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
 from guipy.plugins.figure.widgets.types.props.data import (
     Data1DProp, MultiDataNDProp)
-from guipy.widgets import (
-    BaseBox, ColorBox, DualSpinBox, MultiRadioButton, QW_QCheckBox,
-    QW_QSpinBox, get_box_value, get_modified_box_signal, set_box_value)
+from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
 
 # All declaration
 __all__ = ['HistogramProp', 'MultiHistDataProp']
@@ -50,7 +48,7 @@ class HistogramProp(BasePlotProp):
         """
 
         # Make spinbox for bin count
-        n_bins_box = QW_QSpinBox()
+        n_bins_box = GW.QSpinBox()
         n_bins_box.setToolTip("Number of bins used for this histogram. Set to "
                               "'auto' to automatically determine this number")
         n_bins_box.setRange(0, 100)
@@ -71,7 +69,7 @@ class HistogramProp(BasePlotProp):
         """
 
         # Make a checkbox
-        hist_cumul_box = QW_QCheckBox('Cumulative')
+        hist_cumul_box = GW.QCheckBox('Cumulative')
         hist_cumul_box.setToolTip("Toggle the use of a cumulative histogram")
 
         # Return name and box
@@ -86,7 +84,7 @@ class HistogramProp(BasePlotProp):
         """
 
         # Make a multi radiobutton
-        hist_orient_box = MultiRadioButton(['Horizontal', 'Vertical'])
+        hist_orient_box = GW.MultiRadioButton(['Horizontal', 'Vertical'])
         hist_orient_box.setToolTip("The orientation of the histogram")
         set_box_value(hist_orient_box, 'Vertical')
 
@@ -117,7 +115,7 @@ class HistDataProp(Data1DProp):
         """
 
         # Make a color box
-        hist_color_box = ColorBox()
+        hist_color_box = GW.ColorBox()
 
         # Return name and box
         return('Color', hist_color_box)
@@ -148,7 +146,7 @@ class MultiHistDataProp(MultiDataNDProp):
 
 
 # Define custom class for setting the value range of a histogram
-class HistRangeBox(BaseBox):
+class HistRangeBox(GW.BaseBox):
     # Signals
     rangeChanged = QC.Signal(float, float)
 
@@ -163,13 +161,13 @@ class HistRangeBox(BaseBox):
     # This function sets up the histogram range box
     def init(self):
         # Make layout for setting the value range of the histogram
-        hist_range_layout = QW_QHBoxLayout(self)
+        hist_range_layout = GL.QHBoxLayout(self)
         hist_range_layout.setContentsMargins(0, 0, 0, 0)
 
         # Make a box for setting the value range of the histogram
         # TODO: Maybe use dual lineedits instead to eliminate range problem?
-        hist_range_box = DualSpinBox((float, float),
-                                     r"<html>&le; X &le;</html>")
+        hist_range_box = GW.DualSpinBox((float, float),
+                                        r"<html>&le; X &le;</html>")
         x_min_box, x_max_box = hist_range_box[:]
         x_min_box.setRange(-9999999, 9999999)
         x_min_box.setToolTip("Minimum value to be included in the histogram")
@@ -180,7 +178,7 @@ class HistRangeBox(BaseBox):
         self.range_box = hist_range_box
 
         # Make a checkbox for enabling/disabling the use of this range
-        hist_range_flag = QW_QCheckBox()
+        hist_range_flag = GW.QCheckBox()
         hist_range_flag.setToolTip("Toggle the use of a manual histogram value"
                                    " range")
         set_box_value(hist_range_flag, False)

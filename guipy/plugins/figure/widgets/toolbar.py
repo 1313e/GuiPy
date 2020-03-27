@@ -15,10 +15,9 @@ from qtpy import QtCore as QC, QtWidgets as QW
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 
 # GuiPy imports
+from guipy import widgets as GW
 from guipy.plugins.figure.widgets.options import FigureOptionsDialog
-from guipy.widgets import (
-    QW_QLabel, QW_QPushButton, QW_QToolBar, get_box_value,
-    get_modified_box_signal, set_box_value)
+from guipy.widgets import get_modified_box_signal, set_box_value
 
 # All declaration
 __all__ = ['FigureToolbar']
@@ -26,7 +25,7 @@ __all__ = ['FigureToolbar']
 
 # %% CLASS DEFINITIONS
 # Custom FigureToolbar class
-class FigureToolbar(NavigationToolbar2QT, QW_QToolBar):
+class FigureToolbar(NavigationToolbar2QT, GW.QToolBar):
     # Initialize FigureToolbar class
     def __init__(self, data_table_plugin_obj, canvas, parent=None):
         # Save provided data table plugin object
@@ -54,7 +53,7 @@ class FigureToolbar(NavigationToolbar2QT, QW_QToolBar):
         action_0 = self.actions()[0]
 
         # Create button for showing/hiding extra options
-        dialog_but = QW_QPushButton()
+        dialog_but = GW.QPushButton()
         set_box_value(dialog_but, self.labels[self.options_dialog.isHidden()])
         dialog_but.setToolTip("Toggle the figure options menu")
         get_modified_box_signal(dialog_but).connect(self.toggle_options_dialog)
@@ -69,7 +68,7 @@ class FigureToolbar(NavigationToolbar2QT, QW_QToolBar):
         self.addSeparator()
 
         # Add a label that contains the coordinates of the figure
-        coord_label = QW_QLabel('')
+        coord_label = GW.QLabel('')
         self.addWidget(coord_label)
         self.message.connect(coord_label.setText)
 

@@ -17,8 +17,8 @@ from qtpy import QtCore as QC, QtWidgets as QW
 from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
+from guipy import widgets as GW
 from guipy.config import BaseConfigPage
-from guipy.widgets import QW_QWidget
 
 # All declaration
 __all__ = ['BasePlugin', 'BasePluginWidget', 'PluginConfigPage']
@@ -60,7 +60,7 @@ class BasePlugin(object):
 
 
 # Define base class for making plugin widgets
-class BasePluginWidget(QW_QWidget, BasePlugin):
+class BasePluginWidget(GW.QWidget, BasePlugin):
     # Define class attributes
     LOCATION = QC.Qt.LeftDockWidgetArea
 

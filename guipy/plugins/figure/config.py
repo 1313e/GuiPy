@@ -18,7 +18,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
-from guipy.plugins import PluginConfigPage
+from guipy import plugins as GP
 
 # All declaration
 __all__ = ['MPLrcParamsConfigPage']
@@ -26,7 +26,7 @@ __all__ = ['MPLrcParamsConfigPage']
 
 # %% CLASS DEFINITIONS
 # Define config page for setting MPL's rcParams
-class MPLrcParamsConfigPage(PluginConfigPage):
+class MPLrcParamsConfigPage(GP.PluginConfigPage):
     # Define class attributes
     NAME = 'rcParams'
 

@@ -19,9 +19,8 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import INT_TYPES
-from guipy.layouts import QW_QHBoxLayout
-from guipy.widgets import (
-    BaseBox, QW_QDoubleSpinBox, QW_QLineEdit, get_box_value, set_box_value)
+from guipy import layouts as GL, widgets as GW
+from guipy.widgets import get_box_value, set_box_value
 
 # All declaration
 __all__ = ['FigureLabelBox']
@@ -29,7 +28,7 @@ __all__ = ['FigureLabelBox']
 
 # %% CLASS DEFINITIONS
 # Make class for setting the label in a figure
-class FigureLabelBox(BaseBox):
+class FigureLabelBox(GW.BaseBox):
     """
     Defines the :class:`~FigureLabelBox` class.
 
@@ -88,16 +87,16 @@ class FigureLabelBox(BaseBox):
         """
 
         # Create the box_layout
-        box_layout = QW_QHBoxLayout(self)
+        box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
 
         # Create a line-edit for setting the label
-        label_box = QW_QLineEdit()
+        label_box = GW.QLineEdit()
         box_layout.addWidget(label_box)
         self.label_box = label_box
 
         # Create a spinbox for setting the fontsize
-        size_box = QW_QDoubleSpinBox()
+        size_box = GW.QDoubleSpinBox()
         size_box.setDecimals(1)
         size_box.setRange(0, 999)
         size_box.setSuffix(" pts")

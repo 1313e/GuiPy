@@ -16,9 +16,8 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import INT_TYPES, STR_TYPES
-from guipy.layouts import QW_QGridLayout, QW_QHBoxLayout, QW_QVBoxLayout
-from guipy.widgets import (
-    BaseBox, QW_QRadioButton, get_box_value, set_box_value)
+from guipy import layouts as GL, widgets as GW
+from guipy.widgets import get_box_value, set_box_value
 
 # All declaration
 __all__ = ['MultiRadioButton']
@@ -26,7 +25,7 @@ __all__ = ['MultiRadioButton']
 
 # %% CLASS DEFINITIONS
 # Make class with N RadioButtons
-class MultiRadioButton(BaseBox):
+class MultiRadioButton(GW.BaseBox):
     """
     Defines the :class:`~MultiRadioButton` class.
 
@@ -127,15 +126,15 @@ class MultiRadioButton(BaseBox):
         if isinstance(layout, STR_TYPES):
             # If layout is a string, it is either 'horizontal' or 'vertical'
             if layout in ('h', 'horizontal', 'r', 'row'):
-                layout = QW_QHBoxLayout(self)
+                layout = GL.QHBoxLayout(self)
             elif layout in ('v', 'vertical', 'c', 'col', 'column'):
-                layout = QW_QVBoxLayout(self)
+                layout = GL.QVBoxLayout(self)
             else:
                 raise ValueError
         else:
             # Else, layout is a tuple specifying the number of rows and columns
             n_rows, n_cols = layout
-            layout = QW_QGridLayout(self)
+            layout = GL.QGridLayout(self)
 
         # Set contents margins of layout
         layout.setContentsMargins(0, 0, 0, 0)
@@ -152,7 +151,7 @@ class MultiRadioButton(BaseBox):
         # Create all requested radiobuttons
         for item in iterator:
             # Create radiobutton
-            button = QW_QRadioButton(item[0])
+            button = GW.QRadioButton(item[0])
 
             # Add button to list and layout
             self.buttons.append(button)

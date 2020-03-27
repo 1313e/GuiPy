@@ -15,15 +15,10 @@ import matplotlib as mpl
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import (
-    QW_QFormLayout, QW_QHBoxLayout, QW_QVBoxLayout)
+from guipy import layouts as GL, widgets as GW
 from guipy.plugins.figure.widgets.plot_entry import FigurePlotEntry
 from guipy.plugins.figure.widgets.types import BasePlotType
-from guipy.widgets import (
-    BaseBox, DualSpinBox, FigureLabelBox, QW_QComboBox, QW_QDialog,
-    QW_QGroupBox, QW_QLabel, QW_QMessageBox, QW_QStackedWidget, QW_QTabWidget,
-    QW_QToolButton, ToggleBox, get_box_value, get_modified_box_signal,
-    set_box_value)
+from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
 
 # All declaration
 __all__ = ['FigureOptionsDialog']
@@ -31,7 +26,7 @@ __all__ = ['FigureOptionsDialog']
 
 # %% CLASS DEFINITIONS
 # Define class for the Figure options dialog
-class FigureOptionsDialog(QW_QDialog):
+class FigureOptionsDialog(GW.QDialog):
     # Create applying and discarding signals
     applying = QC.Signal()
     discarding = QC.Signal()
@@ -68,7 +63,7 @@ class FigureOptionsDialog(QW_QDialog):
             QC.Qt.NoDropShadowWindowHint)
 
         # Create a layout
-        layout = QW_QVBoxLayout(self)
+        layout = GL.QVBoxLayout(self)
 
         # Add the options tabs to it
         self.options_tabs = self.create_options_tabs()
@@ -166,7 +161,7 @@ class FigureOptionsDialog(QW_QDialog):
     # This function creates the options tabwidget
     def create_options_tabs(self):
         # Create a tab widget
-        tab_widget = QW_QTabWidget(browse_tabs=False)
+        tab_widget = GW.QTabWidget(browse_tabs=False)
 
         # Add figure tab
         tab_widget.addTab(*self.create_figure_tab())
@@ -180,14 +175,14 @@ class FigureOptionsDialog(QW_QDialog):
     # This function creates the 'Figure' tab
     def create_figure_tab(self):
         # Create a tab
-        tab = BaseBox()
+        tab = GW.BaseBox()
         get_modified_box_signal(tab).connect(self.enable_apply_button)
 
         # Create layout
-        layout = QW_QFormLayout(tab)
+        layout = GL.QFormLayout(tab)
 
         # Make line edit for title
-        title_box = FigureLabelBox()
+        title_box = GW.FigureLabelBox()
         title_box[0].setToolTip("Figure title")
         title_box[1].setToolTip("Title size")
         set_box_value(
@@ -201,12 +196,12 @@ class FigureOptionsDialog(QW_QDialog):
 
         # X-AXIS
         # Create a group box for the X-axis
-        x_axis_group = QW_QGroupBox("X-axis")
+        x_axis_group = GW.QGroupBox("X-axis")
         layout.addRow(x_axis_group)
-        x_axis_layout = QW_QFormLayout(x_axis_group)
+        x_axis_layout = GL.QFormLayout(x_axis_group)
 
         # Make a box for setting the label on the x-axis
-        x_label_box = FigureLabelBox()
+        x_label_box = GW.FigureLabelBox()
         x_label_box[0].setToolTip("Label of the X-axis")
         x_label_box[1].setToolTip("Label size")
         set_box_value(
@@ -221,7 +216,8 @@ class FigureOptionsDialog(QW_QDialog):
         # Make a box for setting the range on the x-axis
         # TODO: Maybe use dual lineedits instead to eliminate range problem?
         # TODO: This would also allow for a cell or small formula to be used
-        x_range_box = DualSpinBox((float, float), r"<html>&le; X &le;</html>")
+        x_range_box = GW.DualSpinBox((float, float),
+                                     r"<html>&le; X &le;</html>")
         x_min_box, x_max_box = x_range_box[:]
         x_min_box.setRange(-9999999, 9999999)
         x_min_box.setToolTip("Minimum value of the X-axis")
@@ -236,7 +232,7 @@ class FigureOptionsDialog(QW_QDialog):
             'xlim_changed', lambda x: set_box_value(x_range_box, x.get_xlim()))
 
         # Make togglebox for enabling/disabling the use of this range
-        x_range_togglebox = ToggleBox(
+        x_range_togglebox = GW.ToggleBox(
             x_range_box, tooltip="Toggle the use of a manual X-axis range")
         self.add_options_entry(x_range_togglebox)
         x_axis_layout.addRow("Range", x_range_togglebox)
@@ -246,7 +242,7 @@ class FigureOptionsDialog(QW_QDialog):
             lambda x: self.axis.set_autoscalex_on(not x))
 
         # Make a box for setting the scale on the x-axis
-        x_scale_box = QW_QComboBox()
+        x_scale_box = GW.QComboBox()
         x_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
         x_scale_box.setToolTip("Value scale of the X-axis")
         self.add_options_entry(x_scale_box)
@@ -255,12 +251,12 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Y-AXIS
         # Create a group box for the Y-axis
-        y_axis_group = QW_QGroupBox("Y-axis")
+        y_axis_group = GW.QGroupBox("Y-axis")
         layout.addRow(y_axis_group)
-        y_axis_layout = QW_QFormLayout(y_axis_group)
+        y_axis_layout = GL.QFormLayout(y_axis_group)
 
         # Make a box for setting the label on the y-axis
-        y_label_box = FigureLabelBox()
+        y_label_box = GW.FigureLabelBox()
         y_label_box[0].setToolTip("Label of the Y-axis")
         y_label_box[1].setToolTip("Label size")
         set_box_value(
@@ -273,7 +269,8 @@ class FigureOptionsDialog(QW_QDialog):
         self.y_label_box = y_label_box
 
         # Make a box for setting the range on the y-axis
-        y_range_box = DualSpinBox((float, float), r"<html>&le; Y &le;</html>")
+        y_range_box = GW.DualSpinBox((float, float),
+                                     r"<html>&le; Y &le;</html>")
         y_min_box, y_max_box = y_range_box[:]
         y_min_box.setRange(-9999999, 9999999)
         y_min_box.setToolTip("Minimum value of the Y-axis")
@@ -288,7 +285,7 @@ class FigureOptionsDialog(QW_QDialog):
             'ylim_changed', lambda y: set_box_value(y_range_box, y.get_ylim()))
 
         # Make togglebox for enabling/disabling the use of this range
-        y_range_togglebox = ToggleBox(
+        y_range_togglebox = GW.ToggleBox(
             y_range_box, tooltip="Toggle the use of a manual Y-axis range")
         self.add_options_entry(y_range_togglebox)
         y_axis_layout.addRow("Range", y_range_togglebox)
@@ -298,7 +295,7 @@ class FigureOptionsDialog(QW_QDialog):
             lambda y: self.axis.set_autoscaley_on(not y))
 
         # Make a box for setting the scale on the y-axis
-        y_scale_box = QW_QComboBox()
+        y_scale_box = GW.QComboBox()
         y_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
         y_scale_box.setToolTip("Value scale of the Y-axis")
         self.add_options_entry(y_scale_box)
@@ -307,19 +304,19 @@ class FigureOptionsDialog(QW_QDialog):
 
         # PROPS
         # Create a group box for figure properties
-        props_group = QW_QGroupBox("Properties")
+        props_group = GW.QGroupBox("Properties")
         layout.addRow(props_group)
-        props_layout = QW_QFormLayout(props_group)
+        props_layout = GL.QFormLayout(props_group)
 
         # Make a combobox for choosing the location of the legend
-        legend_loc_box = QW_QComboBox()
+        legend_loc_box = GW.QComboBox()
         legend_loc_box.addItems(mpl.legend.Legend.codes.keys())
         legend_loc_box.setToolTip("Location of the figure legend")
         set_box_value(legend_loc_box,
                       self.get_option('rcParams', 'legend.loc'))
 
         # Make a togglebox for using a legend
-        legend_togglebox = ToggleBox(
+        legend_togglebox = GW.ToggleBox(
             legend_loc_box, "Legend",
             tooltip="Toggle the use of a figure legend")
         self.add_options_entry(legend_togglebox)
@@ -336,31 +333,31 @@ class FigureOptionsDialog(QW_QDialog):
     # This function creates the 'Plots' tab
     def create_plots_tab(self):
         # Create a tab
-        tab = BaseBox()
+        tab = GW.BaseBox()
         get_modified_box_signal(tab).connect(self.enable_apply_button)
 
         # Create layout
-        layout = QW_QFormLayout(tab)
+        layout = GL.QFormLayout(tab)
 
         # PLOT
         # Create a plot picker layout
-        plot_layout = QW_QHBoxLayout()
+        plot_layout = GL.QHBoxLayout()
         layout.addRow(plot_layout)
 
         # Create a label
-        plot_label = QW_QLabel("Plot")
+        plot_label = GW.QLabel("Plot")
         plot_label.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         plot_layout.addWidget(plot_label)
 
         # Create a combobox for choosing an existing plot
-        plot_entries = QW_QComboBox()
+        plot_entries = GW.QComboBox()
         plot_entries.setToolTip("Select the plot entry you wish to edit")
         plot_layout.addWidget(plot_entries)
         get_modified_box_signal(plot_entries).disconnect(tab.modified)
         self.plot_entries = plot_entries
 
         # Add a toolbutton for adding a new plot entry
-        add_but = QW_QToolButton()
+        add_but = GW.QToolButton()
         add_but.setToolTip("Add new plot entry")
         get_modified_box_signal(add_but).connect(self.add_entry)
         plot_layout.addWidget(add_but)
@@ -376,7 +373,7 @@ class FigureOptionsDialog(QW_QDialog):
         layout.addSeparator()
 
         # Add a stacked widget here for dividing the plots
-        plot_pages = QW_QStackedWidget()
+        plot_pages = GW.QStackedWidget()
         get_modified_box_signal(plot_entries, int).connect(
             plot_pages.setCurrentIndex)
         layout.addRow(plot_pages)
@@ -424,14 +421,14 @@ class FigureOptionsDialog(QW_QDialog):
 
         # Show a warning message asking if the user really wants to remove it
         # TODO: Should this be removed once changes can be discarded?
-        button_clicked = QW_QMessageBox.warning(
+        button_clicked = GW.QMessageBox.warning(
             self, "WARNING: Delete plot",
             ("Are you sure you want to delete the plot with name <b>%s</b>? "
              "(<i>Note: This action is irreversible!</i>)" % (name)),
-            QW_QMessageBox.Yes | QW_QMessageBox.No, QW_QMessageBox.No)
+            GW.QMessageBox.Yes | GW.QMessageBox.No, GW.QMessageBox.No)
 
         # Remove the entry and page at this index if the user answered 'yes'
-        if(button_clicked == QW_QMessageBox.Yes):
+        if(button_clicked == GW.QMessageBox.Yes):
             self.plot_entries.removeItem(index)
             self.plot_pages.removeWidget(widget)
             widget.close()

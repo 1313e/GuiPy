@@ -14,12 +14,10 @@ Figure Plugin
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import QW_QVBoxLayout
-from guipy.plugins.base import BasePluginWidget
+from guipy import layouts as GL, plugins as GP, widgets as GW
 from guipy.plugins.figure.config import MPLrcParamsConfigPage
 from guipy.plugins.figure.widgets import FigureWidget
-from guipy.widgets import (
-    EditableTabBar, QW_QAction, QW_QTabWidget, set_box_value)
+from guipy.widgets import set_box_value
 
 # All declaration
 __all__ = ['Figure']
@@ -27,12 +25,12 @@ __all__ = ['Figure']
 
 # %% CLASS DEFINITIONS
 # Define class for the Figure plugin
-class Figure(BasePluginWidget):
+class Figure(GP.BasePluginWidget):
     # Properties
     TITLE = "Figure"
-    CONFIG_PAGES = [*BasePluginWidget.CONFIG_PAGES, MPLrcParamsConfigPage]
+    CONFIG_PAGES = [*GP.BasePluginWidget.CONFIG_PAGES, MPLrcParamsConfigPage]
     LOCATION = QC.Qt.RightDockWidgetArea
-    REQ_PLUGINS = [*BasePluginWidget.REQ_PLUGINS, "Data table"]
+    REQ_PLUGINS = [*GP.BasePluginWidget.REQ_PLUGINS, "Data table"]
 
     # Initialize Figure plugin
     def __init__(self, *args, **kwargs):
@@ -48,12 +46,12 @@ class Figure(BasePluginWidget):
     # This function sets up the figure plugin
     def init(self):
         # Create a layout
-        layout = QW_QVBoxLayout(self)
+        layout = GL.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Create a tab widget
-        tab_widget = QW_QTabWidget()
-        tab_widget.setTabBar(EditableTabBar())
+        tab_widget = GW.QTabWidget()
+        tab_widget.setTabBar(GW.EditableTabBar())
         tab_widget.setMovable(True)
         tab_widget.setTabsClosable(True)
 
@@ -83,17 +81,17 @@ class Figure(BasePluginWidget):
     def add_actions(self):
         # Initialize empty action lists for this plugin
         self.MENU_ACTIONS = {
-            **BasePluginWidget.MENU_ACTIONS,
+            **GP.BasePluginWidget.MENU_ACTIONS,
             'File/New': []}
 
         # Add new figure action to file/new menu
         # TODO: Should shortcut be CTRL+F? Might clash with expectations
-        new_tab_act = QW_QAction(
+        new_tab_act = GW.QAction(
             self, '&Figure',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_F,
             tooltip="New figure",
             triggered=self.add_tab,
-            role=QW_QAction.ApplicationSpecificRole)
+            role=GW.QAction.ApplicationSpecificRole)
         self.MENU_ACTIONS['File/New'].append(new_tab_act)
 
     # This function adds a new figure widget

@@ -13,10 +13,9 @@ from matplotlib.lines import lineMarkers
 from qtpy import QtCore as QC
 
 # GuiPy imports
+from guipy import widgets as GW
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
-from guipy.widgets import (
-    ColorBox, QW_QComboBox, QW_QDoubleSpinBox, get_modified_box_signal,
-    set_box_value)
+from guipy.widgets import set_box_value
 
 # All declaration
 __all__ = ['LineMarkerProp', 'ScatterMarkerProp']
@@ -50,7 +49,7 @@ class MarkerProp(BasePlotProp):
             MarkerProp.MARKERS = markers
 
         # Make combobox for markerstyles
-        marker_style_box = QW_QComboBox()
+        marker_style_box = GW.QComboBox()
         marker_style_box.setToolTip("Marker to be used for this plot")
 
         # Populate box with all supported linestyles
@@ -72,7 +71,7 @@ class MarkerProp(BasePlotProp):
         """
 
         # Make a double spinbox for markersize
-        marker_size_box = QW_QDoubleSpinBox()
+        marker_size_box = GW.QDoubleSpinBox()
         marker_size_box.setToolTip("Size of the plotted markers")
         marker_size_box.setRange(0, 9999999)
         marker_size_box.setSuffix(" pts")
@@ -93,7 +92,7 @@ class MarkerProp(BasePlotProp):
         """
 
         # Make a color box
-        marker_color_box = ColorBox()
+        marker_color_box = GW.ColorBox()
 
         # Return name and box
         return('Color', marker_color_box)

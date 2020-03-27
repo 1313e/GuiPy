@@ -12,10 +12,9 @@ Data Property
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
+from guipy import widgets as GW
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
-from guipy.widgets import (
-    BaseBox, DualComboBox, QW_QLineEdit, QW_QTabWidget, QW_QToolButton,
-    ToggleBox, get_box_value, get_modified_box_signal, set_box_value)
+from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
 
 # All declaration
 __all__ = ['Data1DProp', 'Data2DProp', 'Data1or2DProp', 'Data3DProp',
@@ -48,7 +47,7 @@ class Data1DProp(BasePlotProp):
         """
 
         # Make a lineedit for setting the label of the plot
-        data_label_box = QW_QLineEdit()
+        data_label_box = GW.QLineEdit()
         data_label_box.setToolTip("Label of this plot")
         get_modified_box_signal(data_label_box).connect(self.dataLabelChanged)
 
@@ -125,7 +124,7 @@ class Data1or2DProp(Data2DProp):
         """
 
         # Make a combobox for setting the x-axis data
-        x_data_box = ToggleBox(
+        x_data_box = GW.ToggleBox(
             DataColumnBox(self.data_table_plugin),
             tooltip="Disable to automatically set the X-axis data.")
         x_data_box.setToolTip("Data table and column to use for the X-axis "
@@ -202,7 +201,7 @@ class MultiDataNDProp(BasePlotProp):
         self.tab_widget = tab_widget
 
         # Create add button for tabs
-        add_but = QW_QToolButton()
+        add_but = GW.QToolButton()
         add_but.setToolTip("Add additional data set")
         tab_widget.setCornerWidget(add_but, QC.Qt.TopRightCorner)
 
@@ -232,7 +231,7 @@ class MultiDataNDProp(BasePlotProp):
         """
 
         # Create a default widget for the new DataND prop
-        data_prop = BaseBox()
+        data_prop = GW.BaseBox()
         get_modified_box_signal(data_prop).connect(self.tab_widget.modified)
 
         # Create a dictionary with all requirements of this property
@@ -285,7 +284,7 @@ class MultiDataNDProp(BasePlotProp):
 
 
 # Define custom QTabWidget for holding the multi data
-class MultiDataTabWidget(QW_QTabWidget):
+class MultiDataTabWidget(GW.QTabWidget):
     # Define signals
     modified = QC.Signal()
 
@@ -516,7 +515,7 @@ class MultiData3DProp(MultiDataNDProp):
 
 
 # Create custom class for setting the data column used in plots
-class DataColumnBox(DualComboBox):
+class DataColumnBox(GW.DualComboBox):
     # Initialize DataColumnBox class
     def __init__(self, data_table_plugin_obj, parent=None, *args, **kwargs):
         # Save provided data_table_obj

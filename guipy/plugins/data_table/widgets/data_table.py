@@ -14,11 +14,9 @@ Data Table Widget
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy.layouts import QW_QHBoxLayout, QW_QVBoxLayout
+from guipy import layouts as GL, widgets as GW
 from guipy.plugins.data_table.widgets.view import DataTableView
-from guipy.widgets import (
-    DualSpinBox, QW_QLabel, QW_QToolButton, QW_QWidget,
-    get_box_value, get_modified_box_signal, set_box_value)
+from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
 
 # All declaration
 __all__ = ['DataTableWidget']
@@ -26,7 +24,7 @@ __all__ = ['DataTableWidget']
 
 # %% CLASS DEFINITIONS
 # Define class for the DataTable widget
-class DataTableWidget(QW_QWidget):
+class DataTableWidget(GW.QWidget):
     # Initialize DataTableWidget
     def __init__(self, parent=None, *args, **kwargs):
         # Call super constructor
@@ -38,18 +36,18 @@ class DataTableWidget(QW_QWidget):
     # This function sets up the data table widget
     def init(self, import_func=None):
         # Create a layout
-        layout = QW_QVBoxLayout(self)
+        layout = GL.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Create a dimensions layout
-        dimensions_layout = QW_QHBoxLayout()
+        dimensions_layout = GL.QHBoxLayout()
         layout.addLayout(dimensions_layout)
 
         # Add a label to this layout
-        dimensions_layout.addWidget(QW_QLabel('Dimensions: '))
+        dimensions_layout.addWidget(GW.QLabel('Dimensions: '))
 
         # Create dual spinbox for setting n_rows and n_cols
-        dimensions_box = DualSpinBox((int, int), "X")
+        dimensions_box = GW.DualSpinBox((int, int), "X")
         dimensions_layout.addWidget(dimensions_box)
         n_rows_box, n_cols_box = dimensions_box[:]
         n_rows_box.setRange(0, 9999999)
@@ -61,7 +59,7 @@ class DataTableWidget(QW_QWidget):
         self.dimensions_box = dimensions_box
 
         # Create a layout for applying or reverting the dimensions
-        buttons_layout = QW_QHBoxLayout()
+        buttons_layout = GL.QHBoxLayout()
         buttons_layout.setContentsMargins(0, 0, 0, 0)
         buttons_layout.setSpacing(0)
         dimensions_layout.addLayout(buttons_layout)
@@ -75,7 +73,7 @@ class DataTableWidget(QW_QWidget):
                 QW.QStyle.SP_DialogCancelButton)
 
         # Create a revert toolbutton
-        rev_but = QW_QToolButton()
+        rev_but = GW.QToolButton()
         rev_but.setToolTip("Revert to current data table dimensions")
         rev_but.setIcon(rev_icon)
         get_modified_box_signal(rev_but).connect(self.revert_table_dimensions)
@@ -90,7 +88,7 @@ class DataTableWidget(QW_QWidget):
                 QW.QStyle.SP_DialogApplyButton)
 
         # Create an apply toolbutton
-        app_but = QW_QToolButton()
+        app_but = GW.QToolButton()
         app_but.setToolTip("Apply new data table dimensions")
         app_but.setIcon(app_icon)
         get_modified_box_signal(app_but).connect(self.apply_table_dimensions)

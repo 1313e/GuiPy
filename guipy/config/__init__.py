@@ -10,11 +10,11 @@ Contains all the configuration files and functions of *GuiPy*.
 
 # %% IMPORTS
 # Import core modules
-from . import core
+from . import core, manager
 from .core import *
-from . import base, manager
-from .base import *
 from .manager import *
+from . import base
+from .base import *
 
 # Import config pages
 from . import general

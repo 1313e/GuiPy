@@ -15,10 +15,8 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import INT_TYPES
-from guipy.layouts import QW_QHBoxLayout
-from guipy.widgets import (
-    BaseBox, QW_QCheckBox, get_box_value, get_modified_box_signal,
-    set_box_value)
+from guipy import layouts as GL, widgets as GW
+from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
 
 # All declaration
 __all__ = ['ToggleBox']
@@ -26,7 +24,7 @@ __all__ = ['ToggleBox']
 
 # %% CLASS DEFINITIONS
 # Make class that toggles a widget
-class ToggleBox(BaseBox):
+class ToggleBox(GW.BaseBox):
     """
     Defines the :class:`~ToggleBox` class.
 
@@ -99,14 +97,14 @@ class ToggleBox(BaseBox):
         """
 
         # Create the box_layout
-        box_layout = QW_QHBoxLayout(self)
+        box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
 
         # Create a checkbox for toggling the widget
         if text is not None:
-            checkbox = QW_QCheckBox(text)
+            checkbox = GW.QCheckBox(text)
         else:
-            checkbox = QW_QCheckBox()
+            checkbox = GW.QCheckBox()
         box_layout.addWidget(checkbox)
         self.checkbox = checkbox
 

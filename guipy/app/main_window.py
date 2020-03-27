@@ -21,11 +21,9 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import __version__, APP_NAME, STR_TYPES
-from guipy.config import CONFIG, GeneralConfigPage, tr
-from guipy.plugins import BasePluginWidget, DataTable, Figure
-from guipy.widgets import (
-    BaseDockWidget, QW_QAction, QW_QMainWindow, QW_QMenu, QW_QMessageBox,
-    QW_QToolBar, create_exception_handler)
+from guipy import plugins as GP, widgets as GW
+from guipy.config import CONFIG
+from guipy.widgets import create_exception_handler
 
 # All declaration
 __all__ = ['MainWindow']
@@ -34,7 +32,7 @@ __all__ = ['MainWindow']
 # %% CLASS DEFINITIONS
 # Define class for main window
 # TODO: Write a lock-file system for GuiPy
-class MainWindow(QW_QMainWindow):
+class MainWindow(GW.QMainWindow):
     """
     Defines the :class:`~MainWindow` class for *GuiPy*.
 
@@ -69,8 +67,8 @@ class MainWindow(QW_QMainWindow):
 
         """
 
-        # Read in the configuration of GuiPy
-        CONFIG.read_config()
+        # Initialize the config manager
+        CONFIG._init(self)
 
         # Make sure that the viewer is deleted when window is closed
         self.setAttribute(QC.Qt.WA_DeleteOnClose)
@@ -89,9 +87,6 @@ class MainWindow(QW_QMainWindow):
 
         # Create toolbars
         self.create_toolbars()
-
-        # Add all default config pages
-        self.add_config_pages()
 
         # Add all required plugins
         self.add_plugins()
@@ -135,9 +130,9 @@ class MainWindow(QW_QMainWindow):
 
         Parameters
         ----------
-        menu : :obj:`~guipy.widgets.QW_QMenu` object
+        menu : :obj:`~guipy.widgets.GW.QMenu` object
             The menu object that must be added to the top-level menubar.
-        parent_menu : :obj:`~guipy.widgets.QW_QMenu` or \
+        parent_menu : :obj:`~guipy.widgets.GW.QMenu` or \
             :obj:`~PyQt5.QtWidgets.QMenuBar` object
             The menu(bar) object to which the provided `menu` must be added.
 
@@ -169,32 +164,32 @@ class MainWindow(QW_QMainWindow):
         actions = {None: []}
 
         # Create file menu
-        actions[None].append(QW_QMenu('File', '&File'))
+        actions[None].append(GW.QMenu('File', '&File'))
         actions['File'] = []
 
         # Create view menu
-        actions[None].append(QW_QMenu('View', '&View'))
+        actions[None].append(GW.QMenu('View', '&View'))
         actions['View'] = []
 
         # Create help menu
-        actions[None].append(QW_QMenu('Help', '&Help'))
+        actions[None].append(GW.QMenu('Help', '&Help'))
         actions['Help'] = []
 
         # SUBMENUS
         # Add a New menu to file menu
-        actions['File'].append(QW_QMenu('New', '&New...'))
+        actions['File'].append(GW.QMenu('New', '&New...'))
 
         # Add a separator to file menu
         actions['File'].append(None)
 
         # Add a docks menu to view menu
-        actions['View'].append(QW_QMenu('Docks', '&Docks'))
+        actions['View'].append(GW.QMenu('Docks', '&Docks'))
 
         # Add a separator to view menu
         actions['View'].append(None)
 
         # Add a toolbars menu to view menu
-        actions['View'].append(QW_QMenu('Toolbars', '&Toolbars'))
+        actions['View'].append(GW.QMenu('Toolbars', '&Toolbars'))
 
         # Add all menus and actions
         self.add_menu_actions(actions)
@@ -206,7 +201,7 @@ class MainWindow(QW_QMainWindow):
 
         Parameters
         ----------
-        toolbar : :obj:`~guipy.widgets.QW_QToolBar` object
+        toolbar : :obj:`~guipy.widgets.GW.QToolBar` object
             The toolbar object that must be added to the main window.
 
         """
@@ -236,7 +231,7 @@ class MainWindow(QW_QMainWindow):
 
         # FILE
         # Create file toolbar
-        self.addToolBar(QW_QToolBar('File', 'File toolbar'))
+        self.addToolBar(GW.QToolBar('File', 'File toolbar'))
         actions['File'] = []
 
         # ACTIONS
@@ -262,43 +257,33 @@ class MainWindow(QW_QMainWindow):
 
         # FILE MENU
         # Add quit action to file menu
-        quit_act = QW_QAction(
+        quit_act = GW.QAction(
             self, '&Quit',
             shortcut=QG.QKeySequence.Quit,
             statustip="Quit %s" % (APP_NAME),
             triggered=self.close,
-            role=QW_QAction.QuitRole)
+            role=GW.QAction.QuitRole)
         actions['File'].append(quit_act)
 
         # HELP MENU
         # Add about action to help menu
-        about_act = QW_QAction(
+        about_act = GW.QAction(
             self, '&About...',
             statustip="About %s" % (APP_NAME),
             triggered=self.about,
-            role=QW_QAction.AboutRole)
+            role=GW.QAction.AboutRole)
         actions['Help'].append(about_act)
 
         # Add aboutQt action to help menu
-        aboutqt_act = QW_QAction(
+        aboutqt_act = GW.QAction(
             self, 'About &Qt...',
             statustip="About Qt framework",
             triggered=QW.QApplication.aboutQt,
-            role=QW_QAction.AboutQtRole)
+            role=GW.QAction.AboutQtRole)
         actions['Help'].append(aboutqt_act)
 
         # Add all actions to the top-level menu
         self.add_menu_actions(actions)
-
-    # This function adds all general config pages to the main window
-    def add_config_pages(self):
-        """
-        Adds all general config pages to the main window.
-
-        """
-
-        # Initialize all config pages
-        GeneralConfigPage()
 
     # This function adds all plugins to the main window
     def add_plugins(self):
@@ -311,8 +296,8 @@ class MainWindow(QW_QMainWindow):
         self.plugins = {}
 
         # Initialize and add all the plugins
-        self.add_plugin(DataTable)
-        self.add_plugin(Figure)
+        self.add_plugin(GP.DataTable)
+        self.add_plugin(GP.Figure)
 
     # This function adds a plugin to the main window
     def add_plugin(self, plugin_class, **kwargs):
@@ -350,7 +335,7 @@ class MainWindow(QW_QMainWindow):
             self.statusbar.addPermanentWidget(widget)
 
         # Check if this plugin_obj is an instance of BasePluginWidget
-        if isinstance(plugin_obj, BasePluginWidget):
+        if isinstance(plugin_obj, GP.BasePluginWidget):
             # If so, add it as a dock widget as well
             self.add_dockwidget(plugin_obj)
 
@@ -365,7 +350,7 @@ class MainWindow(QW_QMainWindow):
         """
 
         # Create a dock widget object
-        dock_widget = BaseDockWidget(tr(plugin_obj.TITLE), self)
+        dock_widget = GW.BaseDockWidget(plugin_obj.TITLE, self)
 
         # Add provided plugin as a widget to it
         dock_widget.setWidget(plugin_obj)
@@ -393,13 +378,13 @@ class MainWindow(QW_QMainWindow):
             String specifying to which menu all associated actions should be
             added. If *None*, the actions are added to the top-level menubar
             instead.
-        actions : list of {None; :obj:`~guipy.widgets.QW_QMenu`; str; \
+        actions : list of {None; :obj:`~guipy.widgets.GW.QMenu`; str; \
                            :obj:`~PyQt5.QtWidgets.QAction`; \
                            :obj:`~PyQt5.QtCore.Slot`}
             A list containing all actions that must be added to the menu
             specified with `keyword`.
             If *None*, a separator is added.
-            If :obj:`~guipy.widgets.QW_QMenu` object, the given menu is added
+            If :obj:`~guipy.widgets.GW.QMenu` object, the given menu is added
             and registered.
             If str, a section with the given name is added.
             If :obj:`~PyQt5.QtWidgets.QAction`, the given action is added.
@@ -422,7 +407,7 @@ class MainWindow(QW_QMainWindow):
                 if action is None:
                     menu.addSeparator()
                 # Else, if action is a menu, add a new menu
-                elif isinstance(action, QW_QMenu):
+                elif isinstance(action, GW.QMenu):
                     self.addMenu(action, menu)
                 # Else, if action is a string, add a new section
                 elif isinstance(action, STR_TYPES):
@@ -450,13 +435,13 @@ class MainWindow(QW_QMainWindow):
         keyword : str
             String specifying to which toolbar all associated actions should be
             added.
-        actions : list of {None; :obj:`~guipy.widgets.QW_QMenu`; \
+        actions : list of {None; :obj:`~guipy.widgets.GW.QMenu`; \
                            :obj:`~PyQt5.QtWidgets.QWidget`; \
                            :obj:`~PyQt5.QtWidgets.QAction`}
             A list containing all actions that must be added to the toolbar
             specified with `keyword`.
             If *None*, a separator is added.
-            If :obj:`~guipy.widgets.QW_QMenu` object, the action of the given
+            If :obj:`~guipy.widgets.GW.QMenu` object, the action of the given
             menu is added.
             If :obj:`~PyQt5.QtWidgets.QWidget`, the given widget is added.
             If :obj:`~PyQt5.QtWidgets.QAction`, the given action is added.
@@ -474,7 +459,7 @@ class MainWindow(QW_QMainWindow):
                 if action is None:
                     toolbar.addSeparator()
                 # Else, if action is a menu, add a new menu
-                elif isinstance(action, QW_QMenu):
+                elif isinstance(action, GW.QMenu):
                     toolbar.addMenu(action)
                 # Else, if action is a widget, add a new widget
                 elif isinstance(action, QW.QWidget):
@@ -514,4 +499,4 @@ class MainWindow(QW_QMainWindow):
                        PyQt5_version=qtpy.PYQT_VERSION))
 
         # Create the 'about' dialog
-        QW_QMessageBox.about(self, tr("About %s" % (APP_NAME)), tr(text))
+        GW.QMessageBox.about(self, tr("About %s" % (APP_NAME)), tr(text))

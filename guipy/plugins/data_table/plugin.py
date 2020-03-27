@@ -15,14 +15,11 @@ from os import path
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
+from guipy import layouts as GL, plugins as GP, widgets as GW
 from guipy.config import FILE_FILTERS
-from guipy.layouts import QW_QVBoxLayout
-from guipy.plugins.base import BasePluginWidget
 from guipy.plugins.data_table.formatters import FORMATTERS
 from guipy.plugins.data_table.widgets import DataTableWidget
-from guipy.widgets import (
-    EditableTabBar, QW_QAction, QW_QTabWidget, getOpenFileNames,
-    getSaveFileName, set_box_value)
+from guipy.widgets import set_box_value
 
 # All declaration
 __all__ = ['DataTable']
@@ -30,7 +27,7 @@ __all__ = ['DataTable']
 
 # %% CLASS DEFINITIONS
 # Define class for the DataTable plugin
-class DataTable(BasePluginWidget):
+class DataTable(GP.BasePluginWidget):
     # Properties
     TITLE = "Data table"
     LOCATION = QC.Qt.LeftDockWidgetArea
@@ -46,12 +43,12 @@ class DataTable(BasePluginWidget):
     # This function sets up the data table plugin
     def init(self):
         # Create a layout
-        layout = QW_QVBoxLayout(self)
+        layout = GL.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Create a tab widget
-        tab_widget = QW_QTabWidget()
-        tab_widget.setTabBar(EditableTabBar())
+        tab_widget = GW.QTabWidget()
+        tab_widget.setTabBar(GW.EditableTabBar())
         tab_widget.setMovable(True)
         tab_widget.setTabsClosable(True)
 
@@ -81,41 +78,41 @@ class DataTable(BasePluginWidget):
     def add_actions(self):
         # Initialize empty action lists for this plugin
         self.MENU_ACTIONS = {
-            **BasePluginWidget.MENU_ACTIONS,
+            **GP.BasePluginWidget.MENU_ACTIONS,
             'File': [],
             'File/New': []}
         self.TOOLBAR_ACTIONS = {
-            **BasePluginWidget.TOOLBAR_ACTIONS,
+            **GP.BasePluginWidget.TOOLBAR_ACTIONS,
             'File': []}
 
         # Add new tab action to file/new menu
-        new_tab_act = QW_QAction(
+        new_tab_act = GW.QAction(
             self, 'Data &table',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_T,
             tooltip="New data table",
             triggered=self.add_tab,
-            role=QW_QAction.ApplicationSpecificRole)
+            role=GW.QAction.ApplicationSpecificRole)
         self.MENU_ACTIONS['File/New'].append(new_tab_act)
         self.MENU_ACTIONS['File/New'].append(self.add_tab)
 
         # Add open tabs action to file menu/toolbar
-        open_tabs_act = QW_QAction(
+        open_tabs_act = GW.QAction(
             self, '&Open...',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_O,
             tooltip="Open data table",
             triggered=self.open_tabs,
-            role=QW_QAction.ApplicationSpecificRole)
+            role=GW.QAction.ApplicationSpecificRole)
         open_tabs_act.setEnabled(False)
         self.MENU_ACTIONS['File'].append(open_tabs_act)
         self.TOOLBAR_ACTIONS['File'].append(open_tabs_act)
 
         # Add import tabs action to file menu/toolbar
-        import_tabs_act = QW_QAction(
+        import_tabs_act = GW.QAction(
             self, '&Import...',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_I,
             tooltip="Import data tables",
             triggered=self.import_tabs,
-            role=QW_QAction.ApplicationSpecificRole)
+            role=GW.QAction.ApplicationSpecificRole)
         self.MENU_ACTIONS['File'].append(import_tabs_act)
         self.TOOLBAR_ACTIONS['File'].append(import_tabs_act)
 
@@ -123,44 +120,44 @@ class DataTable(BasePluginWidget):
         self.MENU_ACTIONS['File'].append(None)
 
         # Add save tab action to file menu/toolbar
-        save_tab_act = QW_QAction(
+        save_tab_act = GW.QAction(
             self, '&Save',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_S,
             tooltip="Save current data table",
             triggered=self.save_tab,
-            role=QW_QAction.ApplicationSpecificRole)
+            role=GW.QAction.ApplicationSpecificRole)
         save_tab_act.setEnabled(False)
         self.MENU_ACTIONS['File'].append(save_tab_act)
         self.TOOLBAR_ACTIONS['File'].append(save_tab_act)
 
         # Add save_as tab action to file menu
-        save_as_tab_act = QW_QAction(
+        save_as_tab_act = GW.QAction(
             self, 'Save &as...',
             shortcut=QC.Qt.CTRL + QC.Qt.SHIFT + QC.Qt.Key_S,
             tooltip="Save current data table as...",
             triggered=self.save_as_tab,
-            role=QW_QAction.ApplicationSpecificRole)
+            role=GW.QAction.ApplicationSpecificRole)
         save_as_tab_act.setEnabled(False)
         self.MENU_ACTIONS['File'].append(save_as_tab_act)
 
         # Add save_all tab action to file menu/toolbar
-        save_all_tabs_act = QW_QAction(
+        save_all_tabs_act = GW.QAction(
             self, 'Sav&e all',
             shortcut=QC.Qt.CTRL + QC.Qt.ALT + QC.Qt.Key_S,
             tooltip="Save all data tables",
             triggered=self.save_all_tabs,
-            role=QW_QAction.ApplicationSpecificRole)
+            role=GW.QAction.ApplicationSpecificRole)
         save_all_tabs_act.setEnabled(False)
         self.MENU_ACTIONS['File'].append(save_all_tabs_act)
         self.TOOLBAR_ACTIONS['File'].append(save_all_tabs_act)
 
         # Add export tab action to file menu/toolbar
-        export_tab_act = QW_QAction(
+        export_tab_act = GW.QAction(
             self, '&Export...',
             shortcut=QC.Qt.CTRL + QC.Qt.Key_E,
             tooltip="Export current data table",
             triggered=self.export_tab,
-            role=QW_QAction.ApplicationSpecificRole)
+            role=GW.QAction.ApplicationSpecificRole)
         self.MENU_ACTIONS['File'].append(export_tab_act)
         self.TOOLBAR_ACTIONS['File'].append(export_tab_act)
 
@@ -205,7 +202,7 @@ class DataTable(BasePluginWidget):
     @QC.Slot()
     def import_tabs(self):
         # Open the file opening system
-        filepaths, _ = getOpenFileNames(
+        filepaths, _ = GW.getOpenFileNames(
             parent=self,
             caption="Import data tables",
             filters=FORMATTERS.keys())
@@ -240,7 +237,7 @@ class DataTable(BasePluginWidget):
         name = self.tabName()
 
         # Open the file saving system
-        filepath, selected_filter = getSaveFileName(
+        filepath, selected_filter = GW.getSaveFileName(
             parent=self,
             caption="Export data table %r to..." % (name),
             basedir=name+'.npz',
