@@ -62,8 +62,9 @@ setup(name="guipy",
       python_requires='>=3.6, <4',
       packages=find_packages(),
       package_dir={'guipy': "guipy"},
+      # Should be 'gui_scripts', but this forces Windows to open a console
       entry_points={
-          'gui_scripts': [
+          'console_scripts': [
               "guipy = guipy.app.start:main"]},
       include_package_data=True,
       install_requires=requirements,

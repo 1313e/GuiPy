@@ -13,7 +13,6 @@ Starts the *GuiPy* application.
 import signal
 
 # Package imports
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from qtpy import QtCore as QC, QtWidgets as QW
 
@@ -57,15 +56,10 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Set MPL's backend to 'Agg'
-    cur_backend = mpl.rcParams['backend']
     plt.switch_backend('Agg')
 
     # Start application
-    # TODO: Figure out why the event loop instantly returns -1 on Windows
     qapp.exec_()
-
-    # Switch backend back to previously used one
-    plt.switch_backend(cur_backend)
 
 
 # %% MAIN EXECUTION
