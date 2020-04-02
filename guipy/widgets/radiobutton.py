@@ -104,6 +104,11 @@ class MultiRadioButton(GW.BaseBox):
             raise TypeError("Index must be of type 'int'; 'slice' or 'str', "
                             "not type %r" % (type(key).__name__))
 
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified[str])
+
     # This function sets up the multi-radiobutton
     def init(self, n, layout):
         """
@@ -186,9 +191,9 @@ class MultiRadioButton(GW.BaseBox):
         # Obtain the index of the current radiobutton
         index = np.argmax(list(map(get_box_value, self.buttons)))
 
-        # If value_sig is not int, return its value signature
+        # If value_sig is not int, return its text
         if int not in value_sig:
-            return(get_box_value(self[index], *value_sig))
+            return(get_box_value(self[index], str))
         # Else, return its index
         else:
             return(index)

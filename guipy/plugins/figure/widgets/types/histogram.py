@@ -95,7 +95,7 @@ class HistogramType(BasePlotType):
         hist_kwargs = {
             'bins': bins if bins else self.n_bins_box.specialValueText(),
             'cumulative': get_box_value(self.hist_cumul_box),
-            'orientation': get_box_value(self.hist_orient_box, str).lower()}
+            'orientation': get_box_value(self.hist_orient_box).lower()}
 
         # Check if this histogram should be drawn
         if self.plot is not None:

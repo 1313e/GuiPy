@@ -10,7 +10,7 @@ Base Plot Properties
 # %% IMPORTS
 # GuiPy imports
 from guipy import layouts as GL
-from guipy.widgets import get_modified_box_signal
+from guipy.widgets import get_modified_signal
 
 # All declaration
 __all__ = ['BasePlotProp']
@@ -90,7 +90,7 @@ class BasePlotProp(GL.QFormLayout):
                 self.options.add_options_entry(widget)
             # Else, solely connect the modified signal to the apply button
             else:
-                get_modified_box_signal(widget).connect(
+                get_modified_signal(widget).connect(
                     self.options.enable_apply_button)
 
             # Add widget to the layout

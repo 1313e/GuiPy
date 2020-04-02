@@ -16,7 +16,7 @@ from guipy import layouts as GL, widgets as GW
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
 from guipy.plugins.figure.widgets.types.props.data import (
     Data1DProp, MultiDataNDProp)
-from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
+from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
 # All declaration
 __all__ = ['HistogramProp', 'MultiHistDataProp']
@@ -185,7 +185,7 @@ class HistRangeBox(GW.BaseBox):
         self.range_flag = hist_range_flag
 
         # Connect signals for hist_range_flag
-        get_modified_box_signal(hist_range_flag).connect(
+        get_modified_signal(hist_range_flag).connect(
             hist_range_box.setEnabled)
 
         # Add everything together

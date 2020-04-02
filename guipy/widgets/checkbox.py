@@ -16,7 +16,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 # GuiPy imports
 from guipy import INT_TYPES
 from guipy import layouts as GL, widgets as GW
-from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
+from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
 # All declaration
 __all__ = ['ToggleBox']
@@ -89,6 +89,11 @@ class ToggleBox(GW.BaseBox):
             raise TypeError("Index must be of type 'int' or 'slice', not type "
                             "%r" % (type(key).__name__))
 
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified[bool])
+
     # This function sets up the togglebox
     def init(self, widget, text, tooltip):
         """
@@ -117,7 +122,7 @@ class ToggleBox(GW.BaseBox):
         self.widget = widget
 
         # Connect some signals
-        get_modified_box_signal(checkbox).connect(widget.setEnabled)
+        get_modified_signal(checkbox).connect(widget.setEnabled)
 
         # Make sure that the checkbox is unchecked
         set_box_value(checkbox, False)
@@ -141,6 +146,7 @@ class ToggleBox(GW.BaseBox):
             as `(checkbox, widget)`.
 
         """
+
         return(get_box_value(self.checkbox),
                get_box_value(self.widget, *value_sig))
 

@@ -20,7 +20,7 @@ from guipy.plugins.data_table.widgets.headers import (
 from guipy.plugins.data_table.widgets.model import DataTableModel, to_base_26
 from guipy.plugins.data_table.widgets.selection_model import (
     DataTableSelectionModel)
-from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
+from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
 # All declaration
 __all__ = ['DataTableView']
@@ -386,7 +386,7 @@ class HorizontalHeaderPopup(GW.QDialog):
         name_box = GW.QLineEdit()
         name_box.setToolTip("Set a custom name for this column or leave empty "
                             "to use its default name")
-        get_modified_box_signal(name_box).connect(self.column_name_changed)
+        get_modified_signal(name_box).connect(self.column_name_changed)
 
         # Add it to the layout
         layout.addRow("Name", name_box)

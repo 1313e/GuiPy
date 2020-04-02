@@ -82,6 +82,11 @@ class DualSpinBox(GW.BaseBox):
             raise TypeError("Index must be of type 'int' or 'slice', not type "
                             "%r" % (type(key).__name__))
 
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified.__getitem__(self.types))
+
     # This function creates the dual spinbox
     def init(self, types, sep):
         """

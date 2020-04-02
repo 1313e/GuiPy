@@ -17,7 +17,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 # GuiPy imports
 from guipy import widgets as GW
 from guipy.plugins.figure.widgets.options import FigureOptionsDialog
-from guipy.widgets import get_modified_box_signal, set_box_value
+from guipy.widgets import get_modified_signal, set_box_value
 
 # All declaration
 __all__ = ['FigureToolbar']
@@ -56,7 +56,7 @@ class FigureToolbar(NavigationToolbar2QT, GW.QToolBar):
         dialog_but = GW.QPushButton()
         set_box_value(dialog_but, self.labels[self.options_dialog.isHidden()])
         dialog_but.setToolTip("Toggle the figure options menu")
-        get_modified_box_signal(dialog_but).connect(self.toggle_options_dialog)
+        get_modified_signal(dialog_but).connect(self.toggle_options_dialog)
         dialog_but.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         self.insertWidget(action_0, dialog_but)
         self.dialog_but = dialog_but

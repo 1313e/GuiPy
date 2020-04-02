@@ -16,7 +16,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
 from guipy.plugins.data_table.widgets.view import DataTableView
-from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
+from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
 # All declaration
 __all__ = ['DataTableWidget']
@@ -76,7 +76,7 @@ class DataTableWidget(GW.QWidget):
         rev_but = GW.QToolButton()
         rev_but.setToolTip("Revert to current data table dimensions")
         rev_but.setIcon(rev_icon)
-        get_modified_box_signal(rev_but).connect(self.revert_table_dimensions)
+        get_modified_signal(rev_but).connect(self.revert_table_dimensions)
         buttons_layout.addWidget(rev_but)
 
         # If this theme has an 'apply' icon, use it
@@ -91,7 +91,7 @@ class DataTableWidget(GW.QWidget):
         app_but = GW.QToolButton()
         app_but.setToolTip("Apply new data table dimensions")
         app_but.setIcon(app_icon)
-        get_modified_box_signal(app_but).connect(self.apply_table_dimensions)
+        get_modified_signal(app_but).connect(self.apply_table_dimensions)
         buttons_layout.addWidget(app_but)
 
         # Add a stretcher

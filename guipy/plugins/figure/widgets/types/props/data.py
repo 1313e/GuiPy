@@ -14,7 +14,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 # GuiPy imports
 from guipy import widgets as GW
 from guipy.plugins.figure.widgets.types.props import BasePlotProp
-from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
+from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
 # All declaration
 __all__ = ['Data1DProp', 'Data2DProp', 'Data1or2DProp', 'Data3DProp',
@@ -49,7 +49,7 @@ class Data1DProp(BasePlotProp):
         # Make a lineedit for setting the label of the plot
         data_label_box = GW.QLineEdit()
         data_label_box.setToolTip("Label of this plot")
-        get_modified_box_signal(data_label_box).connect(self.dataLabelChanged)
+        get_modified_signal(data_label_box).connect(self.dataLabelChanged)
 
         # Return name and box
         return('Label', data_label_box)
@@ -213,7 +213,7 @@ class MultiDataNDProp(BasePlotProp):
             add_but.setText('+')
 
         # Connect tab widget signals
-        get_modified_box_signal(add_but).connect(self.add_data_box)
+        get_modified_signal(add_but).connect(self.add_data_box)
         tab_widget.tabCloseRequested.connect(self.remove_data_box)
 
         # Add initial data box
@@ -232,7 +232,7 @@ class MultiDataNDProp(BasePlotProp):
 
         # Create a default widget for the new DataND prop
         data_prop = GW.BaseBox()
-        get_modified_box_signal(data_prop).connect(self.tab_widget.modified)
+        get_modified_signal(data_prop).connect(self.tab_widget.modified)
 
         # Create a dictionary with all requirements of this property
         prop_kwargs = {req: getattr(self, req)
@@ -550,7 +550,7 @@ class DataColumnBox(GW.DualComboBox):
         self.tab_widget.tabWasInserted[int, str].connect(
             self.set_tables_box_item_tooltip)
         self.tab_widget.tabWasRemoved.connect(tables_box.removeItem)
-        get_modified_box_signal(tables_box, int).connect(
+        get_modified_signal(tables_box, int).connect(
             self.set_columns_box_table)
 
         # Set initial contents of columns_box

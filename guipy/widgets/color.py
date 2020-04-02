@@ -23,7 +23,7 @@ from sortedcontainers import SortedDict as sdict, SortedSet as sset
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
-from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
+from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 from guipy.widgets.combobox import EditableComboBox as GW_EditableComboBox
 
 # All declaration
@@ -52,6 +52,11 @@ class ColorBox(GW.BaseBox):
 
         # Create the color box
         self.init(*args, **kwargs)
+
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified[str])
 
     # This function creates the color box
     def init(self):
@@ -145,8 +150,8 @@ class ColorBox(GW.BaseBox):
         color_box.setToolTip("Select or type (in HEX) the color")
         color_box.highlighted[str].connect(self.set_color_label)
         color_box.popup_hidden[str].connect(self.set_color_label)
-        get_modified_box_signal(color_box, str).connect(self.set_color)
-        get_modified_box_signal(color_box, str).connect(self.modified[str])
+        get_modified_signal(color_box, str).connect(self.set_color)
+        get_modified_signal(color_box, str).connect(self.modified[str])
         return(color_box)
 
     # This function converts an MPL color to a QColor
@@ -416,6 +421,11 @@ class ColorMapBox(GW.BaseBox):
         # Create the colormap box
         self.init(*args, **kwargs)
 
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified[str])
+
     # This function creates a combobox with colormaps
     def init(self):
         # Define set of CMasher colormaps that should be at the top
@@ -474,8 +484,8 @@ class ColorMapBox(GW.BaseBox):
         # Set remaining properties
         set_box_value(cmaps_box, rcParams['image.cmap'])
         cmaps_box.setIconSize(QC.QSize(*cmap_size))
-        get_modified_box_signal(cmaps_box, str).connect(self.cmap_selected)
-        get_modified_box_signal(cmaps_box, str).connect(self.modified[str])
+        get_modified_signal(cmaps_box, str).connect(self.cmap_selected)
+        get_modified_signal(cmaps_box, str).connect(self.modified[str])
 
         # Add cmaps_box to layout
         box_layout.addWidget(cmaps_box)

@@ -18,7 +18,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from guipy import layouts as GL, widgets as GW
 from guipy.plugins.figure.widgets.plot_entry import FigurePlotEntry
 from guipy.plugins.figure.widgets.types import BasePlotType
-from guipy.widgets import get_box_value, get_modified_box_signal, set_box_value
+from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
 # All declaration
 __all__ = ['FigureOptionsDialog']
@@ -145,7 +145,7 @@ class FigureOptionsDialog(GW.QDialog):
 
         # Add widget as an entry to options_dict
         self.options_dict[widget] = get_box_value(widget)
-        get_modified_box_signal(widget).connect(self.enable_apply_button)
+        get_modified_signal(widget).connect(self.enable_apply_button)
 
     # This function removes the provided widget as an options entry
     def remove_options_entry(self, widget):
@@ -176,7 +176,7 @@ class FigureOptionsDialog(GW.QDialog):
     def create_figure_tab(self):
         # Create a tab
         tab = GW.BaseBox()
-        get_modified_box_signal(tab).connect(self.enable_apply_button)
+        get_modified_signal(tab).connect(self.enable_apply_button)
 
         # Create layout
         layout = GL.QFormLayout(tab)
@@ -189,7 +189,7 @@ class FigureOptionsDialog(GW.QDialog):
             title_box,
             ('', {'fontsize': self.get_option('rcParams', 'axes.titlesize')}))
         self.add_options_entry(title_box)
-        get_modified_box_signal(title_box)[str, dict].connect(
+        get_modified_signal(title_box, str, dict).connect(
             self.axis.set_title)
         layout.addRow("Title", title_box)
         self.title_box = title_box
@@ -208,7 +208,7 @@ class FigureOptionsDialog(GW.QDialog):
             x_label_box,
             ('', {'fontsize': self.get_option('rcParams', 'axes.labelsize')}))
         self.add_options_entry(x_label_box)
-        get_modified_box_signal(x_label_box)[str, dict].connect(
+        get_modified_signal(x_label_box, str, dict).connect(
             self.axis.set_xlabel)
         x_axis_layout.addRow("Label", x_label_box)
         self.x_label_box = x_label_box
@@ -226,7 +226,7 @@ class FigureOptionsDialog(GW.QDialog):
         set_box_value(x_range_box, self.axis.get_xlim())
 
         # Connect signals for x_range_box
-        get_modified_box_signal(x_range_box)[float, float].connect(
+        get_modified_signal(x_range_box).connect(
             lambda *args: self.axis.set_xlim(*args, auto=None))
         self.axis.callbacks.connect(
             'xlim_changed', lambda x: set_box_value(x_range_box, x.get_xlim()))
@@ -238,7 +238,7 @@ class FigureOptionsDialog(GW.QDialog):
         x_axis_layout.addRow("Range", x_range_togglebox)
 
         # Connect signals for x_range_togglebox
-        get_modified_box_signal(x_range_togglebox)[bool].connect(
+        get_modified_signal(x_range_togglebox).connect(
             lambda x: self.axis.set_autoscalex_on(not x))
 
         # Make a box for setting the scale on the x-axis
@@ -246,7 +246,7 @@ class FigureOptionsDialog(GW.QDialog):
         x_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
         x_scale_box.setToolTip("Value scale of the X-axis")
         self.add_options_entry(x_scale_box)
-        get_modified_box_signal(x_scale_box).connect(self.axis.set_xscale)
+        get_modified_signal(x_scale_box).connect(self.axis.set_xscale)
         x_axis_layout.addRow("Scale", x_scale_box)
 
         # Y-AXIS
@@ -263,7 +263,7 @@ class FigureOptionsDialog(GW.QDialog):
             y_label_box,
             ('', {'fontsize': self.get_option('rcParams', 'axes.labelsize')}))
         self.add_options_entry(y_label_box)
-        get_modified_box_signal(y_label_box)[str, dict].connect(
+        get_modified_signal(y_label_box, str, dict).connect(
             self.axis.set_ylabel)
         y_axis_layout.addRow("Label", y_label_box)
         self.y_label_box = y_label_box
@@ -279,7 +279,7 @@ class FigureOptionsDialog(GW.QDialog):
         set_box_value(y_range_box, self.axis.get_ylim())
 
         # Connect signals for y_range_box
-        get_modified_box_signal(y_range_box)[float, float].connect(
+        get_modified_signal(y_range_box).connect(
             lambda *args: self.axis.set_ylim(*args, auto=None))
         self.axis.callbacks.connect(
             'ylim_changed', lambda y: set_box_value(y_range_box, y.get_ylim()))
@@ -291,7 +291,7 @@ class FigureOptionsDialog(GW.QDialog):
         y_axis_layout.addRow("Range", y_range_togglebox)
 
         # Connect signals for y_range_togglebox
-        get_modified_box_signal(y_range_togglebox)[bool].connect(
+        get_modified_signal(y_range_togglebox).connect(
             lambda y: self.axis.set_autoscaley_on(not y))
 
         # Make a box for setting the scale on the y-axis
@@ -299,7 +299,7 @@ class FigureOptionsDialog(GW.QDialog):
         y_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
         y_scale_box.setToolTip("Value scale of the Y-axis")
         self.add_options_entry(y_scale_box)
-        get_modified_box_signal(y_scale_box).connect(self.axis.set_yscale)
+        get_modified_signal(y_scale_box).connect(self.axis.set_yscale)
         y_axis_layout.addRow("Scale", y_scale_box)
 
         # PROPS
@@ -324,8 +324,8 @@ class FigureOptionsDialog(GW.QDialog):
         self.legend_togglebox = legend_togglebox
 
         # Connect signals
-        get_modified_box_signal(legend_togglebox).connect(self.set_legend)
-        get_modified_box_signal(legend_loc_box).connect(self.set_legend)
+        get_modified_signal(legend_togglebox).connect(self.set_legend)
+        get_modified_signal(legend_loc_box).connect(self.set_legend)
 
         # Return tab
         return(tab, "Figure")
@@ -334,7 +334,7 @@ class FigureOptionsDialog(GW.QDialog):
     def create_plots_tab(self):
         # Create a tab
         tab = GW.BaseBox()
-        get_modified_box_signal(tab).connect(self.enable_apply_button)
+        get_modified_signal(tab).connect(self.enable_apply_button)
 
         # Create layout
         layout = GL.QFormLayout(tab)
@@ -353,13 +353,13 @@ class FigureOptionsDialog(GW.QDialog):
         plot_entries = GW.QComboBox()
         plot_entries.setToolTip("Select the plot entry you wish to edit")
         plot_layout.addWidget(plot_entries)
-        get_modified_box_signal(plot_entries).disconnect(tab.modified)
+        get_modified_signal(plot_entries).disconnect(tab.modified)
         self.plot_entries = plot_entries
 
         # Add a toolbutton for adding a new plot entry
         add_but = GW.QToolButton()
         add_but.setToolTip("Add new plot entry")
-        get_modified_box_signal(add_but).connect(self.add_entry)
+        get_modified_signal(add_but).connect(self.add_entry)
         plot_layout.addWidget(add_but)
 
         # If this theme has an 'add' icon, use it
@@ -374,7 +374,7 @@ class FigureOptionsDialog(GW.QDialog):
 
         # Add a stacked widget here for dividing the plots
         plot_pages = GW.QStackedWidget()
-        get_modified_box_signal(plot_entries, int).connect(
+        get_modified_signal(plot_entries, int).connect(
             plot_pages.setCurrentIndex)
         layout.addRow(plot_pages)
         self.plot_pages = plot_pages
@@ -402,7 +402,7 @@ class FigureOptionsDialog(GW.QDialog):
         # Add it to the plot_entries and plot_pages
         self.plot_entries.addItem(name)
         self.plot_pages.addWidget(plot_entry)
-        get_modified_box_signal(plot_entry).connect(self.enable_apply_button)
+        get_modified_signal(plot_entry).connect(self.enable_apply_button)
 
         # Set the shown entry to the new entry
         set_box_value(self.plot_entries, index)

@@ -11,7 +11,6 @@ definition, which are core to the functioning of all widgets.
 
 # %% IMPORTS
 # Package imports
-import numpy as np
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
@@ -20,8 +19,7 @@ from guipy.widgets.base import (
     QLabel as GW_QLabel, QTabWidget as GW_QTabWidget, QWidget as GW_QWidget)
 
 # All declaration
-__all__ = ['BaseBox', 'get_box_value', 'get_modified_box_signal',
-           'set_box_value']
+__all__ = ['BaseBox', 'get_box_value', 'get_modified_signal', 'set_box_value']
 
 
 # %% CLASS DEFINITIONS
@@ -66,13 +64,13 @@ class BaseBox(GW_QWidget):
 
             # Try to obtain the modified signal of this child
             try:
-                signal = get_modified_box_signal(child)
+                signal = get_modified_signal(child)
             # If this fails, it does not have one
             except NotImplementedError:
                 pass
             # If this succeeds, connect it to the 'modified' signal
             else:
-                signal.connect(self.modified)
+                signal.connect(self.modified[()])
 
         # Call and return super method
         return(super().childEvent(event))
@@ -90,10 +88,10 @@ class BaseBox(GW_QWidget):
             return
 
         # Obtain the modified signal of the given box
-        signal = get_modified_box_signal(box)
+        signal = get_modified_signal(box)
 
         # Connect the signals
-        signal.connect(self.modified)
+        signal.connect(self.modified[()])
 
     # Define get_box_value method
     def get_box_value(self, *value_sig):
@@ -194,11 +192,13 @@ def get_box_value(box, *value_sig):
 
 
 # This function gets the emitted signal when a provided box is modified
-def get_modified_box_signal(box, *signal_sig):
+def get_modified_signal(box, *signal_sig):
     """
     Retrieves a signal of the provided widget `box` that indicates that `box`
     has been modified and returns it.
 
+    If `box` has the `default_modified_signal` attribute defined, it will be
+    returned if `signal_sig` is empty.
     If `box` has the `modified` signal defined (always the case for instances
     of :class:`~BaseBox`), it will be returned instead.
 
@@ -209,8 +209,6 @@ def get_modified_box_signal(box, *signal_sig):
     signal_sig : positional arguments of object
         The signature of the modified signal that is requested.
         If empty or invalid, the default modified signal is returned.
-        If `box` has the `modified` signal defined, this argument has no
-        effect.
 
     Returns
     -------
@@ -219,9 +217,13 @@ def get_modified_box_signal(box, *signal_sig):
 
     """
 
+    # Custom boxes (default_modified_signal attribute)
+    if hasattr(box, 'default_modified_signal') and not signal_sig:
+        return(box.default_modified_signal)
+
     # Custom boxes (modified signal)
-    if hasattr(box, 'modified'):
-        return(box.modified)
+    elif hasattr(box, 'modified'):
+        return(box.modified.__getitem__(signal_sig))
 
     # Values (QAbstractSpinBox)
     elif isinstance(box, QW.QAbstractSpinBox):

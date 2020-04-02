@@ -85,6 +85,11 @@ class DualLineEdit(GW.BaseBox):
             raise TypeError("Index must be of type 'int' or 'slice', not type "
                             "%r" % (type(key).__name__))
 
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified.__getitem__(self.types))
+
     # This function creates the dual line-edit
     def init(self, types, sep):
         """
@@ -164,6 +169,9 @@ class DualLineEdit(GW.BaseBox):
 
 # Make class for setting a number in a line-edit
 class NumLineEdit(GW.QLineEdit):
+    # Signals
+    modified = QC.Signal([float], [int], [str])
+
     # Initialize the FloatLineEdit class
     def __init__(self, numtype, parent=None, *args, **kwargs):
         """
@@ -183,12 +191,20 @@ class NumLineEdit(GW.QLineEdit):
         # Create the number line-edit box
         self.init(numtype, *args, **kwargs)
 
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified.__getitem__(self.numtype))
+
     # This function creates the number line-edit box
     def init(self, numtype):
         """
         Sets up the number line-edit box after it has been initialized.
 
         """
+
+        # Save provided numtype
+        self.numtype = numtype
 
         # Obtain the proper validator and value getter
         if numtype is int:
@@ -250,5 +266,9 @@ class NumLineEdit(GW.QLineEdit):
 
         """
 
+        # Save value
         self.value = value
         self.setText(CONFIG.locale.toString(value))
+
+        # Emit modified signal
+        self.modified.__getitem__(self.numtype).emit(value)

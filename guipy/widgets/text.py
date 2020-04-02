@@ -103,6 +103,11 @@ class FigureLabelBox(GW.BaseBox):
         box_layout.addWidget(size_box)
         self.size_box = size_box
 
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified[str])
+
     # This function is automatically called whenever 'modified' is emitted
     @QC.Slot()
     def modified_signal_slot(self):

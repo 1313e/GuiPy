@@ -82,6 +82,11 @@ class DualComboBox(GW.BaseBox):
             raise TypeError("Index must be of type 'int' or 'slice', not type "
                             "%r" % (type(key).__name__))
 
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified[str, str])
+
     # This function sets up the dual combobox
     def init(self, editable, sep):
         """

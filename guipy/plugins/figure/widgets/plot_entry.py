@@ -16,7 +16,7 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
 from guipy.plugins.figure.widgets.types import PLOT_TYPES
-from guipy.widgets import get_modified_box_signal, set_box_value
+from guipy.widgets import get_modified_signal, set_box_value
 
 # All declaration
 __all__ = ['FigurePlotEntry']
@@ -65,15 +65,15 @@ class FigurePlotEntry(GW.BaseBox):
         name_box = GW.QLineEdit()
         name_box.setToolTip("Name of this plot entry")
         set_box_value(name_box, self.name)
-        get_modified_box_signal(name_box).connect(self.entryNameChanged)
+        get_modified_signal(name_box).connect(self.entryNameChanged)
         name_layout.addWidget(name_box)
-        get_modified_box_signal(name_box).disconnect(self.modified)
+        get_modified_signal(name_box).disconnect(self.modified)
         self.name_box = name_box
 
         # Add a toolbutton for deleting this plot entry
         del_but = GW.QToolButton()
         del_but.setToolTip("Delete this plot entry")
-        get_modified_box_signal(del_but).connect(self.entryRemoveRequested)
+        get_modified_signal(del_but).connect(self.entryRemoveRequested)
         name_layout.addWidget(del_but)
 
         # If this theme has a 'remove' icon, use it
@@ -90,7 +90,7 @@ class FigurePlotEntry(GW.BaseBox):
         plot_types.setToolTip("Select the plot type you wish to use for this "
                               "plot entry")
         set_box_value(plot_types, -1)
-        get_modified_box_signal(plot_types).connect(self.set_plot_type)
+        get_modified_signal(plot_types).connect(self.set_plot_type)
         layout.addRow('Type', plot_types)
         self.plot_types = plot_types
 
