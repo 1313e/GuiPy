@@ -170,7 +170,7 @@ class DualLineEdit(GW.BaseBox):
 # Make class for setting a number in a line-edit
 class NumLineEdit(GW.QLineEdit):
     # Signals
-    modified = QC.Signal([float], [int], [str])
+    modified = QC.Signal([float], [int])
 
     # Initialize the FloatLineEdit class
     def __init__(self, numtype, parent=None, *args, **kwargs):
