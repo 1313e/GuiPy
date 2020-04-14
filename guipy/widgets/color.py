@@ -11,10 +11,11 @@ handling colors in :mod:`~matplotlib`.
 
 # %% IMPORTS
 # Built-in imports
+from importlib import import_module
 from itertools import chain
 
 # Package imports
-import cmasher as cmr
+from cmasher.utils import _get_cm_type as get_cm_type
 from matplotlib import cm, rcParams
 from matplotlib.colors import BASE_COLORS, CSS4_COLORS, to_rgba
 import numpy as np
@@ -180,7 +181,7 @@ class ColorBox(GW.BaseBox):
         # This is because MPL accepts float strings as valid colors
         try:
             float(color)
-        except ValueError:
+        except (TypeError, ValueError):
             pass
         else:
             raise ValueError
@@ -428,32 +429,38 @@ class ColorMapBox(GW.BaseBox):
 
     # This function creates a combobox with colormaps
     def init(self):
-        # Define set of CMasher colormaps that should be at the top
-        cmr_cmaps = sset(['dusk', 'freeze', 'gothic', 'heat', 'rainforest',
-                          'sunburst'])
+        # Try to import a few packages to get their colormaps registered
+        # TODO: Make it a GuiPy configuration option to set these?
+        for pkg in ['cmasher', 'cmocean']:
+            # Try to import this package
+            try:
+                import_module(pkg)
+            except ImportError:
+                pass
 
-        # Check that all of those colormaps are available in CMasher
-        cmr_cmaps.intersection_update(cmr.cm.cmap_d)
+        # Obtain all colormaps that are registered in MPL
+        cmaps = list(cm.cmap_d)
 
-        # Obtain a set with default MPL colormaps that should be at the top
-        std_cmaps = sset(['cividis', 'inferno', 'magma', 'plasma', 'viridis'])
+        # Split cmaps up into their cmap types
+        cm_types = ['sequential', 'diverging', 'cyclic', 'qualitative', 'misc']
+        cmaps_cd = {cm_type: sset() for cm_type in cm_types}
+        for cmap in cmaps:
+            cmaps_cd[get_cm_type(cmap)].add(cmap)
 
-        # Add CMasher colormaps to it
-        std_cmaps.update(['cmr.'+cmap for cmap in cmr_cmaps])
+        # Create empty list of cmaps sorted on type
+        cmaps_cl = []
+        cum_len = []
 
-        # Obtain reversed set of recommended colormaps
-        std_cmaps_r = sset([cmap+'_r' for cmap in std_cmaps])
+        # Loop over every type
+        for cmaps_cs in cmaps_cd.values():
+            # Take all base versions of the colormaps
+            cmaps_cl.extend([cmap for cmap in cmaps_cs
+                             if not cmap.endswith('_r')])
+            cum_len.extend([len(cmaps_cl)])
 
-        # Obtain a list with all colormaps and their reverses
-        all_cmaps = sset([cmap for cmap in cm.cmap_d
-                          if not cmap.endswith('_r')])
-        all_cmaps_r = sset([cmap for cmap in cm.cmap_d if cmap.endswith('_r')])
-
-        # Gather all sets together
-        cmaps = (std_cmaps, std_cmaps_r, all_cmaps, all_cmaps_r)
-
-        # Determine the cumulative lengths of all four sets
-        cum_len = np.cumsum(list(map(len, cmaps)))
+            # Also add all the reversed versions
+            cmaps_cl.extend([cmap for cmap in cmaps_cs if cmap.endswith('_r')])
+            cum_len.extend([len(cmaps_cl)]*2)
 
         # Set the size for the colormap previews
         cmap_size = (100, 15)
@@ -461,7 +468,7 @@ class ColorMapBox(GW.BaseBox):
         # If the colormap icons have not been created yet, do that now
         if not hasattr(self, 'cmap_icons'):
             cmap_icons = sdict()
-            for cmap in chain(all_cmaps, all_cmaps_r):
+            for cmap in cmaps:
                 cmap_icons[cmap] = self.create_cmap_icon(cmap, cmap_size)
             ColorMapBox.cmap_icons = cmap_icons
 
@@ -472,14 +479,13 @@ class ColorMapBox(GW.BaseBox):
 
         # Create a combobox for cmaps
         cmaps_box = GW.QComboBox()
-        for cmap in chain(*cmaps):
+        for cmap in cmaps_cl:
             cmap_icon = self.cmap_icons[cmap]
             cmaps_box.addItem(cmap_icon, cmap)
 
         # Add some separators
-        for i in reversed(cum_len[:-1]):
+        for i in reversed(cum_len[:-2]):
             cmaps_box.insertSeparator(i)
-        cmaps_box.insertSeparator(cum_len[1]+1)
 
         # Set remaining properties
         set_box_value(cmaps_box, rcParams['image.cmap'])
