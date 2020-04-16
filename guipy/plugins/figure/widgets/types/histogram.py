@@ -37,9 +37,6 @@ class HistogramType(BasePlotType):
     AXIS_TYPE = "2D"
     PROP_NAMES = [*BasePlotType.PROP_NAMES, 'MultiHistData', 'Histogram']
 
-    # Signals
-    dataLabelChanged = QC.Signal(int, str)
-
     # This function sets up the histogram plot
     def init(self, *args, **kwargs):
         # Create layout for this histogram plot
@@ -123,7 +120,7 @@ class HistogramType(BasePlotType):
                                                 'data_label_box')):
             # If label is not empty, reuse it in the plot
             if label:
-                self.set_plot_label(i, label)
+                self.plot[i].set_label(label)
             # Else, obtain its label from MPL
             else:
                 label = self.plot[i].get_label()
@@ -141,9 +138,14 @@ class HistogramType(BasePlotType):
 
         # If histograms currently exist, update them
         if self.plot is not None:
-            for i, plot in enumerate(self.plot):
-                # Obtain color set for this histogram
-                color = get_box_value(self.multi_data_box, i, 'hist_color_box')
+            # Obtain the labels and colors of all elements
+            labels = get_box_value(self.multi_data_box, 'data_label_box')
+            colors = get_box_value(self.multi_data_box, 'hist_color_box')
+
+            for i, (plot, label, color) in enumerate(zip(self.plot, labels,
+                                                         colors)):
+                # Set label
+                plot.set_label(label)
 
                 # Update bin colors
                 for patch in plot.patches:
@@ -171,10 +173,3 @@ class HistogramType(BasePlotType):
             # Set plot and hist_kwargs to None
             self.plot = None
             self.hist_kwargs = None
-
-    # This function sets the label of a plot
-    @QC.Slot(int, str)
-    def set_plot_label(self, index, label):
-        # If histogram currently exists, set its associated label
-        if self.plot is not None:
-            self.plot[index].set_label(label)

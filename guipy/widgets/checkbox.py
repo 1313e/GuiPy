@@ -141,14 +141,21 @@ class ToggleBox(GW.BaseBox):
 
         Returns
         -------
-        value : tuple
+        value : bool or tuple
             A tuple containing the values of the checkbox and widget, formatted
             as `(checkbox, widget)`.
+            If `value_sig` contains type 'bool', only the value of `checkbox`
+            is returned.
 
         """
 
-        return(get_box_value(self.checkbox),
-               get_box_value(self.widget, *value_sig))
+        # If solely the value of the checkbox was requested, return it
+        if bool in value_sig:
+            return(get_box_value(self.checkbox))
+        # Else, return the checkbox and widget values
+        else:
+            return(get_box_value(self.checkbox),
+                   get_box_value(self.widget, *value_sig))
 
     # This function sets the value of this special box
     def set_box_value(self, value, *args, **kwargs):

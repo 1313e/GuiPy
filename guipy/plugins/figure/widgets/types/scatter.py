@@ -74,7 +74,16 @@ class ScatterType(BasePlotType):
             # Make and update plot
             self.plot = self.axis.plot(xcol, ycol)[0]
             self.plot.set_linestyle('')
-            set_box_value(self.data_label_box, self.plot.get_label())
+
+            # Obtain label currently set in label box
+            label = get_box_value(self.data_label_box)
+
+            # If label is not empty, reuse it in the plot
+            if label:
+                self.plot.set_label(label)
+            # Else, obtain its label from MPL
+            else:
+                set_box_value(self.data_label_box, self.plot.get_label())
 
             # If the figure currently has no title, set it
             title_box = self.toolbar.options_dialog.title_box[0]
@@ -108,6 +117,9 @@ class ScatterType(BasePlotType):
 
         # If scatter currently exists, update it
         if self.plot is not None:
+            # Set label
+            self.plot.set_label(get_box_value(self.data_label_box))
+
             # Update marker style, size and color
             self.plot.set_marker(get_box_value(self.marker_style_box))
             self.plot.set_markersize(get_box_value(self.marker_size_box))
@@ -123,10 +135,3 @@ class ScatterType(BasePlotType):
 
             # Set plot to None
             self.plot = None
-
-    # This function sets the label of a plot
-    @QC.Slot(str)
-    def set_plot_label(self, label):
-        # If line currently exists, set its label
-        if self.plot is not None:
-            self.plot.set_label(label)

@@ -39,10 +39,6 @@ class QWidget(QW.QWidget):
 
     """
 
-    # Signals
-    focusReceived = QC.Signal()
-    focusLost = QC.Signal()
-
     # Initialize QWidget
     def __init__(self, *args, **kwargs):
         # Call super constructor
@@ -75,7 +71,7 @@ class QWidget(QW.QWidget):
     def childEvent(self, event):
         """
         Special :meth:`~PyQt5.QtCore.QObject.childEvent` event that
-        automatically adds calls the :meth:`~get_parent_methods` method on any
+        automatically calls the :meth:`~get_parent_methods` method on any
         widget that becomes a child of this widget.
 
         """
@@ -91,22 +87,6 @@ class QWidget(QW.QWidget):
 
         # Call and return super method
         return(super().childEvent(event))
-
-    # Override focusInEvent to emit a signal whenever it is triggered
-    def focusInEvent(self, event):
-        # Call and return super method
-        return(super().focusInEvent(event))
-
-        # Emit signal
-        self.focusReceived.emit()
-
-    # Override focusOutEvent to emit a signal whenever it is triggered
-    def focusOutEvent(self, event):
-        # Call and return super method
-        return(super().focusOutEvent(event))
-
-        # Emit signal
-        self.focusLost.emit()
 
 
 # %% CLASS DEFINITIONS

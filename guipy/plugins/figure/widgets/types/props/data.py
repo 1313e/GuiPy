@@ -34,8 +34,7 @@ class Data1DProp(BasePlotProp):
     # Class attributes
     NAME = "Data1D"
     DISPLAY_NAME = "Data"
-    REQUIREMENTS = [*BasePlotProp.REQUIREMENTS, 'data_table_plugin',
-                    'dataLabelChanged']
+    REQUIREMENTS = [*BasePlotProp.REQUIREMENTS, 'data_table_plugin']
     WIDGET_NAMES = [*BasePlotProp.WIDGET_NAMES, 'data_label_box', 'x_data_box']
 
     # This function creates and returns the data label box
@@ -49,7 +48,6 @@ class Data1DProp(BasePlotProp):
         # Make a lineedit for setting the label of the plot
         data_label_box = GW.QLineEdit()
         data_label_box.setToolTip("Label of this plot")
-        get_modified_signal(data_label_box).connect(self.dataLabelChanged)
 
         # Return name and box
         return('Label', data_label_box)
@@ -237,11 +235,6 @@ class MultiDataNDProp(BasePlotProp):
         # Create a dictionary with all requirements of this property
         prop_kwargs = {req: getattr(self, req)
                        for req in self.data_prop.REQUIREMENTS}
-
-        # Replace the dataLabelChanged requirement with a different function
-        prop_kwargs['dataLabelChanged'] =\
-            lambda text: self.dataLabelChanged.emit(
-                self.tab_widget.indexOf(data_prop), text)
 
         # Create the DataND prop
         prop_layout = self.data_prop(**prop_kwargs)

@@ -48,9 +48,6 @@ class BasePlotType(GW.QWidget):
     AXIS_TYPE = ""
     PROP_NAMES = []
 
-    # Signals
-    dataLabelChanged = QC.Signal(str)
-
     # Initialize this plot type
     def __init__(self, toolbar, parent=None, *args, **kwargs):
         # Save provided FigureToolbar object
@@ -74,9 +71,6 @@ class BasePlotType(GW.QWidget):
         # Create layout for this line plot
         self.create_type_layout()
 
-        # Connect signals
-        self.dataLabelChanged.connect(self.set_plot_label)
-
         # Save that currently no line exists
         self.plot = None
 
@@ -91,6 +85,9 @@ class BasePlotType(GW.QWidget):
         # Create layout for this plot type
         layout = GL.QFormLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+
+        # Connect signals
+        self.options.refreshing_plots.connect(self.update_plot)
 
         # Loop over all required plot props
         for prop_name in self.PROP_NAMES:
@@ -129,16 +126,6 @@ class BasePlotType(GW.QWidget):
     def remove_plot(self):
         """
         Removes the current plot.
-
-        """
-
-        raise NotImplementedError(self.__class__)
-
-    # Define set_plot_label method
-    @QC.Slot(str)
-    def set_plot_label(self, label):
-        """
-        Sets the label of the current plot.
 
         """
 

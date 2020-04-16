@@ -472,7 +472,7 @@ class MainWindow(GW.QMainWindow):
     @QC.Slot()
     def about(self):
         """
-        Displays a small section with information about the GUI.
+        Displays a small section with information about *GuiPy*.
 
         """
 

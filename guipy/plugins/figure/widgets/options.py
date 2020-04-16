@@ -31,6 +31,10 @@ class FigureOptionsDialog(GW.QDialog):
     applying = QC.Signal()
     discarding = QC.Signal()
 
+    # Create refreshing_plots and refreshing_figure signals
+    refreshing_plots = QC.Signal()
+    refreshing_figure = QC.Signal()
+
     # Initialize FigureOptionsDialog
     def __init__(self, toolbar, *args, **kwargs):
         # Save provided FigureToolbar object
@@ -189,8 +193,8 @@ class FigureOptionsDialog(GW.QDialog):
             title_box,
             ('', {'fontsize': self.get_option('rcParams', 'axes.titlesize')}))
         self.add_options_entry(title_box)
-        get_modified_signal(title_box, str, dict).connect(
-            self.axis.set_title)
+        self.refreshing_figure.connect(lambda: self.axis.set_title(
+            *get_box_value(title_box, str, dict)))
         layout.addRow("Title", title_box)
         self.title_box = title_box
 
@@ -208,8 +212,8 @@ class FigureOptionsDialog(GW.QDialog):
             x_label_box,
             ('', {'fontsize': self.get_option('rcParams', 'axes.labelsize')}))
         self.add_options_entry(x_label_box)
-        get_modified_signal(x_label_box, str, dict).connect(
-            self.axis.set_xlabel)
+        self.refreshing_figure.connect(lambda: self.axis.set_xlabel(
+            *get_box_value(x_label_box, str, dict)))
         x_axis_layout.addRow("Label", x_label_box)
         self.x_label_box = x_label_box
 
@@ -223,8 +227,8 @@ class FigureOptionsDialog(GW.QDialog):
         set_box_value(x_range_box, self.axis.get_xlim())
 
         # Connect signals for x_range_box
-        get_modified_signal(x_range_box).connect(
-            lambda *args: self.axis.set_xlim(*args, auto=None))
+        self.refreshing_figure.connect(lambda: self.axis.set_xlim(
+            *get_box_value(x_range_box), auto=None))
         self.axis.callbacks.connect(
             'xlim_changed', lambda x: set_box_value(x_range_box, x.get_xlim()))
 
@@ -235,15 +239,16 @@ class FigureOptionsDialog(GW.QDialog):
         x_axis_layout.addRow("Range", x_range_togglebox)
 
         # Connect signals for x_range_togglebox
-        get_modified_signal(x_range_togglebox).connect(
-            lambda x: self.axis.set_autoscalex_on(not x))
+        self.refreshing_figure.connect(lambda: self.axis.set_autoscalex_on(
+            not get_box_value(x_range_togglebox, bool)))
 
         # Make a box for setting the scale on the x-axis
         x_scale_box = GW.QComboBox()
         x_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
         x_scale_box.setToolTip("Value scale of the X-axis")
         self.add_options_entry(x_scale_box)
-        get_modified_signal(x_scale_box).connect(self.axis.set_xscale)
+        self.refreshing_figure.connect(lambda: self.axis.set_xscale(
+            get_box_value(x_scale_box)))
         x_axis_layout.addRow("Scale", x_scale_box)
 
         # Y-AXIS
@@ -260,8 +265,8 @@ class FigureOptionsDialog(GW.QDialog):
             y_label_box,
             ('', {'fontsize': self.get_option('rcParams', 'axes.labelsize')}))
         self.add_options_entry(y_label_box)
-        get_modified_signal(y_label_box, str, dict).connect(
-            self.axis.set_ylabel)
+        self.refreshing_figure.connect(lambda: self.axis.set_ylabel(
+            *get_box_value(y_label_box, str, dict)))
         y_axis_layout.addRow("Label", y_label_box)
         self.y_label_box = y_label_box
 
@@ -274,8 +279,8 @@ class FigureOptionsDialog(GW.QDialog):
         set_box_value(y_range_box, self.axis.get_ylim())
 
         # Connect signals for y_range_box
-        get_modified_signal(y_range_box).connect(
-            lambda *args: self.axis.set_ylim(*args, auto=None))
+        self.refreshing_figure.connect(lambda: self.axis.set_ylim(
+            *get_box_value(y_range_box), auto=None))
         self.axis.callbacks.connect(
             'ylim_changed', lambda y: set_box_value(y_range_box, y.get_ylim()))
 
@@ -286,15 +291,16 @@ class FigureOptionsDialog(GW.QDialog):
         y_axis_layout.addRow("Range", y_range_togglebox)
 
         # Connect signals for y_range_togglebox
-        get_modified_signal(y_range_togglebox).connect(
-            lambda y: self.axis.set_autoscaley_on(not y))
+        self.refreshing_figure.connect(lambda: self.axis.set_autoscaley_on(
+            not get_box_value(y_range_togglebox, bool)))
 
         # Make a box for setting the scale on the y-axis
         y_scale_box = GW.QComboBox()
         y_scale_box.addItems(['linear', 'log', 'symlog', 'logit'])
         y_scale_box.setToolTip("Value scale of the Y-axis")
         self.add_options_entry(y_scale_box)
-        get_modified_signal(y_scale_box).connect(self.axis.set_yscale)
+        self.refreshing_figure.connect(lambda: self.axis.set_yscale(
+            get_box_value(y_scale_box)))
         y_axis_layout.addRow("Scale", y_scale_box)
 
         # PROPS
@@ -317,10 +323,6 @@ class FigureOptionsDialog(GW.QDialog):
         self.add_options_entry(legend_togglebox)
         props_layout.addRow(legend_togglebox)
         self.legend_togglebox = legend_togglebox
-
-        # Connect signals
-        get_modified_signal(legend_togglebox).connect(self.set_legend)
-        get_modified_signal(legend_loc_box).connect(self.set_legend)
 
         # Return tab
         return(tab, "Figure")
@@ -467,21 +469,18 @@ class FigureOptionsDialog(GW.QDialog):
     # OPTIMIZE: Drawing canvas can take several seconds for large data plots
     @QC.Slot()
     def refresh_figure(self):
-        # Loop over all plot entries
-        for plot_entry in map(self.plot_pages.widget,
-                              range(self.plot_pages.count())):
-            # Obtain the actual plot entry
-            plot_entry = plot_entry.plot_entry
+        # Emit the refreshing signals
+        self.refreshing_plots.emit()
+        self.refreshing_figure.emit()
 
-            # Update this plot if it is a plot type
-            if isinstance(plot_entry, BasePlotType):
-                plot_entry.update_plot()
+        # Update the legend
+        self.set_legend()
 
-        # Update the figure
-        if self.axis.legend_ is not None:
-            self.set_legend()
+        # Process figure axes limits
         self.axis.relim()
         self.axis.autoscale_view(None, True, True)
+
+        # Draw canvas
         self.canvas.draw()
 
     # This function sets the legend of the figure
@@ -494,8 +493,8 @@ class FigureOptionsDialog(GW.QDialog):
         if flag:
             self.axis.legend(loc=loc)
 
-        # Else, remove the current one
-        else:
+        # Else, remove the current one if it exists
+        elif self.axis.legend_ is not None:
             self.axis.legend_.remove()
 
     # This function applies the new figure options values

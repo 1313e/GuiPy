@@ -57,9 +57,9 @@ class LineType(BasePlotType):
             ycol = get_box_value(self.y_data_box)[1]
 
             # Check if the x column is currently enabled
-            if get_box_value(self.x_data_box[0]):
+            if get_box_value(self.x_data_box, bool):
                 # If so, obtain xcol
-                xcol = get_box_value(self.x_data_box[1])[1]
+                xcol = get_box_value(self.x_data_box)[1][1]
             else:
                 # If not, xcol is a NumPy array
                 xcol = np.arange(len(ycol)) if ycol is not None else None
@@ -83,7 +83,16 @@ class LineType(BasePlotType):
         if self.plot not in self.axis.lines:
             # Make and update plot
             self.plot = self.axis.plot(xcol, ycol)[0]
-            set_box_value(self.data_label_box, self.plot.get_label())
+
+            # Obtain label currently set in label box
+            label = get_box_value(self.data_label_box)
+
+            # If label is not empty, reuse it in the plot
+            if label:
+                self.plot.set_label(label)
+            # Else, obtain its label from MPL
+            else:
+                set_box_value(self.data_label_box, self.plot.get_label())
 
             # If the figure currently has no title, set it
             xname = getattr(xcol, 'name', 'index')
@@ -119,6 +128,9 @@ class LineType(BasePlotType):
 
         # If line currently exists, update it
         if self.plot is not None:
+            # Set plot label
+            self.plot.set_label(get_box_value(self.data_label_box))
+
             # Update line style, width and color
             self.plot.set_linestyle(get_box_value(self.line_style_box))
             self.plot.set_linewidth(get_box_value(self.line_width_box))
@@ -139,10 +151,3 @@ class LineType(BasePlotType):
 
             # Set plot to None
             self.plot = None
-
-    # This function sets the label of a plot
-    @QC.Slot(str)
-    def set_plot_label(self, label):
-        # If line currently exists, set its label
-        if self.plot is not None:
-            self.plot.set_label(label)
