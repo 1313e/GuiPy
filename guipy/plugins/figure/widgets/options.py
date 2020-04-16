@@ -214,14 +214,11 @@ class FigureOptionsDialog(GW.QDialog):
         self.x_label_box = x_label_box
 
         # Make a box for setting the range on the x-axis
-        # TODO: Maybe use dual lineedits instead to eliminate range problem?
-        # TODO: This would also allow for a cell or small formula to be used
-        x_range_box = GW.DualSpinBox((float, float),
-                                     r"<html>&le; X &le;</html>")
+        # TODO: Allow for a small formula or cell range to be given instead?
+        x_range_box = GW.DualLineEdit((float, float),
+                                      r"<html>&le; X &le;</html>")
         x_min_box, x_max_box = x_range_box[:]
-        x_min_box.setRange(-9999999, 9999999)
         x_min_box.setToolTip("Minimum value of the X-axis")
-        x_max_box.setRange(-9999999, 9999999)
         x_max_box.setToolTip("Maximum value of the X-axis")
         set_box_value(x_range_box, self.axis.get_xlim())
 
@@ -269,12 +266,10 @@ class FigureOptionsDialog(GW.QDialog):
         self.y_label_box = y_label_box
 
         # Make a box for setting the range on the y-axis
-        y_range_box = GW.DualSpinBox((float, float),
-                                     r"<html>&le; Y &le;</html>")
+        y_range_box = GW.DualLineEdit((float, float),
+                                      r"<html>&le; Y &le;</html>")
         y_min_box, y_max_box = y_range_box[:]
-        y_min_box.setRange(-9999999, 9999999)
         y_min_box.setToolTip("Minimum value of the Y-axis")
-        y_max_box.setRange(-9999999, 9999999)
         y_max_box.setToolTip("Maximum value of the Y-axis")
         set_box_value(y_range_box, self.axis.get_ylim())
 

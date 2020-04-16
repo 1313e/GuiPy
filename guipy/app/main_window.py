@@ -499,4 +499,4 @@ class MainWindow(GW.QMainWindow):
                        PyQt5_version=qtpy.PYQT_VERSION))
 
         # Create the 'about' dialog
-        GW.QMessageBox.about(self, tr("About %s" % (APP_NAME)), tr(text))
+        GW.QMessageBox.about(self, "About %s" % (APP_NAME), text)

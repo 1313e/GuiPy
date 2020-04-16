@@ -357,9 +357,7 @@ class QAbstractSpinBox(QW.QAbstractSpinBox, QWidget):
 
 # Create custom QDoubleSpinBox
 class QDoubleSpinBox(QW.QDoubleSpinBox, QAbstractSpinBox):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setDecimals(6)
+    pass
 
 
 # Create custom QSpinBox

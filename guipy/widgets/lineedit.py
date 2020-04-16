@@ -177,6 +177,11 @@ class NumLineEdit(GW.QLineEdit):
         """
         Initialize an instance of the :class:`~NumLineEdit` class.
 
+        Parameters
+        ----------
+        numtype : {float; int}
+            The type of number line-edit to use.
+
         Optional
         --------
         parent : :obj:`~PyQt5.QtWidgets.QWidget` object or None. Default: None
@@ -240,6 +245,18 @@ class NumLineEdit(GW.QLineEdit):
         # Call and return super method
         return(super().focusOutEvent(event))
 
+    # This function calls the validator's setRange
+    def setRange(self, bottom, top):
+        self.validator().setRange(bottom, top)
+
+    # This function calls the validator's setBottom
+    def setBottom(self, bottom):
+        self.validator().setBottom(bottom)
+
+    # This function calls the validator's setTop
+    def setTop(self, top):
+        self.validator().setTop(top)
+
     # This function retrieves a value of this special box
     def get_box_value(self, *args, **kwargs):
         """
@@ -266,9 +283,13 @@ class NumLineEdit(GW.QLineEdit):
 
         """
 
+        # Save the current value
+        cur_value = self.value
+
         # Save value
         self.value = value
         self.setText(CONFIG.locale.toString(value))
 
-        # Emit modified signal
-        self.modified.__getitem__(self.numtype).emit(value)
+        # Emit modified signal if value was changed
+        if(cur_value != self.value):
+            self.default_modified_signal.emit(value)
