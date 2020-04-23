@@ -23,7 +23,7 @@ __all__ = ['BaseConfigPage']
 
 # %% CLASS DEFINITIONS
 # Define base class for making config pages
-class BaseConfigPage(GW.QWidget):
+class BaseConfigPage(GW.BaseBox):
     # Define class attributes
     NAME = ''
 
@@ -84,10 +84,16 @@ class BaseConfigPage(GW.QWidget):
         raise NotImplementedError(self.__class__)
 
     # This function returns its config section, as required by config parser
-    def get_config_section(self):
+    def get_config_section(self, config_dict):
         """
         Returns a dict containing the config values for the config section
         associated with this config page.
+
+        Parameters
+        ----------
+        config_dict : dict
+            Dict containing the config values belonging to this config page as
+            used by *GuiPy*.
 
         Returns
         -------
