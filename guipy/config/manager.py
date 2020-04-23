@@ -19,6 +19,7 @@ from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
 from guipy import CONFIG_DIR, CONFIG_NAME
+from guipy.config.dialog import ConfigDialog
 
 # All declaration
 __all__ = ['CONFIG']
@@ -38,6 +39,9 @@ class ConfigManager(object):
     def _init(self, parent=None):
         # Save provided parent
         self.parent = parent
+
+        # Initialize config dialog
+        self.config_dialog = ConfigDialog(self, parent=parent)
 
         # Read in the configuration file
         self.read_config()

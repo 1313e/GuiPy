@@ -60,7 +60,7 @@ class FigureOptionsDialog(GW.QDialog):
         # Set dialog properties
         # TODO: Figure out how to make the menu modal without it moving
         # automatically to the center on Linux
-#        self.setWindowModality(QC.Qt.ApplicationModal)
+        # self.setWindowModality(QC.Qt.ApplicationModal)
         self.setWindowFlags(
             QC.Qt.Dialog |
             QC.Qt.FramelessWindowHint |

@@ -21,10 +21,11 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 # All declaration
 __all__ = ['QAbstractButton', 'QAction', 'QCheckBox', 'QComboBox', 'QDialog',
            'QDockWidget', 'QDoubleSpinBox', 'QFileDialog', 'QGroupBox',
-           'QHeaderView', 'QLabel', 'QLineEdit', 'QMainWindow', 'QMenu',
-           'QMessageBox', 'QPushButton', 'QRadioButton', 'QSpinBox',
-           'QStackedWidget', 'QTabBar', 'QTableView', 'QTabWidget',
-           'QTextEdit', 'QToolBar', 'QToolButton', 'QToolTip', 'QWidget']
+           'QHeaderView', 'QLabel', 'QLineEdit', 'QListView', 'QListWidget',
+           'QMainWindow', 'QMenu', 'QMessageBox', 'QPushButton',
+           'QRadioButton', 'QSpinBox', 'QSplitter', 'QStackedWidget',
+           'QTabBar', 'QTableView', 'QTabWidget', 'QTextEdit', 'QToolBar',
+           'QToolButton', 'QToolTip', 'QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -406,6 +407,16 @@ class QLineEdit(QW.QLineEdit, QWidget):
     pass
 
 
+# Create custom QListView class
+class QListView(QW.QListView, QWidget):
+    pass
+
+
+# Create custom QListWidget class
+class QListWidget(QW.QListWidget, QWidget):
+    pass
+
+
 # Create custom QMainWindow class
 class QMainWindow(QW.QMainWindow, QWidget):
     pass
@@ -502,6 +513,11 @@ class QPushButton(QW.QPushButton, QAbstractButton):
 
 # Create custom QRadioButton class
 class QRadioButton(QW.QRadioButton, QAbstractButton):
+    pass
+
+
+# Create custom QSplitter class
+class QSplitter(QW.QSplitter, QWidget):
     pass
 
 
