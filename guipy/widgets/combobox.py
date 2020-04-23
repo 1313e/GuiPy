@@ -11,7 +11,7 @@ Comboboxes
 # Built-in imports
 
 # Package imports
-from qtpy import QtCore as QC, QtWidgets as QW
+from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import INT_TYPES
@@ -19,10 +19,77 @@ from guipy import layouts as GL, widgets as GW
 from guipy.widgets import get_box_value, set_box_value
 
 # All declaration
-__all__ = ['DualComboBox', 'EditableComboBox']
+__all__ = ['ComboBoxValidator', 'DualComboBox', 'EditableComboBox']
 
 
 # %% CLASS DEFINITIONS
+# Define the ComboBoxValidator class
+class ComboBoxValidator(QG.QRegularExpressionValidator):
+    # Initialize the ListValidator class
+    def __init__(self, combobox_obj, regexp=None, parent=None):
+        """
+        Initialize an instance of the :class:`~ComboBoxValidator` class.
+
+        Parameters
+        ----------
+        combobox_obj : :obj:`~PyQt5.QtWidgets.ComboBox`
+            Combobox object for which the editable line must be validated.
+
+        Optional
+        --------
+        regexp : str or None. Default: None
+            The regular expression pattern to use for validating an input
+            string if it is not found in `combobox_obj`.
+            If *None*, no regular expression is used.
+        parent : :obj:`~PyQt5.QtCore.QObject` object or None. Default: None
+            The parent object to use for this validator or *None* for no
+            parent.
+
+        """
+
+        # Save the completer of the provided combobox
+        self.completer = combobox_obj.completer()
+
+        # Check provided regexp
+        if regexp is None:
+            # If regexp is None, set the pattern to one that rejects all
+            regexp = r"$.^"
+
+        # Call super constructor
+        super().__init__(QC.QRegularExpression(regexp), parent)
+
+    # Override validate to first check the combobox completer
+    def validate(self, string, pos):
+        # Check if string is already in the completions list
+        index = self.completer.completionModel().index(0, 0)
+        match = self.completer.completionModel().match(
+            index, QC.Qt.EditRole, string, flags=QC.Qt.MatchExactly)
+
+        # Check if there is a match
+        if not match:
+            # If not, set the completion prefix in the completer
+            self.completer.setCompletionPrefix(string)
+
+        # Obtain the current completion string
+        completion = self.completer.currentCompletion()
+
+        # Check the completion string against the given one and act accordingly
+        if completion:
+            # If the completion string is not empty, check if it matches
+            if match and string:
+                # If so, it is acceptable
+                state = self.Acceptable
+            else:
+                # Else, it is intermediate
+                state = self.Intermediate
+
+            # Return the state, string and pos
+            return(state, string, pos)
+        else:
+            # If the completion string is empty, use the regular expression
+            return(super().validate(string, pos))
+
+
 # Make class with two comboboxes
 class DualComboBox(GW.BaseBox):
     """
@@ -164,9 +231,9 @@ class DualComboBox(GW.BaseBox):
 # Create custom QComboBox class that is editable
 class EditableComboBox(GW.QComboBox):
     """
-    Defines the :class:`~QW_QEditableComboBox` class.
+    Defines the :class:`~QEditableComboBox` class.
 
-    This class makes the :class:`~guipy.widgets.QW_QComboBox` class editable.
+    This class makes the :class:`~guipy.widgets.QComboBox` class editable.
 
     """
 

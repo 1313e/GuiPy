@@ -117,6 +117,9 @@ class HistDataProp(Data1DProp):
         # Make a color box
         hist_color_box = GW.ColorBox()
 
+        # Connect 'applying' signal
+        self.options.applying.connect(hist_color_box.set_default_color)
+
         # Return name and box
         return('Color', hist_color_box)
 

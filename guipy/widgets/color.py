@@ -13,6 +13,7 @@ handling colors in :mod:`~matplotlib`.
 # Built-in imports
 from importlib import import_module
 from itertools import chain
+import re
 
 # Package imports
 from cmasher.utils import _get_cm_type as get_cm_type
@@ -25,10 +26,25 @@ from sortedcontainers import SortedDict as sdict, SortedSet as sset
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
 from guipy.widgets import get_box_value, get_modified_signal, set_box_value
-from guipy.widgets.combobox import EditableComboBox as GW_EditableComboBox
+from guipy.widgets.combobox import ComboBoxValidator, EditableComboBox
 
 # All declaration
 __all__ = ['ColorBox', 'ColorMapBox']
+
+
+# %% HELPER DEFINITIONS
+# Define EditableComboBox class that emits a signal when losing focus
+class FocusComboBox(EditableComboBox):
+    # Create focusLost signal
+    focusLost = QC.Signal()
+
+    # Override focusOutEvent to emit signal whenever triggered
+    def focusOutEvent(self, event):
+        # Emit focusLost signal
+        self.focusLost.emit()
+
+        # Call super method
+        return(super().focusOutEvent(event))
 
 
 # %% CLASS DEFINITIONS
@@ -132,7 +148,11 @@ class ColorBox(GW.BaseBox):
         cum_len = np.cumsum(list(map(len, colors)))
 
         # Make combobox for colors
-        color_box = GW_EditableComboBox()
+        color_box = FocusComboBox()
+
+        # Add a special validator to this combobox
+        validator = ComboBoxValidator(color_box, r"#?[\da-fA-F]{6}")
+        color_box.setValidator(validator)
 
         # Fill combobox with all colors
         for i, color in enumerate(chain(*colors)):
@@ -150,8 +170,10 @@ class ColorBox(GW.BaseBox):
         # Set remaining properties
         color_box.setToolTip("Select or type (in HEX) the color")
         color_box.highlighted[str].connect(self.set_color_label)
-        color_box.popup_hidden[str].connect(self.set_color_label)
-        get_modified_signal(color_box, str).connect(self.set_color)
+        color_box.popup_hidden[str].connect(self.set_color)
+        color_box.editTextChanged.connect(self.set_color)
+        color_box.focusLost.connect(
+            lambda: self.set_color(self.get_box_value()))
         get_modified_signal(color_box, str).connect(self.modified[str])
         return(color_box)
 
@@ -166,8 +188,6 @@ class ColorBox(GW.BaseBox):
         ----------
         color : str or tuple of length {3, 4}
             The matplotlib color that must be converted.
-            If `color` is a float string, an error will be raised, as Qt5 does
-            not accept those.
 
         Returns
         -------
@@ -176,15 +196,6 @@ class ColorBox(GW.BaseBox):
             corresponds to the provided `color`.
 
         """
-
-        # If the color can be converted to a float, raise a ValueError
-        # This is because MPL accepts float strings as valid colors
-        try:
-            float(color)
-        except (TypeError, ValueError):
-            pass
-        else:
-            raise ValueError
 
         # Obtain the RGBA values of an MPL color
         r, g, b, a = to_rgba(color)
@@ -221,7 +232,7 @@ class ColorBox(GW.BaseBox):
         """
 
         hexid = qcolor.name()
-        return str(hexid)
+        return(str(hexid))
 
     # This function creates a pixmap of an MPL color
     @staticmethod
@@ -279,9 +290,9 @@ class ColorBox(GW.BaseBox):
 
         # If the returned color is valid, save it
         if color.isValid():
-            self.set_color(self.convert_to_mpl_color(color))
+            self._set_color(self.convert_to_mpl_color(color))
 
-    # This function sets a given color as the current color
+    # This function is called whenever the user changes the lineedit
     @QC.Slot(str)
     def set_color(self, color):
         """
@@ -294,27 +305,37 @@ class ColorBox(GW.BaseBox):
             The color that needs to be used as the current color. The provided
             `color` can be any string that is accepted as a color by
             matplotlib.
-            If `color` is invalid, it is set to the current default color
-            instead.
+            If `color` is invalid, the default color is used instead.
 
         """
 
-        # If color can be converted to a hex integer, do so and add hash to it
-        try:
-            int(color, 16)
-        except ValueError:
-            pass
-        else:
-            # Make sure that color has a length of 6
-            if(len(color) == 6):
-                color = "#%s" % (color)
+        # Check if the combobox currently holds an acceptable input
+        status = self.color_combobox.lineEdit().hasAcceptableInput()
 
-        # Set the color label
-        default_flag = self.set_color_label(color)
-
-        # If default was not used, set the combobox to the proper value as well
-        if not default_flag:
+        # Check status
+        if status:
+            # If valid, add a hash if color is a 6-digit hex string
+            color = re.sub(r"^[\da-fA-F]{6}$", lambda x: '#'+x[0], color)
             set_box_value(self.color_combobox, color)
+        else:
+            # Else, use the default color
+            color = self.default_color
+
+            # If combobox currently has no focus, set combobox value as well
+            if not self.color_combobox.hasFocus():
+                set_box_value(self.color_combobox, color)
+
+        # Set the color label of the colorbox
+        self.set_color_label(color)
+
+    # This function sets a given color as the current color
+    @QC.Slot(str)
+    def _set_color(self, color):
+        # Set the color label
+        self.set_color_label(color)
+
+        # Set the combobox to the proper value as well
+        set_box_value(self.color_combobox, color)
 
     # This function sets the color of the colorlabel
     @QC.Slot(str)
@@ -328,65 +349,59 @@ class ColorBox(GW.BaseBox):
             The color that needs to be used as the current color label. The
             provided `color` can be any string that is accepted as a color by
             matplotlib.
-            If `color` is invalid, it is set to the current default color
-            instead.
-
-        Returns
-        -------
-        default_flag : bool
-            Whether or not the color label is currently set to the default
-            color. This happens when `color` is an invalid color.
 
         """
 
-        # Try to create the pixmap of the colorlabel
-        try:
-            pixmap = self.create_color_pixmap(color,
-                                              (70,
-                                               self.color_combobox.height()-2))
-            default_flag = False
-        # If that cannot be done, create the default instead
-        except ValueError:
-            pixmap = self.create_color_pixmap(self.default_color,
-                                              (70,
-                                               self.color_combobox.height()-2))
-            default_flag = True
+        # Create pixmap of given color
+        pixmap = self.create_color_pixmap(
+            color, (70, self.color_combobox.height()-2))
 
         # Set the colorlabel
         set_box_value(self.color_label, pixmap)
 
-        # Return if default was used or not
-        return(default_flag)
+    # This function sets the default color of the color box
+    @QC.Slot()
+    @QC.Slot(str)
+    def set_default_color(self, color=None):
+        """
+        Sets the default color value to `color`.
+
+        Optional
+        --------
+        color : str or None. Default: None
+            The matplotlib color value that must be set as the default value
+            for this colorbox.
+            If *None*, use the current color value of this colorbox instead.
+
+        """
+
+        # If color is None, obtain current value
+        if color is None:
+            color = self.get_box_value()
+
+        # Set new default color
+        self.default_color = color
+        self.color_combobox.lineEdit().setPlaceholderText(color)
 
     # This function retrieves a value of this special box
     def get_box_value(self, *args, **kwargs):
         """
-        Returns the current (valid) color value of the color combobox.
+        Returns the current color value of the color combobox.
 
         Returns
         -------
         color : str
-            The current valid matplotlib color value.
+            The current matplotlib color value.
 
         """
 
-        # Obtain the value
-        color = get_box_value(self.color_combobox, *args, **kwargs)
-
-        # Try to convert this to QColor
-        try:
-            self.convert_to_qcolor(color)
-        # If this fails, return the default color
-        except ValueError:
-            return(self.default_color)
-        # Else, return the retrieved color
-        else:
-            return(color)
+        # Return the value currently set
+        return(get_box_value(self.color_combobox, *args, **kwargs))
 
     # This function sets the value of this special box
     def set_box_value(self, value, *args, **kwargs):
         """
-        Sets the current (default) color value to `value`.
+        Sets the current color value to `value`.
 
         Parameters
         ----------
@@ -395,9 +410,8 @@ class ColorBox(GW.BaseBox):
 
         """
 
-        self.set_color(value)
-        self.default_color = value
-        self.color_combobox.lineEdit().setPlaceholderText(value)
+        # Set the current color
+        self._set_color(value)
 
 
 # Make class with a special box for setting the colormap of a plotted hexbin

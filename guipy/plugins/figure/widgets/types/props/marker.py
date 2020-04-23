@@ -94,6 +94,9 @@ class MarkerProp(BasePlotProp):
         # Make a color box
         marker_color_box = GW.ColorBox()
 
+        # Connect 'applying' signal
+        self.options.applying.connect(marker_color_box.set_default_color)
+
         # Return name and box
         return('Color', marker_color_box)
 
