@@ -266,6 +266,16 @@ class MainWindow(GW.QMainWindow):
         actions['File'].append(quit_act)
 
         # HELP MENU
+        # Add config action to help menu
+        config_act = GW.QAction(
+            self, CONFIG.config_dialog.NAME,
+            shortcut=QG.QKeySequence.Preferences,
+            statustip="Open %s configuration window" % (APP_NAME),
+            triggered=CONFIG.config_dialog,
+            role=GW.QAction.PreferencesRole)
+        actions['Help'].append(config_act)
+        actions['Help'].append(None)
+
         # Add about action to help menu
         about_act = GW.QAction(
             self, '&About...',
