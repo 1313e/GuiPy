@@ -70,6 +70,9 @@ class Figure(GP.BasePluginWidget):
 
     # Override closeEvent to do automatic clean-up
     def closeEvent(self, *args, **kwargs):
+        # Block all signals emitted by the tab widget while removing tabs
+        self.tab_widget.blockSignals(True)
+
         # Close all tabs
         for index in reversed(range(self.tab_widget.count())):
             self.close_tab(index)

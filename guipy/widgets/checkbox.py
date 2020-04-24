@@ -24,7 +24,7 @@ __all__ = ['ToggleBox']
 
 # %% CLASS DEFINITIONS
 # Make class that toggles a widget
-class ToggleBox(GW.BaseBox):
+class ToggleBox(GW.DualBaseBox):
     """
     Defines the :class:`~ToggleBox` class.
 
@@ -36,8 +36,7 @@ class ToggleBox(GW.BaseBox):
     modified = QC.Signal([], [bool])
 
     # Initialize the ToggleBox class
-    def __init__(self, widget, text=None, tooltip=None, parent=None, *args,
-                 **kwargs):
+    def __init__(self, widget, text=None, tooltip=None, parent=None):
         """
         Initialize an instance of the :class:`~ToggleBox` class.
 
@@ -64,30 +63,7 @@ class ToggleBox(GW.BaseBox):
         super().__init__(parent)
 
         # Create the togglebox
-        self.init(widget, text, tooltip, *args, **kwargs)
-
-    # Override __getitem__ to return the left and/or right widget
-    def __getitem__(self, key):
-        # If key is an integer, return the corresponding widget
-        if isinstance(key, INT_TYPES):
-            # If key is 0 or -2, return checkbox
-            if key in (0, -2):
-                return(self.checkbox)
-            # Else, if key is 1 or -1, return widget
-            elif key in (1, -1):
-                return(self.widget)
-            # Else, raise IndexError
-            else:
-                raise IndexError("Index out of range")
-
-        # If key is a slice object, return everything that is requested
-        elif isinstance(key, slice):
-            return(*map(self.__getitem__, range(*key.indices(2))),)
-
-        # Else, raise TypeError
-        else:
-            raise TypeError("Index must be of type 'int' or 'slice', not type "
-                            "%r" % (type(key).__name__))
+        self.init(widget, text, tooltip)
 
     # This property returns the default 'modified' signal
     @property
@@ -112,6 +88,7 @@ class ToggleBox(GW.BaseBox):
             checkbox = GW.QCheckBox()
         box_layout.addWidget(checkbox)
         self.checkbox = checkbox
+        self.left_box = checkbox
 
         # Set tooltip
         if tooltip is not None:
@@ -120,6 +97,7 @@ class ToggleBox(GW.BaseBox):
         # Add the widget to it
         box_layout.addWidget(widget)
         self.widget = widget
+        self.right_box = widget
 
         # Connect some signals
         get_modified_signal(checkbox).connect(widget.setEnabled)

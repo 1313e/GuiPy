@@ -47,6 +47,9 @@ class QWidget(QW.QWidget):
         # Retrieve certain methods from parent
         self.get_parent_methods()
 
+        # Make sure that the widget is deleted when it is closed
+        self.setAttribute(QC.Qt.WA_DeleteOnClose)
+
     # This function retrieves a set of methods from the parent if possible
     def get_parent_methods(self):
         # Obtain parent widget

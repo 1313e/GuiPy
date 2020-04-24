@@ -428,6 +428,7 @@ class FigureOptionsDialog(GW.QDialog):
         if(button_clicked == GW.QMessageBox.Yes):
             self.plot_entries.removeItem(index)
             self.plot_pages.removeWidget(widget)
+            widget.setParent(None)
             widget.close()
             del widget
 

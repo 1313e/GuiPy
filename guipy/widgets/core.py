@@ -19,7 +19,8 @@ from guipy.widgets.base import (
     QLabel as GW_QLabel, QTabWidget as GW_QTabWidget, QWidget as GW_QWidget)
 
 # All declaration
-__all__ = ['BaseBox', 'get_box_value', 'get_modified_signal', 'set_box_value']
+__all__ = ['BaseBox', 'DualBaseBox', 'get_box_value', 'get_modified_signal',
+           'set_box_value']
 
 
 # %% CLASS DEFINITIONS
@@ -110,6 +111,79 @@ class BaseBox(GW_QWidget):
         """
 
         raise NotImplementedError(self.__class__)
+
+
+# Define DualBaseBox class for making dual widgets
+class DualBaseBox(BaseBox):
+    # Override __getitem__ to return the left and/or right combobox
+    def __getitem__(self, key):
+        # If key is an integer, return the corresponding combobox
+        if isinstance(key, INT_TYPES):
+            # If key is 0 or -2, return left_box
+            if key in (0, -2):
+                return(self.left_box)
+            # Else, if key is 1 or -1, return right_box
+            elif key in (1, -1):
+                return(self.right_box)
+            # Else, raise IndexError
+            else:
+                raise IndexError("Index out of range")
+
+        # If key is a slice object, return everything that is requested
+        elif isinstance(key, slice):
+            return(*map(self.__getitem__, range(*key.indices(2))),)
+
+        # Else, raise TypeError
+        else:
+            raise TypeError("Index must be of type 'int' or 'slice', not type "
+                            "%r" % (type(key).__name__))
+
+    # This function retrieves a value of this special box
+    def get_box_value(self, *value_sig):
+        """
+        Returns the current values of this dual widget as a tuple.
+
+        Returns
+        -------
+        value : tuple
+            A tuple containing the values of the widgets, formatted as
+            `(left, right)`.
+
+        """
+
+        # If value_sig contains more than 1 element, use them separately
+        if(len(value_sig) > 1):
+            return(get_box_value(self.left_box, value_sig[0]),
+                   get_box_value(self.right_box, value_sig[1]))
+        else:
+            return(get_box_value(self.left_box, *value_sig),
+                   get_box_value(self.right_box, *value_sig))
+
+    # This function sets the value of this special box
+    def set_box_value(self, value, *args, **kwargs):
+        """
+        Sets the current value of the dual widget to `value`.
+
+        Parameters
+        ----------
+        value : tuple
+            A tuple containing the values of the widgets, formatted as
+            `(left, right)`.
+
+        """
+
+        # Set values of both widgets
+        set_box_value(self.left_box, value[0], *args, **kwargs)
+        set_box_value(self.right_box, value[1], *args, **kwargs)
+
+    # Override closeEvent to make sure both widgets are deleted when closed
+    def closeEvent(self, event):
+        # Close both widgets
+        self.left_box.close()
+        self.right_box.close()
+
+        # Call super method
+        return(super().closeEvent(event))
 
 
 # %% FUNCTION DEFINITIONS

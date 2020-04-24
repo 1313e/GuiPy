@@ -24,7 +24,7 @@ __all__ = ['DualSpinBox']
 
 # %% CLASS DEFINITIONS
 # Make class with two spinboxes
-class DualSpinBox(GW.BaseBox):
+class DualSpinBox(GW.DualBaseBox):
     """
     Defines the :class:`~DualSpinBox` class.
 
@@ -35,8 +35,7 @@ class DualSpinBox(GW.BaseBox):
                          [float, float])
 
     # Initialize the DualSpinBox class
-    def __init__(self, types=(int, int), sep=None, parent=None, *args,
-                 **kwargs):
+    def __init__(self, types=(int, int), sep=None, parent=None):
         """
         Initialize an instance of the :class:`~DualSpinBox` class.
 
@@ -57,30 +56,7 @@ class DualSpinBox(GW.BaseBox):
         super().__init__(parent)
 
         # Create the dual spinbox
-        self.init(types, sep, *args, **kwargs)
-
-    # Override __getitem__ to return the left and/or right spinbox
-    def __getitem__(self, key):
-        # If key is an integer, return the corresponding spinbox
-        if isinstance(key, INT_TYPES):
-            # If key is 0 or -2, return left_box
-            if key in (0, -2):
-                return(self.left_box)
-            # Else, if key is 1 or -1, return right_box
-            elif key in (1, -1):
-                return(self.right_box)
-            # Else, raise IndexError
-            else:
-                raise IndexError("Index out of range")
-
-        # If key is a slice object, return everything that is requested
-        elif isinstance(key, slice):
-            return(*map(self.__getitem__, range(*key.indices(2))),)
-
-        # Else, raise TypeError
-        else:
-            raise TypeError("Index must be of type 'int' or 'slice', not type "
-                            "%r" % (type(key).__name__))
+        self.init(types, sep)
 
     # This property returns the default 'modified' signal
     @property
@@ -129,35 +105,3 @@ class DualSpinBox(GW.BaseBox):
         # Emit modified signal with proper types
         self.modified[self.types[0], self.types[1]].emit(
             *DualSpinBox.get_box_value(self))
-
-    # This function retrieves a value of this special box
-    def get_box_value(self, *args, **kwargs):
-        """
-        Returns the current values of this dual spinbox as a tuple.
-
-        Returns
-        -------
-        value : tuple
-            A tuple containing the values of the spinboxes, formatted as
-            `(left, right)`.
-
-        """
-
-        return(get_box_value(self.left_box, *args, **kwargs),
-               get_box_value(self.right_box, *args, **kwargs))
-
-    # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
-        """
-        Sets the current value of the dual spinbox to `value`.
-
-        Parameters
-        ----------
-        value : tuple
-            A tuple containing the values of the spinboxes, formatted as
-            `(left, right)`.
-
-        """
-
-        set_box_value(self.left_box, value[0], *args, **kwargs)
-        set_box_value(self.right_box, value[1], *args, **kwargs)
