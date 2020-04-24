@@ -47,7 +47,7 @@ class DataTable(GP.BasePluginWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Create a tab widget
-        tab_widget = GW.QTabWidget()
+        tab_widget = GW.QTabWidget(browse_tabs=True)
         tab_widget.setTabBar(GW.EditableTabBar())
         tab_widget.setMovable(True)
         tab_widget.setTabsClosable(True)

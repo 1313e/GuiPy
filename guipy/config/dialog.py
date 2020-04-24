@@ -9,9 +9,11 @@ Config Dialog
 
 # %% IMPORTS
 # Built-in imports
+import re
 
 # Package importsd
 from qtpy import QtCore as QC, QtWidgets as QW
+from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
@@ -108,14 +110,17 @@ class ConfigDialog(GW.QDialog):
         splitter.setStretchFactor(0, 1)
         self.contents = contents
 
-        # Create a pages widget
-        pages = GW.QStackedWidget()
-        splitter.addWidget(pages)
+        # Create a sections widget
+        sections = GW.QStackedWidget()
+        splitter.addWidget(sections)
         splitter.setStretchFactor(1, 2)
-        self.pages = pages
+        self.sections = sections
 
         # Connect signals
-        contents.currentRowChanged.connect(pages.setCurrentIndex)
+        contents.currentRowChanged.connect(sections.setCurrentIndex)
+
+        # Create empty dict of config pages
+        self.config_pages = sdict()
 
         # Add a buttonbox
         button_box = QW.QDialogButtonBox()
@@ -156,6 +161,105 @@ class ConfigDialog(GW.QDialog):
                 self.apply_options],
             button_box.ResetRole: [
                 self.reset_options]}
+
+    # This function adds a new BasicConfigPage to the dialog
+    @QC.Slot(QW.QWidget)
+    def add_config_page(self, config_page):
+        """
+        Adds a provided `config_page` to this dialog, allowing it to be
+        modified.
+        The name of the config page determines where it will appear in the
+        dialog.
+
+        Parameters
+        ----------
+        config_page : :obj:`~guipy.config.BaseConfigPage` object
+            The config page object that must be added to this dialog.
+
+        """
+
+        # Obtain the page sections of this config page
+        main, sub, tab = self.get_page_sections(config_page.section_name)
+
+        # Obtain the full page section for this config page
+        page_section = self.config_pages.setdefault(
+            main, sdict()).setdefault(sub, sdict())
+
+        # Check if this section existed before
+        if(len(page_section) == 0):
+            # Add the config page as a widget to the page_section and sections
+            self.sections.addWidget(config_page)
+            self.contents.addItem(main)
+
+        elif(len(page_section) == 1):
+            # If so, a tab widget will be required
+            tab_widget = GW.QTabWidget()
+            page_section[''] = tab_widget
+
+            # Obtain the index of the current widget at this section
+            prev_page = page_section.values()[1]
+            index = self.sections.indexOf(prev_page)
+
+            # Remove this widget
+            self.sections.removeWidget(prev_page)
+
+            # Add the tab_widget
+            self.sections.insertWidget(index, tab_widget)
+
+            # Add the previous widget and the new config page to the tab_widget
+            tab_widget.addTab(prev_page, page_section.keys()[1])
+            tab_widget.addTab(config_page, tab)
+
+        else:
+            # Obtain the current tab widget
+            tab_widget = page_section['']
+            tab_widget.addTab(config_page, tab)
+
+        page_section[tab] = config_page
+
+    # This function determines the config dialog sections a name belongs to
+    def get_page_sections(self, section_name):
+        """
+        Determines which page (sub)sections the given `section_name` would
+        belong to and returns it.
+
+        Parameters
+        ----------
+        section_name : str
+            The name of a specific config section.
+
+        Returns
+        -------
+        main_section : str
+            The name of the main section for `section_name`.
+        sub_section : str
+            The name of the sub section for `section_name`.
+        tab_name : str
+            The name of the tab on the main section for `section_name`.
+
+        """
+
+        # Create a regex pattern for finding the names
+        pattern = r"([^/:]+)(/)?(?(2)([^:]+))(:)?(?(4)(.+))"
+
+        # Match the given section_name
+        match = re.match(pattern, section_name)
+
+        # Obtain the different names
+        main, sub, tab = match.group(1, 3, 5)
+
+        # Add the sub to main if it is not None
+        # TODO: Add the subsection system
+        if sub is not None:
+            main = f"{main}/{sub}"
+            sub = None
+
+        # If tab is None, set it to 'General'
+        if tab is None:
+            tab = 'General'
+
+        # Return names
+        return(main, sub, tab)
 
     # This function is called whenever a button is pressed
     @QC.Slot(QW.QAbstractButton)

@@ -572,7 +572,7 @@ class QTabWidget(QW.QTabWidget, QWidget):
     tabWasRemoved = QC.Signal(int)
 
     # Override constructor to connect some signals
-    def __init__(self, *args, browse_tabs=True, **kwargs):
+    def __init__(self, *args, browse_tabs=False, **kwargs):
         # Call super constructor
         super().__init__(*args, **kwargs)
 

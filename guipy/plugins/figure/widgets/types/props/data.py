@@ -284,7 +284,7 @@ class MultiDataTabWidget(GW.QTabWidget):
     # Override constructor to connect some signals
     def __init__(self, *args, **kwargs):
         # Call super constructor
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, browse_tabs=True, **kwargs)
 
         # Connect signals
         self.tabWasInserted.connect(self.modified)

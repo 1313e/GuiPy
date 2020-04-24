@@ -165,7 +165,7 @@ class FigureOptionsDialog(GW.QDialog):
     # This function creates the options tabwidget
     def create_options_tabs(self):
         # Create a tab widget
-        tab_widget = GW.QTabWidget(browse_tabs=False)
+        tab_widget = GW.QTabWidget()
 
         # Add figure tab
         tab_widget.addTab(*self.create_figure_tab())

@@ -38,10 +38,12 @@ class BaseConfigPage(GW.BaseBox):
         # Set up config page
         self.init()
 
-    # This function sets up the config page
-    def init(self):
         # Add this config page to the config manager
         CONFIG.add_config_page(self)
+
+    # This function sets up the config page
+    def init(self):
+        pass
 
     # This function retrieves a config value
     def get_option(self, option):

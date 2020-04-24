@@ -119,6 +119,8 @@ class ConfigManager(object):
 
         # Add 'General' config page
         GeneralConfigPage()
+        GeneralConfigPage('General:2')
+        GeneralConfigPage('General:3')
 
     # This function adds a config page to the config manager
     def add_config_page(self, config_page):
@@ -127,6 +129,9 @@ class ConfigManager(object):
         the config manager.
 
         """
+
+        # Add config page to dialog
+        self.config_dialog.add_config_page(config_page)
 
         # Obtain the section name of this config page
         section_name = config_page.section_name
