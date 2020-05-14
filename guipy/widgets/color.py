@@ -91,9 +91,6 @@ class ColorBox(GW.BaseBox):
         box_layout.setContentsMargins(0, 0, 0, 0)
         self.setToolTip("Color to be used for the corresponding plot type")
 
-        # Declare the default color
-        self.default_color = rcParams['lines.color']
-
         # Create a color label
         color_label = self.create_color_label()
         self.color_label = color_label
@@ -103,6 +100,9 @@ class ColorBox(GW.BaseBox):
         color_combobox = self.create_color_combobox()
         box_layout.addWidget(color_combobox)
         self.color_combobox = color_combobox
+
+        # Declare the default color
+        self.set_default_color(rcParams['lines.color'])
 
         # Set the starting color of the color box
         self.set_box_value(self.default_color)
@@ -538,20 +538,17 @@ class ColorMapBox(GW.BaseBox):
         cmap = cm.get_cmap(cmap)
 
         # Obtain the RGBA values of the colormap
-        # TODO: Figure out why setting 256 to cmap.N does not work for N > 256
-        x = np.linspace(0, 1, 256)
-        mplRGBA = cmap(x)
+        mplRGBA = cmap(np.arange(cmap.N))
 
         # Convert to Qt RGBA values
         qtRGBA = [ColorBox.convert_to_qcolor(RGBA).rgba() for RGBA in mplRGBA]
 
         # Create an image object
-        image = QG.QImage(256, 1, QG.QImage.Format_Indexed8)
+        image = QG.QImage(cmap.N, 1, QG.QImage.Format_RGB32)
 
         # Set the value of every pixel in this image
-        image.setColorTable(qtRGBA)
-        for i in range(256):
-            image.setPixel(i, 0, i)
+        for i, RGBA in enumerate(qtRGBA):
+            image.setPixel(i, 0, RGBA)
 
         # Scale the image to its proper size
         image = image.scaled(*size)
