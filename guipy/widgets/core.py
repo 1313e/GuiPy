@@ -10,6 +10,9 @@ definition, which are core to the functioning of all widgets.
 
 
 # %% IMPORTS
+# Built-in import
+from inspect import isclass
+
 # Package imports
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
@@ -115,9 +118,9 @@ class BaseBox(GW_QWidget):
 
 # Define DualBaseBox class for making dual widgets
 class DualBaseBox(BaseBox):
-    # Override __getitem__ to return the left and/or right combobox
+    # Override __getitem__ to return the left and/or right widget
     def __getitem__(self, key):
-        # If key is an integer, return the corresponding combobox
+        # If key is an integer, return the corresponding widget
         if isinstance(key, INT_TYPES):
             # If key is 0 or -2, return left_box
             if key in (0, -2):
@@ -151,16 +154,27 @@ class DualBaseBox(BaseBox):
 
         """
 
-        # If value_sig contains more than 1 element, use them separately
-        if(len(value_sig) > 1):
-            return(get_box_value(self.left_box, value_sig[0]),
-                   get_box_value(self.right_box, value_sig[1]))
+        # Get values of both widgets
+        if(len(value_sig) == 2):
+            # If value_sig contains exactly 2 elements, use them separately
+            left_sig, right_sig = value_sig
+
+            # Make sure that left_sig and right_sig are iterables to unpack
+            if not isinstance(left_sig, (list, tuple, set)):
+                left_sig = (left_sig,)
+            if not isinstance(right_sig, (list, tuple, set)):
+                right_sig = (right_sig,)
+
+            # Get values
+            return(get_box_value(self.left_box, *left_sig),
+                   get_box_value(self.right_box, *right_sig))
         else:
+            # Else, use value_sig for both
             return(get_box_value(self.left_box, *value_sig),
                    get_box_value(self.right_box, *value_sig))
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current value of the dual widget to `value`.
 
@@ -173,8 +187,23 @@ class DualBaseBox(BaseBox):
         """
 
         # Set values of both widgets
-        set_box_value(self.left_box, value[0], *args, **kwargs)
-        set_box_value(self.right_box, value[1], *args, **kwargs)
+        if(len(value_sig) == 2):
+            # If value_sig contains exactly 2 elements, use them separately
+            left_sig, right_sig = value_sig
+
+            # Make sure that left_sig and right_sig are iterables to unpack
+            if not isinstance(left_sig, (list, tuple, set)):
+                left_sig = (left_sig,)
+            if not isinstance(right_sig, (list, tuple, set)):
+                right_sig = (right_sig,)
+
+            # Set values
+            set_box_value(self.left_box, *left_sig)
+            set_box_value(self.right_box, *right_sig)
+        else:
+            # Else, use value_sig for both
+            set_box_value(self.left_box, value[0], *value_sig)
+            set_box_value(self.right_box, value[1], *value_sig)
 
     # Override closeEvent to make sure both widgets are deleted when closed
     def closeEvent(self, event):

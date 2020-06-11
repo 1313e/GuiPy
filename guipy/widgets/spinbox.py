@@ -14,9 +14,7 @@ Spinboxes
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy import INT_TYPES
 from guipy import layouts as GL, widgets as GW
-from guipy.widgets import get_box_value, set_box_value
 
 # All declaration
 __all__ = ['DualSpinBox']

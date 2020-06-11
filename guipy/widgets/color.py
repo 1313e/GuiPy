@@ -58,7 +58,7 @@ class ColorBox(GW.BaseBox):
     # Signals
     modified = QC.Signal([], [str])
 
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, parent=None):
         """
         Initialize an instance of the :class:`~ColorBox` class.
 
@@ -68,7 +68,7 @@ class ColorBox(GW.BaseBox):
         super().__init__(parent)
 
         # Create the color box
-        self.init(*args, **kwargs)
+        self.init()
 
     # This property returns the default 'modified' signal
     @property
@@ -384,7 +384,7 @@ class ColorBox(GW.BaseBox):
         self.color_combobox.lineEdit().setPlaceholderText(color)
 
     # This function retrieves a value of this special box
-    def get_box_value(self, *args, **kwargs):
+    def get_box_value(self, *value_sig):
         """
         Returns the current color value of the color combobox.
 
@@ -396,10 +396,10 @@ class ColorBox(GW.BaseBox):
         """
 
         # Return the value currently set
-        return(get_box_value(self.color_combobox, *args, **kwargs))
+        return(get_box_value(self.color_combobox, *value_sig))
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current color value to `value`.
 
@@ -424,7 +424,7 @@ class ColorMapBox(GW.BaseBox):
     # Signals
     modified = QC.Signal([], [str])
 
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, parent=None):
         """
         Initialize an instance of the :class:`~ColorMapBox` class.
 
@@ -434,7 +434,7 @@ class ColorMapBox(GW.BaseBox):
         super().__init__(parent)
 
         # Create the colormap box
-        self.init(*args, **kwargs)
+        self.init()
 
     # This property returns the default 'modified' signal
     @property
@@ -595,7 +595,7 @@ class ColorMapBox(GW.BaseBox):
                 self, "%s WARNING" % (cmap.upper()), err_msg)
 
     # This function retrieves a value of this special box
-    def get_box_value(self, *args, **kwargs):
+    def get_box_value(self, *value_sig):
         """
         Returns the current colormap of the colormap box.
 
@@ -607,7 +607,7 @@ class ColorMapBox(GW.BaseBox):
         """
 
         # Obtain the value
-        colormap = get_box_value(self.cmaps_box, *args, **kwargs)
+        colormap = get_box_value(self.cmaps_box, *value_sig)
 
         # Convert to matplotlib colormap
         cmap = cm.get_cmap(colormap)
@@ -616,7 +616,7 @@ class ColorMapBox(GW.BaseBox):
         return(cmap)
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current colormap to `value`.
 

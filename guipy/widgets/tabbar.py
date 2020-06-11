@@ -25,12 +25,12 @@ __all__ = ['EditableTabBar', 'TabNameEditor']
 # Custom QTabBar definition that allows for tab names to be edited
 class EditableTabBar(GW.QTabBar):
     # Initialize EditableTabBar class
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, parent=None):
         # Call super constructor
         super().__init__(parent)
 
         # Set up the tab bar
-        self.init(*args, **kwargs)
+        self.init()
 
     # This function sets up the editable tab bar
     def init(self):
@@ -54,7 +54,7 @@ class EditableTabBar(GW.QTabBar):
 
 # Custom QLineEdit used for renaming a tab
 class TabNameEditor(GW.QLineEdit):
-    def __init__(self, tabbar_obj, *args, **kwargs):
+    def __init__(self, tabbar_obj):
         # Save provided tabbar_obj
         self.tabbar = tabbar_obj
 
@@ -62,7 +62,7 @@ class TabNameEditor(GW.QLineEdit):
         super().__init__(tabbar_obj)
 
         # Set up name editor
-        self.init(*args, **kwargs)
+        self.init()
 
     # This function allows a specified tab's name to be edited
     def __call__(self, index):

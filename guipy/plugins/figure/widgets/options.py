@@ -234,7 +234,7 @@ class FigureOptionsDialog(GW.QDialog):
 
         # Make togglebox for enabling/disabling the use of this range
         x_range_togglebox = GW.ToggleBox(
-            x_range_box, tooltip="Toggle the use of a manual X-axis range")
+            x_range_box, tooltip="Check to manually set the X-axis range")
         self.add_options_entry(x_range_togglebox)
         x_axis_layout.addRow("Range", x_range_togglebox)
 
@@ -286,7 +286,7 @@ class FigureOptionsDialog(GW.QDialog):
 
         # Make togglebox for enabling/disabling the use of this range
         y_range_togglebox = GW.ToggleBox(
-            y_range_box, tooltip="Toggle the use of a manual Y-axis range")
+            y_range_box, tooltip="Check to manually set the Y-axis range")
         self.add_options_entry(y_range_togglebox)
         y_axis_layout.addRow("Range", y_range_togglebox)
 

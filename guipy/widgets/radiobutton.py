@@ -35,8 +35,7 @@ class MultiRadioButton(GW.BaseBox):
     modified = QC.Signal([], [int], [str])
 
     # Initialize the MultiRadioButton class
-    def __init__(self, n=2, layout='horizontal', parent=None, *args,
-                 **kwargs):
+    def __init__(self, n=2, layout='horizontal', parent=None):
         """
         Initialize an instance of the :class:`~MultiRadioButton` class.
 
@@ -64,7 +63,7 @@ class MultiRadioButton(GW.BaseBox):
         super().__init__(parent)
 
         # Create the multi-radiobutton
-        self.init(n, layout, *args, **kwargs)
+        self.init(n, layout)
 
     # Override __getitem__ to return the requested radiobutton(s)
     def __getitem__(self, key):
@@ -199,7 +198,7 @@ class MultiRadioButton(GW.BaseBox):
             return(index)
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the radiobutton with index `value` to *True*.
 

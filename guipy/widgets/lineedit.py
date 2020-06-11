@@ -8,9 +8,6 @@ LineEdits
 
 
 # %% IMPORTS
-# Built-in imports
-from functools import partial
-
 # Package imports
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
@@ -73,8 +70,8 @@ class DualLineEdit(GW.DualBaseBox):
 
         # Make dict with different line-edits
         box_types = {
-            float: partial(NumLineEdit, float),
-            int: partial(NumLineEdit, int),
+            float: lambda: NumLineEdit(float),
+            int: lambda: NumLineEdit(int),
             str: GW.QLineEdit}
 
         # Save provided types
@@ -115,7 +112,7 @@ class NumLineEdit(GW.QLineEdit):
     modified = QC.Signal([float], [int])
 
     # Initialize the FloatLineEdit class
-    def __init__(self, numtype, parent=None, *args, **kwargs):
+    def __init__(self, numtype, parent=None):
         """
         Initialize an instance of the :class:`~NumLineEdit` class.
 
@@ -136,7 +133,7 @@ class NumLineEdit(GW.QLineEdit):
         super().__init__(parent)
 
         # Create the number line-edit box
-        self.init(numtype, *args, **kwargs)
+        self.init(numtype)
 
     # This property returns the default 'modified' signal
     @property
@@ -200,7 +197,7 @@ class NumLineEdit(GW.QLineEdit):
         self.validator().setTop(top)
 
     # This function retrieves a value of this special box
-    def get_box_value(self, *args, **kwargs):
+    def get_box_value(self, *value_sig):
         """
         Returns the current number value of this line-edit box.
 
@@ -214,7 +211,7 @@ class NumLineEdit(GW.QLineEdit):
         return(self.value)
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current number value of this line-edit box to `value`.
 

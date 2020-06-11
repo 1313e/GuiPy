@@ -1,0 +1,149 @@
+# -*- coding: utf-8 -*-
+
+"""
+Miscellaneous
+=============
+
+"""
+
+
+# %% IMPORTS
+# Built-in imports
+
+# Package imports
+from qtpy import QtCore as QC, QtWidgets as QW
+
+# GuiPy imports
+from guipy import layouts as GL, widgets as GW
+from guipy.widgets import get_box_value, get_modified_signal, set_box_value
+
+# All declaration
+__all__ = ['GenericBox']
+
+
+# %% CLASS DEFINITIONS
+# Define class for creating generic field entry boxes
+class GenericBox(GW.BaseBox):
+    """
+    Defines the :class:`~GenericBox` class.
+
+    This class is used for making a generic field entry box.
+    It currently supports inputs of type bool; float; int; and str.
+
+    """
+
+    # Signals
+    modified = QC.Signal([], [object])
+
+    # Initialize the GenericBox class
+    def __init__(self, parent=None):
+        """
+        Initialize an instance of the :class:`~GenericBox` class.
+
+        """
+
+        # Call super constructor
+        super().__init__(parent)
+
+        # Create the generic box
+        self.init()
+
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified[object])
+
+    # This function creates the generic box
+    def init(self):
+        """
+        Sets up the generic field entry box entry it has been initialized.
+
+        """
+
+        # Make a look-up dict for types
+        self.type_dict = {
+            'bool': GW.QCheckBox,
+            'float': lambda: GW.NumLineEdit(float),
+            'int': lambda: GW.NumLineEdit(int),
+            'str': GW.QLineEdit}
+
+        # Create the box_layout
+        box_layout = GL.QHBoxLayout(self)
+        box_layout.setContentsMargins(0, 0, 0, 0)
+        self.box_layout = box_layout
+
+        # Create a combobox for the type
+        type_box = GW.QComboBox()
+        type_box.addItems(self.type_dict.keys())
+        type_box.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
+        set_box_value(type_box, -1)
+        get_modified_signal(type_box).connect(self.create_field_box)
+        box_layout.addWidget(type_box)
+        self.type_box = type_box
+
+        # Create a default field entry box
+        value_box = GW.QWidget()
+        box_layout.addWidget(value_box)
+        self.value_box = value_box
+
+    # This function is automatically called whenever 'modified' is emitted
+    @QC.Slot()
+    def modified_signal_slot(self):
+        # Emit modified signal
+        self.modified[object].emit(get_box_value(self.value_box))
+
+    # This function creates a field_box depending on the type that was selected
+    @QC.Slot(str)
+    def create_field_box(self, value_type):
+        """
+        Creates a field box for the provided type `value_type` and replaces the
+        current field box with it.
+
+        Parameters
+        ----------
+        value_type : {'bool'; 'float'; 'int'; 'str'}
+            The string of the type of field box that is requested.
+
+        """
+
+        # Create a widget box for the specified value_type
+        value_box = self.type_dict[value_type]()
+        value_box.setSizePolicy(QW.QSizePolicy.Expanding, QW.QSizePolicy.Fixed)
+
+        # Set this value_box in the layout
+        cur_item = self.box_layout.replaceWidget(self.value_box, value_box)
+        cur_item.widget().close()
+        del cur_item
+
+        # Save new value_box
+        self.value_box = value_box
+
+    # This function retrieves a value of this special box
+    def get_box_value(self, *value_sig):
+        """
+        Returns the current value of the field box.
+
+        Returns
+        -------
+        value : bool, float, int or str
+            The current value of this default box.
+
+        """
+
+        return(get_box_value(self.value_box, *value_sig))
+
+    # This function sets the value of this special box
+    def set_box_value(self, value, *value_sig):
+        """
+        Sets the value type to `type(value)` and the field value to `value`.
+
+        Parameters
+        ----------
+        value : bool, float, int or str
+            The value to use for this default box. The type of `value`
+            determines which field box must be used.
+
+        """
+
+        set_box_value(self.type_box, type(value).__name__)
+        set_box_value(self.value_box, value, *value_sig)
