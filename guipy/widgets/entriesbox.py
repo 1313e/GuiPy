@@ -20,14 +20,14 @@ from guipy import layouts as GL, widgets as GW
 from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
 # All declaration
-__all__ = ['EditableEntriesBox']
+__all__ = ['EditableEntriesBox', 'EntriesBox']
 
 
 # %% CLASS DEFINITIONS
-# Make class for creating editable entry lists
-class EditableEntriesBox(GW.BaseBox):
+# Make class for creating entry lists
+class EntriesBox(GW.BaseBox):
     """
-    Defines the :class:`~EditableEntriesBox` class.
+    Defines the :class:`~EntriesBox` class.
 
     This widget allows for a series of 'list' entries to be maintained within a
     single box, and is basically a Qt-version of a Python dict.
@@ -81,6 +81,9 @@ class EditableEntriesBox(GW.BaseBox):
         # Create empty dict of non-generic entry types
         self.entry_types = {}
 
+        # Create empty dict of entry defaults
+        self.entry_defaults = {}
+
         # Create empty set of banned entry names
         self.banned_names = sset()
 
@@ -120,6 +123,10 @@ class EditableEntriesBox(GW.BaseBox):
         # Set a minimum width for the first column
         self.entries_grid.setColumnMinimumWidth(0, self.entry_height)
 
+    # This function returns the proper combobox to be used for name entries
+    def get_entry_name_box(self):
+        return(GW.QComboBox())
+
     # This function is called whenever a new entry is added
     @QC.Slot()
     def add_entry(self):
@@ -129,7 +136,7 @@ class EditableEntriesBox(GW.BaseBox):
         """
 
         # Create a combobox with the name of the entry
-        name_box = GW.EditableComboBox()
+        name_box = self.get_entry_name_box()
         name_box.addItems(self.entry_types.keys())
         set_box_value(name_box, -1)
         get_modified_signal(name_box).connect(
@@ -209,41 +216,16 @@ class EditableEntriesBox(GW.BaseBox):
             # If not, create new value box
             new_box = new_box_class()
 
+            # If this entry has a default value, use it
+            if entry_name in self.entry_defaults:
+                set_box_value(new_box, self.entry_defaults[entry_name])
+
             # Replace cur_box with new_box
             item = self.entries_grid.replaceWidget(cur_box, new_box)
 
             # Close the widget in this item and delete it
             item.widget().close()
             del item
-
-    # This function adds a list of names to the banned names set
-    def addBannedNames(self, banned_names):
-        """
-        Adds the given `banned_names` list to the set of names that are banned
-        from being used as entry names.
-
-        Parameters
-        ----------
-        banned_names : list of str
-            List containing entry names that are not allowed.
-
-        """
-
-        # Convert banned_names to a set
-        banned_names = sset(banned_names)
-
-        # Make sure that '' is not in banned_names
-        banned_names.discard('')
-
-        # Update the current set of banned names
-        self.banned_names.update(banned_names)
-
-        # Determine if there are any types in entry_types that are now banned
-        banned_types = banned_names.intersection(self.entry_types.keys())
-
-        # Remove all new banned types from entry_types
-        for banned_type in banned_types:
-            self.entry_types.pop(banned_type)
 
     # This function updates the entry types dict with a given dict
     def addEntryTypes(self, entry_types):
@@ -273,6 +255,27 @@ class EditableEntriesBox(GW.BaseBox):
 
         # Update the current dict of entry types
         self.entry_types.update(entry_types)
+
+    # This function adds a dict of default values for given entries
+    def addDefaults(self, entry_defaults):
+        """
+        Adds the given `entry_defaults` dict to the dict of entry names that
+        have a default value when entered.
+
+        Parameters
+        ----------
+        entry_defaults : dict
+            Dict with the entry names that have a default value when used in
+            the entries box.
+            This dict is formatted as `{'<entry_name>': <default_value>}`.
+
+        """
+
+        # Make sure that '' is not in entry_defaults
+        entry_defaults.pop('', None)
+
+        # Add provided dict to current dict of defaults
+        self.entry_defaults.update(entry_defaults)
 
     # This function retrieves the values of the entries in this entries box
     def get_box_value(self, *value_sig):
@@ -362,3 +365,50 @@ class EditableEntriesBox(GW.BaseBox):
             # Set the value of this entry
             value_box = self.entries_grid.itemAtPosition(row, 2).widget()
             set_box_value(value_box, entry_value)
+
+
+# Make class for creating editable entry lists
+class EditableEntriesBox(EntriesBox):
+    """
+    Defines the :class:`~EditableEntriesBox` class.
+
+    This widget allows for a series of editable 'list' entries to be maintained
+    within a single box, and is basically a Qt-version of a Python dict.
+    Entries that must use a specific widget can be added using the
+    :meth:`~addEntryTypes` method, whereas disallowed entry names can be added
+    with :meth:`~addBannedNames`.
+
+    """
+
+    # This function returns the proper combobox to be used for name entries
+    def get_entry_name_box(self):
+        return(GW.EditableComboBox())
+
+    # This function adds a list of names to the banned names set
+    def addBannedNames(self, banned_names):
+        """
+        Adds the given `banned_names` list to the set of names that are banned
+        from being used as entry names.
+
+        Parameters
+        ----------
+        banned_names : list of str
+            List containing entry names that are not allowed.
+
+        """
+
+        # Convert banned_names to a set
+        banned_names = sset(banned_names)
+
+        # Make sure that '' is not in banned_names
+        banned_names.discard('')
+
+        # Update the current set of banned names
+        self.banned_names.update(banned_names)
+
+        # Determine if there are any types in entry_types that are now banned
+        banned_types = banned_names.intersection(self.entry_types.keys())
+
+        # Remove all new banned types from entry_types
+        for banned_type in banned_types:
+            self.entry_types.pop(banned_type)
