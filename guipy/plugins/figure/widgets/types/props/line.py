@@ -104,6 +104,7 @@ class LineProp(BasePlotProp):
 
         # Make a color box
         line_color_box = GW.ColorBox()
+        line_color_box.setToolTip("Color to be used for this line")
 
         # Connect 'applying' signal
         self.options.applying.connect(line_color_box.set_default_color)

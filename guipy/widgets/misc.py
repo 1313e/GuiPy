@@ -22,12 +22,12 @@ __all__ = ['GenericBox']
 
 
 # %% CLASS DEFINITIONS
-# Define class for creating generic field entry boxes
+# Define class for creating generic value boxes
 class GenericBox(GW.BaseBox):
     """
     Defines the :class:`~GenericBox` class.
 
-    This class is used for making a generic field entry box.
+    This class is used for making a generic value box.
     It currently supports inputs of type bool; float; int; and str.
 
     """
@@ -56,7 +56,7 @@ class GenericBox(GW.BaseBox):
     # This function creates the generic box
     def init(self):
         """
-        Sets up the generic field entry box entry it has been initialized.
+        Sets up the generic value box after it has been initialized.
 
         """
 
@@ -77,11 +77,11 @@ class GenericBox(GW.BaseBox):
         type_box.addItems(self.type_dict.keys())
         type_box.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         set_box_value(type_box, -1)
-        get_modified_signal(type_box).connect(self.create_field_box)
+        get_modified_signal(type_box).connect(self.create_value_box)
         box_layout.addWidget(type_box)
         self.type_box = type_box
 
-        # Create a default field entry box
+        # Create a default value box
         value_box = GW.QWidget()
         box_layout.addWidget(value_box)
         self.value_box = value_box
@@ -92,17 +92,17 @@ class GenericBox(GW.BaseBox):
         # Emit modified signal
         self.modified[object].emit(get_box_value(self.value_box))
 
-    # This function creates a field_box depending on the type that was selected
+    # This function creates a value_box depending on the type that was selected
     @QC.Slot(str)
-    def create_field_box(self, value_type):
+    def create_value_box(self, value_type):
         """
-        Creates a field box for the provided type `value_type` and replaces the
-        current field box with it.
+        Creates a value box for the provided type `value_type` and replaces the
+        current value box with it.
 
         Parameters
         ----------
         value_type : {'bool'; 'float'; 'int'; 'str'}
-            The string of the type of field box that is requested.
+            The string of the type of value box that is requested.
 
         """
 
@@ -121,12 +121,12 @@ class GenericBox(GW.BaseBox):
     # This function retrieves a value of this special box
     def get_box_value(self, *value_sig):
         """
-        Returns the current value of the field box.
+        Returns the current value of the value box.
 
         Returns
         -------
         value : bool, float, int or str
-            The current value of this default box.
+            The current value of this generic value box.
 
         """
 
@@ -135,13 +135,13 @@ class GenericBox(GW.BaseBox):
     # This function sets the value of this special box
     def set_box_value(self, value, *value_sig):
         """
-        Sets the value type to `type(value)` and the field value to `value`.
+        Sets the value type to `type(value)` and the value to `value`.
 
         Parameters
         ----------
         value : bool, float, int or str
-            The value to use for this default box. The type of `value`
-            determines which field box must be used.
+            The value to use for this generic value box. The type of `value`
+            determines which value box must be used.
 
         """
 

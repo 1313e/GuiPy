@@ -419,8 +419,26 @@ def set_box_value(box, value, *value_sig):
             index = box.findText(value)
             if(index != -1):
                 box.setCurrentIndex(index)
-            else:
+            elif box.isEditable():
+                # Obtain current index and text of this combobox
+                index = box.currentIndex()
+                text = box.currentText()
+
+                # Block all signals coming from this combobox
+                blocked = box.blockSignals(True)
+
+                # Set the current index to -1 and set the text to value
+                box.setCurrentIndex(-1)
                 box.setCurrentText(value)
+
+                # No longer block signals (unless they were blocked before)
+                box.blockSignals(blocked)
+
+                # Emit the proper signals if their values actually changed
+                if(text != value):
+                    box.currentTextChanged.emit(value)
+                if(index != -1):
+                    box.currentIndexChanged.emit(-1)
 
     # Tabs (QTabWidget)
     elif isinstance(box, QW.QTabWidget):

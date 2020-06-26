@@ -93,6 +93,7 @@ class MarkerProp(BasePlotProp):
 
         # Make a color box
         marker_color_box = GW.ColorBox()
+        marker_color_box.setToolTip("Color to be used for this marker")
 
         # Connect 'applying' signal
         self.options.applying.connect(marker_color_box.set_default_color)

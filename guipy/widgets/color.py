@@ -16,7 +16,7 @@ from itertools import chain
 import re
 
 # Package imports
-from cmasher.utils import _get_cm_type as get_cm_type
+from cmasher.utils import get_cmap_type
 from matplotlib import cm, rcParams
 from matplotlib.colors import BASE_COLORS, CSS4_COLORS, to_rgba
 import numpy as np
@@ -89,10 +89,6 @@ class ColorBox(GW.BaseBox):
         # Create the box layout
         box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
-        self.setToolTip("Color to be used for the corresponding plot type")
-
-        # Declare the default color
-        self.default_color = rcParams['lines.color']
 
         # Create a color label
         color_label = self.create_color_label()
@@ -104,8 +100,8 @@ class ColorBox(GW.BaseBox):
         box_layout.addWidget(color_combobox)
         self.color_combobox = color_combobox
 
-        # Set the starting color of the color box
-        self.set_box_value(self.default_color)
+        # Set the default starting color of the color box
+        self.set_box_value(rcParams['lines.color'])
 
     # This function creates the color label
     def create_color_label(self):
@@ -402,6 +398,7 @@ class ColorBox(GW.BaseBox):
     def set_box_value(self, value, *value_sig):
         """
         Sets the current color value to `value`.
+        This also sets the default color to `value`.
 
         Parameters
         ----------
@@ -410,7 +407,8 @@ class ColorBox(GW.BaseBox):
 
         """
 
-        # Set the current color
+        # Set the current default color
+        self.set_default_color(value)
         self._set_color(value)
 
 
@@ -459,7 +457,7 @@ class ColorMapBox(GW.BaseBox):
         cm_types = ['sequential', 'diverging', 'cyclic', 'qualitative', 'misc']
         cmaps_cd = {cm_type: sset() for cm_type in cm_types}
         for cmap in cmaps:
-            cmaps_cd[get_cm_type(cmap)].add(cmap)
+            cmaps_cd[get_cmap_type(cmap)].add(cmap)
 
         # Create empty list of cmaps sorted on type
         cmaps_cl = []
@@ -489,7 +487,6 @@ class ColorMapBox(GW.BaseBox):
         # Create a layout for this widget
         box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
-        self.setToolTip("Colormap to be used for the corresponding plot type")
 
         # Create a combobox for cmaps
         cmaps_box = GW.QComboBox()
