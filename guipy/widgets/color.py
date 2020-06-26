@@ -535,20 +535,17 @@ class ColorMapBox(GW.BaseBox):
         cmap = cm.get_cmap(cmap)
 
         # Obtain the RGBA values of the colormap
-        # TODO: Figure out why setting 256 to cmap.N does not work for N > 256
-        x = np.linspace(0, 1, 256)
-        mplRGBA = cmap(x)
+        mplRGBA = cmap(np.arange(cmap.N))
 
         # Convert to Qt RGBA values
         qtRGBA = [ColorBox.convert_to_qcolor(RGBA).rgba() for RGBA in mplRGBA]
 
         # Create an image object
-        image = QG.QImage(256, 1, QG.QImage.Format_Indexed8)
+        image = QG.QImage(cmap.N, 1, QG.QImage.Format_RGB32)
 
         # Set the value of every pixel in this image
-        image.setColorTable(qtRGBA)
-        for i in range(256):
-            image.setPixel(i, 0, i)
+        for i, RGBA in enumerate(qtRGBA):
+            image.setPixel(i, 0, RGBA)
 
         # Scale the image to its proper size
         image = image.scaled(*size)
