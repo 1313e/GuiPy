@@ -14,7 +14,6 @@ import os
 from os import path
 
 # Package imports
-from qtpy import QtCore as QC
 from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
@@ -48,9 +47,6 @@ class ConfigManager(object):
 
         # Add core config pages
         self._add_config_pages()
-
-        # Save the current system locale
-        self.locale = QC.QLocale.system()
 
     # This function returns the value of a specific config
     def get_option(self, section, option):
@@ -101,7 +97,8 @@ class ConfigManager(object):
 
         # If the config file does not exist, make an empty one
         if not path.exists(config_file):
-            os.mknod(config_file, 0o644)
+            open(config_file, 'w').close()
+            os.chmod(config_file, 0o644)
 
         # Return config_file
         return(config_file)

@@ -13,7 +13,6 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
-from guipy.config import CONFIG
 
 # All declaration
 __all__ = ['DualLineEdit', 'NumLineEdit']
@@ -153,10 +152,10 @@ class NumLineEdit(GW.QLineEdit):
         # Obtain the proper validator and value getter
         if numtype is int:
             validator = QG.QIntValidator(self)
-            self.num_getter = CONFIG.locale.toInt
+            self.num_getter = QC.QLocale().toInt
         else:
             validator = QG.QDoubleValidator(self)
-            self.num_getter = CONFIG.locale.toDouble
+            self.num_getter = QC.QLocale().toDouble
 
         # Set the validator
         self.setValidator(validator)
@@ -168,7 +167,7 @@ class NumLineEdit(GW.QLineEdit):
     def focusInEvent(self, event):
         # Obtain a normal string version of the current number
         num = str(self.value)
-        num = num.replace('.', CONFIG.locale.decimalPoint())
+        num = num.replace('.', QC.QLocale().decimalPoint())
 
         # Set this as the current text
         self.setText(num)
@@ -227,7 +226,7 @@ class NumLineEdit(GW.QLineEdit):
 
         # Save value
         self.value = value
-        self.setText(CONFIG.locale.toString(value))
+        self.setText(QC.QLocale().toString(value))
 
         # Emit modified signal if value was changed
         if(cur_value != self.value):
