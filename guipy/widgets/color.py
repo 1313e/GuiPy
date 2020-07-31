@@ -19,6 +19,7 @@ import re
 from cmasher.utils import get_cmap_type
 from matplotlib import cm, rcParams
 from matplotlib.colors import BASE_COLORS, CSS4_COLORS, to_rgba
+import matplotlib.pyplot as plt
 import numpy as np
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from sortedcontainers import SortedDict as sdict, SortedSet as sset
@@ -451,7 +452,7 @@ class ColorMapBox(GW.BaseBox):
                 pass
 
         # Obtain all colormaps that are registered in MPL
-        cmaps = list(cm.cmap_d)
+        cmaps = plt.colormaps()
 
         # Split cmaps up into their cmap types
         cm_types = ['sequential', 'diverging', 'cyclic', 'qualitative', 'misc']
