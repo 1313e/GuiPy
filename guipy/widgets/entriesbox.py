@@ -32,8 +32,7 @@ class EntriesBox(GW.BaseBox):
     This widget allows for a series of 'list' entries to be maintained within a
     single box, and is basically a Qt-version of a Python dict.
     Entries that must use a specific widget can be added using the
-    :meth:`~addEntryTypes` method, whereas disallowed entry names can be added
-    with :meth:`~addBannedNames`.
+    :meth:`~addEntryTypes` method.
 
     """
 
@@ -192,6 +191,10 @@ class EntriesBox(GW.BaseBox):
         Creates a value box for the provided `name_box` and its corresponding
         current value, and replaces the current value box with it.
 
+        If the current value of the given `name_box` does not have a specific
+        value box defined, a :class:`~guipy.widgets.GenericBox` is used
+        instead.
+
         """
 
         # Determine the current value of the name_box
@@ -239,7 +242,12 @@ class EntriesBox(GW.BaseBox):
             Dict with the entry names that use a specific callable for
             obtaining the :obj:`~PyQt5.QtWidgets.QWidget` object to be used in
             the entries box.
-            This dict is formatted as `{'<entry_name>': <callable>}`.
+            If the callable is *None*, :class:`~guipy.widgets.GenericBox` is
+            used.
+            Optionally, the default value of the widget can
+            also be provided.
+            This dict is formatted as `{'<entry_name>':
+            (<callable>[, <default_value>])}`.
 
         """
 
@@ -253,14 +261,36 @@ class EntriesBox(GW.BaseBox):
         for banned_type in banned_types:
             entry_types.pop(banned_type)
 
-        # Update the current dict of entry types
-        self.entry_types.update(entry_types)
+        # Split entry_types up into types and defaults
+        types = {}
+        defaults = {}
+        for key, value in entry_types.items():
+            # Check if the value is an iterable
+            try:
+                value = tuple(value)
+            except TypeError:
+                # If it is not, there is no default value
+                pass
+            else:
+                # If it is, a default value was provided
+                defaults[key] = value[1]
+                value = value[0]
+
+            # Set proper callable or GenericBox if None was provided
+            types[key] = value if value is not None else GW.GenericBox
+
+        # Update the current dict of entry types and entry defaults
+        self.entry_types.update(types)
+        self.entry_defaults.update(defaults)
 
     # This function adds a dict of default values for given entries
     def addDefaults(self, entry_defaults):
         """
         Adds the given `entry_defaults` dict to the dict of entry names that
         have a default value when entered.
+
+        Note that entry names that do not have a specific value box defined,
+        always use a :class:`~guipy.widgets.GenericBox`.
 
         Parameters
         ----------
@@ -327,6 +357,9 @@ class EntriesBox(GW.BaseBox):
 
         """
 
+        # Hide the entries box to allow for its values to be set properly
+        self.hide()
+
         # Create empty dict for all current entries
         cur_entries_dict = {}
 
@@ -365,6 +398,9 @@ class EntriesBox(GW.BaseBox):
             # Set the value of this entry
             value_box = self.entries_grid.itemAtPosition(row, 2).widget()
             set_box_value(value_box, entry_value)
+
+        # Show the entries box again now that its values have been set
+        self.show()
 
 
 # Make class for creating editable entry lists
