@@ -23,14 +23,14 @@ __all__ = ['ComboBoxValidator', 'DualComboBox', 'EditableComboBox']
 # %% CLASS DEFINITIONS
 # Define the ComboBoxValidator class
 class ComboBoxValidator(QG.QRegularExpressionValidator):
-    # Initialize the ListValidator class
+    # Initialize the ComboBoxValidator class
     def __init__(self, combobox_obj, regexp=None, parent=None):
         """
         Initialize an instance of the :class:`~ComboBoxValidator` class.
 
         Parameters
         ----------
-        combobox_obj : :obj:`~PyQt5.QtWidgets.ComboBox`
+        combobox_obj : :obj:`~PyQt5.QtWidgets.ComboBox` object
             Combobox object for which the editable line must be validated.
 
         Optional

@@ -23,6 +23,69 @@ from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 __all__ = ['EditableEntriesBox', 'EntriesBox']
 
 
+# %% HELPER DEFINITIONS
+# Make validator class for the name box in an entries box
+class EntryNameBoxValidator(QG.QValidator):
+    # Initialize the EntryNameBoxValidator class
+    def __init__(self, entries_box_obj, parent=None):
+        """
+        Initialize an instance of the :class:`~EntryNameBoxValidator` class.
+
+        Parameters
+        ----------
+        entries_box_obj : :obj:`~EntriesBox` object
+            Entries box object for which this validator must be created.
+
+        Optional
+        --------
+        parent : :obj:`~PyQt5.QtCore.QObject` object or None. Default: None
+            The parent object to use for this validator or *None* for no
+            parent.
+
+        """
+
+        # Save the provided entries_box_obj
+        self.entries_box_obj = entries_box_obj
+
+        # Call super constructor
+        super().__init__(parent)
+
+    # Override validate to reject banned and duplicate entries
+    def validate(self, string, pos):
+        # Create empty list of all current names in the entries box
+        cur_names = []
+
+        # Obtain the names of all current entries in the entries box
+        for i in range(4, 3*self.entries_box_obj.entryCount()+4, 3):
+            name_box = self.entries_box_obj.entries_grid.itemAt(i).widget()
+            cur_names.append(get_box_value(name_box))
+
+        # Remove string from it
+        cur_names.remove(string)
+
+        # Check if string is empty
+        if not string:
+            # If so, it is intermediate
+            state = self.Intermediate
+
+        # Else, check if string can be found in cur_names
+        elif string in cur_names:
+            # If so, it is also intermediate
+            state = self.Intermediate
+
+        # Else, check if the string is banned
+        elif string in self.entries_box_obj.banned_names:
+            # If so, it is intermediate as well
+            state = self.Intermediate
+
+        # Else, it is acceptable
+        else:
+            state = self.Acceptable
+
+        # Return state
+        return(state, string, pos)
+
+
 # %% CLASS DEFINITIONS
 # Make class for creating entry lists
 class EntriesBox(GW.BaseBox):
@@ -141,6 +204,10 @@ class EntriesBox(GW.BaseBox):
         get_modified_signal(name_box).connect(
             lambda: self.create_value_box(name_box))
 
+        # Initialize and apply special validator
+        validator = EntryNameBoxValidator(self)
+        name_box.setValidator(validator)
+
         # Create a 'Delete'-button
         del_but = GW.QToolButton()
         del_but.setFixedSize(self.entry_height, self.entry_height)
@@ -200,6 +267,14 @@ class EntriesBox(GW.BaseBox):
         # Determine the current value of the name_box
         entry_name = get_box_value(name_box)
 
+        # Check if the name_box is editable
+        if name_box.isEditable():
+            # If so, check if its current input is valid
+            valid = name_box.lineEdit().hasAcceptableInput()
+        else:
+            # If not, check if the current input is not empty
+            valid = bool(entry_name)
+
         # Determine at what index the provided name_box currently is in grid
         index = self.entries_grid.indexOf(name_box)
 
@@ -207,20 +282,29 @@ class EntriesBox(GW.BaseBox):
         cur_box = self.entries_grid.itemAt(index+1).widget()
 
         # Obtain the widget class associated with this entry_name
-        if entry_name:
-            # If the entry name is given, obtain it from dict or use default
+        if valid:
+            # If the given name is valid, obtain it from dict or use default
             new_box_class = self.entry_types.get(entry_name, GW.GenericBox)
         else:
-            # If the entry name is not given, use an empty widget
-            new_box_class = GW.QWidget
+            # If invalid, use empty widget if name is empty
+            if not entry_name:
+                new_box_class = GW.QWidget
+            # Else, use a label
+            else:
+                new_box_class = GW.QLabel
 
         # If the current value box is not this box type already, replace it
         if type(cur_box) is not new_box_class:
             # If not, create new value box
             new_box = new_box_class()
 
-            # If this entry has a default value, use it
-            if entry_name in self.entry_defaults:
+            # If this entry is invalid and not empty, set the label
+            if entry_name and not valid:
+                set_box_value(new_box, "Given entry name is either banned or "
+                              "already in use!")
+
+            # If this entry is valid and has a default value, use it
+            elif entry_name in self.entry_defaults and valid:
                 set_box_value(new_box, self.entry_defaults[entry_name])
 
             # Replace cur_box with new_box
