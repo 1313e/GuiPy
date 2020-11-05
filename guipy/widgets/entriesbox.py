@@ -56,7 +56,7 @@ class EntryNameBoxValidator(QG.QValidator):
         cur_names = []
 
         # Obtain the names of all current entries in the entries box
-        for i in range(4, 3*self.entries_box_obj.entryCount()+4, 3):
+        for i in range(4, 4+3*self.entries_box_obj.entryCount(), 3):
             name_box = self.entries_box_obj.entries_grid.itemAt(i).widget()
             cur_names.append(get_box_value(name_box))
 
@@ -95,7 +95,8 @@ class EntriesBox(GW.BaseBox):
     This widget allows for a series of 'list' entries to be maintained within a
     single box, and is basically a Qt-version of a Python dict.
     Entries that must use a specific widget can be added using the
-    :meth:`~addEntryTypes` method.
+    :meth:`~addEntryTypes` method, whereas disallowed entry names can be added
+    with :meth:`~addBannedNames`.
 
     """
 
@@ -189,6 +190,22 @@ class EntriesBox(GW.BaseBox):
     def get_entry_name_box(self):
         return(GW.QComboBox())
 
+    # This function returns whether a given name_box has a valid value
+    def is_valid(self, name_box):
+        # Determine the current value of the name_box
+        entry_name = get_box_value(name_box)
+
+        # Check if the name_box is editable
+        if name_box.isEditable():
+            # If so, check if its current input is valid
+            valid = name_box.lineEdit().hasAcceptableInput()
+        else:
+            # If not, check if the current input is not empty
+            valid = bool(entry_name)
+
+        # Return valid
+        return(valid)
+
     # This function is called whenever a new entry is added
     @QC.Slot()
     def add_entry(self):
@@ -267,16 +284,11 @@ class EntriesBox(GW.BaseBox):
         # Determine the current value of the name_box
         entry_name = get_box_value(name_box)
 
-        # Check if the name_box is editable
-        if name_box.isEditable():
-            # If so, check if its current input is valid
-            valid = name_box.lineEdit().hasAcceptableInput()
-        else:
-            # If not, check if the current input is not empty
-            valid = bool(entry_name)
-
         # Determine at what index the provided name_box currently is in grid
         index = self.entries_grid.indexOf(name_box)
+
+        # Check if the name_box is valid
+        valid = self.is_valid(name_box)
 
         # Retrieve which value_box is currently there
         cur_box = self.entries_grid.itemAt(index+1).widget()
@@ -391,6 +403,38 @@ class EntriesBox(GW.BaseBox):
         # Add provided dict to current dict of defaults
         self.entry_defaults.update(entry_defaults)
 
+        # This function adds a list of names to the banned names set
+    def addBannedNames(self, banned_names):
+        """
+        Adds the given `banned_names` list to the set of names that are banned
+        from being used as entry names.
+
+        Note that banned names are only used when :meth:`~get_entry_name_box`
+        returns an editable combobox.
+
+        Parameters
+        ----------
+        banned_names : list of str
+            List containing entry names that are not allowed.
+
+        """
+
+        # Convert banned_names to a set
+        banned_names = sset(banned_names)
+
+        # Make sure that '' is not in banned_names
+        banned_names.discard('')
+
+        # Update the current set of banned names
+        self.banned_names.update(banned_names)
+
+        # Determine if there are any types in entry_types that are now banned
+        banned_types = banned_names.intersection(self.entry_types.keys())
+
+        # Remove all new banned types from entry_types
+        for banned_type in banned_types:
+            self.entry_types.pop(banned_type)
+
     # This function retrieves the values of the entries in this entries box
     def get_box_value(self, *value_sig):
         """
@@ -408,17 +452,17 @@ class EntriesBox(GW.BaseBox):
         entries_dict = sdict()
 
         # Loop over all entries in the entries grid and save them to the dict
-        for i in range(3, 3*(self.entryCount()+1), 3):
+        for i in range(4, 4+3*self.entryCount(), 3):
             # Obtain the name of this entry
-            name_box = self.entries_grid.itemAt(i+1).widget()
+            name_box = self.entries_grid.itemAt(i).widget()
             entry_name = get_box_value(name_box)
 
-            # If the entry_name is empty, skip this entry
-            if not entry_name:
+            # If the entry_name is invalid, skip this entry
+            if not self.is_valid(name_box):
                 continue
 
             # Obtain the value of this entry
-            value_box = self.entries_grid.itemAt(i+2).widget()
+            value_box = self.entries_grid.itemAt(i+1).widget()
             entry_value = get_box_value(value_box)
 
             # Add this entry to the dict
@@ -444,6 +488,10 @@ class EntriesBox(GW.BaseBox):
         # Hide the entries box to allow for its values to be set properly
         self.hide()
 
+        # Remove all banned names from entries_dict
+        entries_dict = {key: value for key, value in entries_dict.items()
+                        if key not in self.banned_names}
+
         # Create empty dict for all current entries
         cur_entries_dict = {}
 
@@ -453,9 +501,8 @@ class EntriesBox(GW.BaseBox):
             name_box = self.entries_grid.itemAt(4).widget()
             entry_name = get_box_value(name_box)
 
-            # Delete this entry if it is not in entries_dict or if it is banned
-            if(entry_name not in entries_dict or not entry_name or
-               entry_name in self.banned_names):
+            # Delete this entry if it is not in entries_dict or it is invalid
+            if entry_name not in entries_dict or not self.is_valid(name_box):
                 self.remove_entry(name_box)
                 continue
 
@@ -503,32 +550,3 @@ class EditableEntriesBox(EntriesBox):
     # This function returns the proper combobox to be used for name entries
     def get_entry_name_box(self):
         return(GW.EditableComboBox())
-
-    # This function adds a list of names to the banned names set
-    def addBannedNames(self, banned_names):
-        """
-        Adds the given `banned_names` list to the set of names that are banned
-        from being used as entry names.
-
-        Parameters
-        ----------
-        banned_names : list of str
-            List containing entry names that are not allowed.
-
-        """
-
-        # Convert banned_names to a set
-        banned_names = sset(banned_names)
-
-        # Make sure that '' is not in banned_names
-        banned_names.discard('')
-
-        # Update the current set of banned names
-        self.banned_names.update(banned_names)
-
-        # Determine if there are any types in entry_types that are now banned
-        banned_types = banned_names.intersection(self.entry_types.keys())
-
-        # Remove all new banned types from entry_types
-        for banned_type in banned_types:
-            self.entry_types.pop(banned_type)
