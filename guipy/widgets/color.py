@@ -18,7 +18,7 @@ import re
 # Package imports
 from cmasher.utils import get_cmap_type
 from matplotlib import cm, rcParams
-from matplotlib.colors import BASE_COLORS, CSS4_COLORS, to_rgba
+from matplotlib.colors import BASE_COLORS, CSS4_COLORS, Colormap, to_rgba
 import matplotlib.pyplot as plt
 import numpy as np
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
@@ -413,7 +413,7 @@ class ColorBox(GW.BaseBox):
         self._set_color(value)
 
 
-# Make class with a special box for setting the colormap of a plotted hexbin
+# Make class with a special box for setting the colormap of a plotted 2D hist
 class ColorMapBox(GW.BaseBox):
     """
     Defines the :class:`~ColorMapBox` class.
@@ -423,6 +423,13 @@ class ColorMapBox(GW.BaseBox):
     # Signals
     modified = QC.Signal([], [str])
 
+    # Set the size for the colormap previews
+    cmap_size = (100, 15)
+
+    # Set flag for first_init
+    init_flag = False
+
+    # Initialize ColorMapBox
     def __init__(self, parent=None):
         """
         Initialize an instance of the :class:`~ColorMapBox` class.
@@ -442,9 +449,39 @@ class ColorMapBox(GW.BaseBox):
 
     # This function creates a combobox with colormaps
     def init(self):
+        # Check if this class has been initialized before, and do so if not
+        if not self.init_flag:
+            self.first_init()
+
+        # Create a layout for this widget
+        box_layout = GL.QHBoxLayout(self)
+        box_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Create a combobox for cmaps
+        cmaps_box = GW.QComboBox()
+        for cmap in self.cmaps_cl:
+            cmap_icon = self.cmap_icons[cmap]
+            cmaps_box.addItem(cmap_icon, cmap)
+
+        # Add some separators
+        for i in reversed(self.cum_len[:-2]):
+            cmaps_box.insertSeparator(i)
+
+        # Set remaining properties
+        set_box_value(cmaps_box, rcParams['image.cmap'])
+        cmaps_box.setIconSize(QC.QSize(*self.cmap_size))
+        get_modified_signal(cmaps_box, str).connect(self.cmap_selected)
+        get_modified_signal(cmaps_box, str).connect(self.modified[str])
+
+        # Add cmaps_box to layout
+        box_layout.addWidget(cmaps_box)
+        self.cmaps_box = cmaps_box
+
+    # This function prepares the class for being initialized for the first time
+    def first_init(self):
         # Try to import a few packages to get their colormaps registered
         # TODO: Make it a GuiPy configuration option to set these?
-        for pkg in ['cmasher', 'cmocean']:
+        for pkg in ['cmasher', 'cmocean', 'palettable', 'colorcet']:
             # Try to import this package
             try:
                 import_module(pkg)
@@ -475,39 +512,18 @@ class ColorMapBox(GW.BaseBox):
             cmaps_cl.extend([cmap for cmap in cmaps_cs if cmap.endswith('_r')])
             cum_len.extend([len(cmaps_cl)]*2)
 
-        # Set the size for the colormap previews
-        cmap_size = (100, 15)
+        # Store list of colormaps and the category lengths
+        ColorMapBox.cmaps_cl = cmaps_cl
+        ColorMapBox.cum_len = cum_len
 
-        # If the colormap icons have not been created yet, do that now
-        if not hasattr(self, 'cmap_icons'):
-            cmap_icons = sdict()
-            for cmap in cmaps:
-                cmap_icons[cmap] = self.create_cmap_icon(cmap, cmap_size)
-            ColorMapBox.cmap_icons = cmap_icons
+        # Create the colormap icons
+        cmap_icons = sdict()
+        for cmap in cmaps:
+            cmap_icons[cmap] = self.create_cmap_icon(cmap, self.cmap_size)
+        ColorMapBox.cmap_icons = cmap_icons
 
-        # Create a layout for this widget
-        box_layout = GL.QHBoxLayout(self)
-        box_layout.setContentsMargins(0, 0, 0, 0)
-
-        # Create a combobox for cmaps
-        cmaps_box = GW.QComboBox()
-        for cmap in cmaps_cl:
-            cmap_icon = self.cmap_icons[cmap]
-            cmaps_box.addItem(cmap_icon, cmap)
-
-        # Add some separators
-        for i in reversed(cum_len[:-2]):
-            cmaps_box.insertSeparator(i)
-
-        # Set remaining properties
-        set_box_value(cmaps_box, rcParams['image.cmap'])
-        cmaps_box.setIconSize(QC.QSize(*cmap_size))
-        get_modified_signal(cmaps_box, str).connect(self.cmap_selected)
-        get_modified_signal(cmaps_box, str).connect(self.modified[str])
-
-        # Add cmaps_box to layout
-        box_layout.addWidget(cmaps_box)
-        self.cmaps_box = cmaps_box
+        # Save that class has been initialized for the first time
+        ColorMapBox.init_flag = True
 
     # This function creates an icon of a colormap
     @staticmethod
@@ -602,10 +618,11 @@ class ColorMapBox(GW.BaseBox):
         """
 
         # Obtain the value
-        colormap = get_box_value(self.cmaps_box, *value_sig)
+        cmap = get_box_value(self.cmaps_box)
 
-        # Convert to matplotlib colormap
-        cmap = cm.get_cmap(colormap)
+        # Convert to matplotlib colormap if needed
+        if str not in value_sig:
+            cmap = cm.get_cmap(cmap)
 
         # Return it
         return(cmap)
@@ -622,8 +639,9 @@ class ColorMapBox(GW.BaseBox):
 
         """
 
-        # Obtain the name of the provided colormap
-        name = value.name
+        # Obtain the name of the provided colormap if needed
+        if isinstance(value, Colormap):
+            value = value.name
 
         # Set this as the current colormap
-        set_box_value(self.cmaps_box, name)
+        set_box_value(self.cmaps_box, value)
