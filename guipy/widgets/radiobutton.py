@@ -9,6 +9,7 @@ Radiobuttons
 
 # %% IMPORTS
 # Built-in imports
+from itertools import repeat
 
 # Package imports
 import numpy as np
@@ -150,7 +151,7 @@ class MultiRadioButton(GW.BaseBox):
         if isinstance(layout, QW.QGridLayout):
             iterator = zip(names, np.ndindex(n_rows, n_cols))
         else:
-            iterator = zip(names)
+            iterator = zip(names, repeat(()))
 
         # Create all requested radiobuttons
         for item in iterator:
@@ -159,7 +160,7 @@ class MultiRadioButton(GW.BaseBox):
 
             # Add button to list and layout
             self.buttons.append(button)
-            layout.addWidget(button, *item[1:])
+            layout.addWidget(button, *item[1])
 
         # Save the number of radiobuttons
         self.N = len(self.buttons)
