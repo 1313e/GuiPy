@@ -17,6 +17,7 @@ from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
+from guipy.widgets import get_modified_signal
 
 # All declaration
 __all__ = ['ConfigDialog']
@@ -113,7 +114,7 @@ class ConfigDialog(GW.QDialog):
         # Create a sections widget
         sections = GW.QStackedWidget()
         splitter.addWidget(sections)
-        splitter.setStretchFactor(1, 2)
+        splitter.setStretchFactor(1, 5)
         self.sections = sections
 
         # Connect signals
@@ -191,6 +192,10 @@ class ConfigDialog(GW.QDialog):
             self.sections.addWidget(config_page)
             self.contents.addItem(main)
 
+            # If this is the first section in contents, select it
+            if(self.contents.count() == 1):
+                self.contents.setCurrentRow(0)
+
         elif(len(page_section) == 1):
             # If so, a tab widget will be required
             tab_widget = GW.QTabWidget()
@@ -215,6 +220,10 @@ class ConfigDialog(GW.QDialog):
             tab_widget = page_section['']
             tab_widget.addTab(config_page, tab)
 
+        # Connect signals
+        get_modified_signal(config_page).connect(self.enable_apply_button)
+
+        # Add this config page to the proper page section
         page_section[tab] = config_page
 
     # This function determines the config dialog sections a name belongs to

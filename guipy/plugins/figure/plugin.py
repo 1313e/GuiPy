@@ -28,7 +28,7 @@ __all__ = ['Figure']
 class Figure(GP.BasePluginWidget):
     # Properties
     TITLE = "Figure"
-    CONFIG_PAGES = [*GP.BasePluginWidget.CONFIG_PAGES, MPLrcParamsConfigPage]
+    CONFIG_PAGES = [*GP.BasePluginWidget.CONFIG_PAGES]
     LOCATION = QC.Qt.RightDockWidgetArea
     REQ_PLUGINS = [*GP.BasePluginWidget.REQ_PLUGINS, "Data table"]
 

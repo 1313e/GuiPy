@@ -29,7 +29,6 @@ __all__ = ['BaseBox', 'DualBaseBox', 'get_box_value', 'get_modified_signal',
 # %% CLASS DEFINITIONS
 # Make base class for custom boxes
 # As QW.QWidget is a strict class (in C++), this cannot be an ABC
-# TODO: Create a DualBaseBox class for dual widgets?
 class BaseBox(GW_QWidget):
     """
     Defines the :class:`~BaseBox` base class.

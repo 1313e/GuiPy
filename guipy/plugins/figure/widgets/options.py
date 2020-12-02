@@ -12,12 +12,12 @@ Figure Options
 
 # Package imports
 import matplotlib as mpl
+from matplotlib import rcParams
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
 from guipy.plugins.figure.widgets.plot_entry import FigurePlotEntry
-from guipy.plugins.figure.widgets.types import BasePlotType
 from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
 # All declaration
@@ -190,8 +190,7 @@ class FigureOptionsDialog(GW.QDialog):
         title_box[0].setToolTip("Figure title")
         title_box[1].setToolTip("Title size")
         set_box_value(
-            title_box,
-            ('', {'fontsize': self.get_option('rcParams', 'axes.titlesize')}))
+            title_box, ('', {'fontsize': rcParams['axes.titlesize']}))
         self.add_options_entry(title_box)
         self.refreshing_figure.connect(lambda: self.axis.set_title(
             *get_box_value(title_box, str, dict)))
@@ -209,8 +208,7 @@ class FigureOptionsDialog(GW.QDialog):
         x_label_box[0].setToolTip("Label of the X-axis")
         x_label_box[1].setToolTip("Label size")
         set_box_value(
-            x_label_box,
-            ('', {'fontsize': self.get_option('rcParams', 'axes.labelsize')}))
+            x_label_box, ('', {'fontsize': rcParams['axes.labelsize']}))
         self.add_options_entry(x_label_box)
         self.refreshing_figure.connect(lambda: self.axis.set_xlabel(
             *get_box_value(x_label_box, str, dict)))
@@ -262,8 +260,7 @@ class FigureOptionsDialog(GW.QDialog):
         y_label_box[0].setToolTip("Label of the Y-axis")
         y_label_box[1].setToolTip("Label size")
         set_box_value(
-            y_label_box,
-            ('', {'fontsize': self.get_option('rcParams', 'axes.labelsize')}))
+            y_label_box, ('', {'fontsize': rcParams['axes.labelsize']}))
         self.add_options_entry(y_label_box)
         self.refreshing_figure.connect(lambda: self.axis.set_ylabel(
             *get_box_value(y_label_box, str, dict)))
@@ -313,8 +310,7 @@ class FigureOptionsDialog(GW.QDialog):
         legend_loc_box = GW.QComboBox()
         legend_loc_box.addItems(mpl.legend.Legend.codes.keys())
         legend_loc_box.setToolTip("Location of the figure legend")
-        set_box_value(legend_loc_box,
-                      self.get_option('rcParams', 'legend.loc'))
+        set_box_value(legend_loc_box, rcParams['legend.loc'])
 
         # Make a togglebox for using a legend
         legend_togglebox = GW.ToggleBox(

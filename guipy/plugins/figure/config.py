@@ -31,7 +31,7 @@ class MPLrcParamsConfigPage(GP.PluginConfigPage):
     NAME = 'rcParams'
 
     # This function parses and processes a config section, and returns it
-    def parse_config_section(self, section_dict):
+    def decode_config_section(self, section_dict):
         # Initialize empty dict of parsed config values
         config_dict = sdict()
 
@@ -52,7 +52,7 @@ class MPLrcParamsConfigPage(GP.PluginConfigPage):
         return(sdict(rcParams))
 
     # This function returns its config section, as required by config parser
-    def get_config_section(self, config_dict):
+    def encode_config_section(self, config_dict):
         # Initialize empty dict of section config values
         section_dict = sdict()
 

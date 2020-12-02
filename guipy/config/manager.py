@@ -14,11 +14,13 @@ import os
 from os import path
 
 # Package imports
+from qtpy import QtCore as QC
 from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
-from guipy import CONFIG_DIR, CONFIG_NAME
+from guipy import APP_NAME, CONFIG_DIR, CONFIG_NAME, widgets as GW
 from guipy.config.dialog import ConfigDialog
+from guipy.widgets import get_box_value, set_box_value
 
 # All declaration
 __all__ = ['CONFIG']
@@ -41,6 +43,11 @@ class ConfigManager(object):
 
         # Initialize config dialog
         self.config_dialog = ConfigDialog(self, parent=parent)
+
+        # Connect signals
+        self.config_dialog.applying.connect(self.apply_config)
+        self.config_dialog.discarding.connect(self.discard_config)
+        self.config_dialog.resetting.connect(self.reset_config)
 
         # Read in the configuration file
         self.read_config()
@@ -116,8 +123,6 @@ class ConfigManager(object):
 
         # Add 'General' config page
         GeneralConfigPage()
-        GeneralConfigPage('General:2')
-        GeneralConfigPage('General:3')
 
     # This function adds a config page to the config manager
     def add_config_page(self, config_page):
@@ -144,7 +149,7 @@ class ConfigManager(object):
         config_section = self.parser[section_name]
 
         # Parse the config section belonging to this config page
-        parsed_dict = config_page.parse_config_section(config_section)
+        parsed_dict = config_page.decode_config_section(config_section)
 
         # Obtain the default config of this section
         config_dict = config_page.get_default_config()
@@ -155,8 +160,12 @@ class ConfigManager(object):
         # Add this config_dict to the global config
         self.config[section_name] = config_dict
 
+        # Set this config_dict as the current values
+        set_box_value(config_page, config_dict)
+        self.config_dialog.disable_apply_button()
+
         # Get updated config section from the config page
-        config_section = config_page.get_config_section(config_dict)
+        config_section = config_page.encode_config_section(config_dict)
 
         # Update the parser with the config_section
         self.parser[section_name] = config_section
@@ -203,6 +212,77 @@ class ConfigManager(object):
         # Write current parser to this file
         with open(config_file, 'w') as config_file:
             self.parser.write(config_file)
+
+    # This function applies the current config
+    def apply_config(self):
+        # Initialize restart_flag
+        restart_flag = False
+
+        # Loop over all config pages and obtain their values
+        for name, page in self.config_pages.items():
+            # Obtain config_dict
+            config_dict = get_box_value(page)
+
+            # Store config_dict in saved config and parser
+            self.config[name] = config_dict
+            self.parser[name] = page.encode_config_section(config_dict)
+
+            # Add restart_flag of page to current restart_flag
+            restart_flag += page.restart_flag
+            page.restart_flag = False
+
+        # Save config to file
+        self.write_config()
+
+        # If restart_flag is True, show warning dialog
+        if restart_flag:
+            self.show_restart_warning()
+
+    # This function discards the current config and resets it the saved values
+    def discard_config(self):
+        # Loop over all config pages and discard their values
+        for name, page in self.config_pages.items():
+            # Obtain config_dict
+            config_dict = self.config[name]
+
+            # Set value of page to this dict
+            set_box_value(page, config_dict)
+
+    # This function resets the config to its default values
+    def reset_config(self):
+        # Initialize restart_flag
+        restart_flag = False
+
+        # Loop over all config pages and reset their values
+        for name, page in self.config_pages.items():
+            # Obtain default config_dict
+            config_dict = page.get_default_config()
+
+            # Set value of page to this dict
+            set_box_value(page, config_dict)
+
+            # Store config_dict in saved config and parser
+            self.config[name] = config_dict
+            self.parser[name] = page.encode_config_section(config_dict)
+
+            # Add restart_flag of page to current restart_flag
+            restart_flag += page.restart_flag
+            page.restart_flag = False
+
+        # Save config to file
+        self.write_config()
+
+        # If restart_flag is True, show warning dialog
+        if restart_flag:
+            self.show_restart_warning()
+
+    # This function displays a warning dialog that GuiPy must be restarted
+    def show_restart_warning(self):
+        GW.QMessageBox.warning(
+            None, "Restart warning",
+            (f"One or more configuration settings have been modified that "
+             f"require {APP_NAME} to be restarted to take effect. Please "
+             f"restart {APP_NAME} now."))
 
 
 # %% IMPORT SCRIPT
