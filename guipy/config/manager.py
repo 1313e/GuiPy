@@ -162,7 +162,10 @@ class ConfigManager(object):
 
         # Set this config_dict as the current values
         set_box_value(config_page, config_dict)
+
+        # Revert flags that were set due to the config page being modified
         self.config_dialog.disable_apply_button()
+        config_page.restart_flag = False
 
         # Get updated config section from the config page
         config_section = config_page.encode_config_section(config_dict)

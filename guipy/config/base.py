@@ -67,6 +67,9 @@ class BaseConfigPage(GW.BaseBox):
 
         """
 
+        # Make sure that name is lowercase
+        name = name.lower()
+
         # Add widget as an entry to config_entries
         self.config_entries[name] = widget
         get_modified_signal(widget).connect(self.modified)

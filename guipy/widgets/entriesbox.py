@@ -186,6 +186,11 @@ class EntriesBox(GW.BaseBox):
         # Set a minimum width for the first column
         self.entries_grid.setColumnMinimumWidth(0, self.entry_height)
 
+    # This function is automatically called whenever 'modified' is emitted
+    @QC.Slot()
+    def modified_signal_slot(self):
+        self.modified[dict].emit(EntriesBox.get_box_value(self))
+
     # This function returns the proper combobox to be used for name entries
     def get_entry_name_box(self):
         return(GW.QComboBox())
