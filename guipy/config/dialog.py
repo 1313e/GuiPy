@@ -114,7 +114,7 @@ class ConfigDialog(GW.QDialog):
         # Create a sections widget
         sections = GW.QStackedWidget()
         splitter.addWidget(sections)
-        splitter.setStretchFactor(1, 5)
+        splitter.setStretchFactor(1, 3)
         self.sections = sections
 
         # Connect signals

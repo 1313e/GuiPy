@@ -130,7 +130,12 @@ class GenericBox(GW.BaseBox):
 
         """
 
-        return(get_box_value(self.value_box, *value_sig))
+        # If value_box is currently a QWidget, return None
+        if type(self.value_box) is GW.QWidget:
+            return(None)
+        # Else, return its actual value
+        else:
+            return(get_box_value(self.value_box, *value_sig))
 
     # This function sets the value of this special box
     def set_box_value(self, value, *value_sig):

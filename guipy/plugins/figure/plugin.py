@@ -15,7 +15,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import layouts as GL, plugins as GP, widgets as GW
-from guipy.plugins.figure.config import MPLrcParamsConfigPage
+from guipy.plugins.figure.config import MPLConfigPage
 from guipy.plugins.figure.widgets import FigureWidget
 from guipy.widgets import set_box_value
 
@@ -28,7 +28,7 @@ __all__ = ['Figure']
 class Figure(GP.BasePluginWidget):
     # Properties
     TITLE = "Figure"
-    CONFIG_PAGES = [*GP.BasePluginWidget.CONFIG_PAGES]
+    CONFIG_PAGES = [*GP.BasePluginWidget.CONFIG_PAGES, MPLConfigPage]
     LOCATION = QC.Qt.RightDockWidgetArea
     REQ_PLUGINS = [*GP.BasePluginWidget.REQ_PLUGINS, "Data table"]
 

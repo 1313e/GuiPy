@@ -174,9 +174,21 @@ class EditableComboBox(GW.QComboBox):
 
     """
 
+    # Create focusLost signal
+    focusLost = QC.Signal([int], [str])
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditable(True)
         self.setInsertPolicy(self.NoInsert)
         self.completer().setCompletionMode(QW.QCompleter.PopupCompletion)
         self.completer().setFilterMode(QC.Qt.MatchContains)
+
+    # Override focusOutEvent to emit signal whenever triggered
+    def focusOutEvent(self, event):
+        # Emit focusLost signal
+        self.focusLost[int].emit(self.currentIndex())
+        self.focusLost[str].emit(self.currentText())
+
+        # Call super method
+        return(super().focusOutEvent(event))

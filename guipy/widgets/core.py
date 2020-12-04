@@ -35,7 +35,8 @@ class BaseBox(GW_QWidget):
 
     This class is used by many custom :class:`~PyQt5.QtWidgets.QWidget` classes
     as their base. It defines the :attr:`~modified` signal, which is
-    automatically connected to any widget that changes its state.
+    automatically connected to any widget that changes its state, unless
+    `auto_connect` is set set *False*.
 
     """
 
@@ -43,9 +44,12 @@ class BaseBox(GW_QWidget):
     modified = QC.Signal()
 
     # Initialize the BaseBox class
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, auto_connect=True, **kwargs):
         # Call super constructor
         super().__init__(*args, **kwargs)
+
+        # Store auto_connect
+        self.auto_connect = auto_connect
 
         # If the 'modified_signal_slot' slot is available, connect it
         if hasattr(self, 'modified_signal_slot'):
@@ -61,7 +65,7 @@ class BaseBox(GW_QWidget):
         """
 
         # If this event involved a child being added, check child object
-        if(event.type() == QC.QEvent.ChildAdded):
+        if self.auto_connect and (event.type() == QC.QEvent.ChildAdded):
             # Obtain child object
             child = event.child()
 

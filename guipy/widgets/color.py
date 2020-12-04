@@ -27,25 +27,9 @@ from sortedcontainers import SortedDict as sdict, SortedSet as sset
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
 from guipy.widgets import get_box_value, get_modified_signal, set_box_value
-from guipy.widgets.combobox import ComboBoxValidator, EditableComboBox
 
 # All declaration
 __all__ = ['ColorBox', 'ColorMapBox']
-
-
-# %% HELPER DEFINITIONS
-# Define EditableComboBox class that emits a signal when losing focus
-class FocusComboBox(EditableComboBox):
-    # Create focusLost signal
-    focusLost = QC.Signal()
-
-    # Override focusOutEvent to emit signal whenever triggered
-    def focusOutEvent(self, event):
-        # Emit focusLost signal
-        self.focusLost.emit()
-
-        # Call super method
-        return(super().focusOutEvent(event))
 
 
 # %% CLASS DEFINITIONS
@@ -145,10 +129,10 @@ class ColorBox(GW.BaseBox):
         cum_len = np.cumsum(list(map(len, colors)))
 
         # Make combobox for colors
-        color_box = FocusComboBox()
+        color_box = GW.EditableComboBox()
 
         # Add a special validator to this combobox
-        validator = ComboBoxValidator(color_box, r"#?[\da-fA-F]{6}")
+        validator = GW.ComboBoxValidator(color_box, r"#?[\da-fA-F]{6}")
         color_box.setValidator(validator)
 
         # Fill combobox with all colors

@@ -27,14 +27,19 @@ __all__ = ['EditableEntriesBox', 'EntriesBox']
 # Make validator class for the name box in an entries box
 class EntryNameBoxValidator(QG.QValidator):
     # Initialize the EntryNameBoxValidator class
-    def __init__(self, entries_box_obj, parent=None):
+    def __init__(self, combobox_obj, entries_box_obj, misc_flag, parent=None):
         """
         Initialize an instance of the :class:`~EntryNameBoxValidator` class.
 
         Parameters
         ----------
+        combobox_obj : :obj:`~PyQt5.QtWidgets.ComboBox` object
+            Combobox object for which the editable line must be validated.
         entries_box_obj : :obj:`~EntriesBox` object
             Entries box object for which this validator must be created.
+        misc_flag : bool
+            Whether or not all non-handled cases should be acceptable or
+            invalid.
 
         Optional
         --------
@@ -46,12 +51,27 @@ class EntryNameBoxValidator(QG.QValidator):
 
         # Save the provided entries_box_obj
         self.entries_box_obj = entries_box_obj
+        self.completer = combobox_obj.completer()
+
+        # Set misc_flag
+        if misc_flag:
+            self.misc = self.Acceptable
+        else:
+            self.misc = self.Invalid
 
         # Call super constructor
         super().__init__(parent)
 
     # Override validate to reject banned and duplicate entries
     def validate(self, string, pos):
+        # Check if string is empty
+        if not string:
+            # If so, it is acceptable
+            state = self.Acceptable
+
+            # Return state
+            return(state, string, pos)
+
         # Create empty list of all current names in the entries box
         cur_names = []
 
@@ -61,16 +81,41 @@ class EntryNameBoxValidator(QG.QValidator):
             cur_names.append(get_box_value(name_box))
 
         # Remove string from it
-        cur_names.remove(string)
+        try:
+            cur_names.remove(string)
+        except ValueError:
+            pass
 
-        # Check if string is empty
-        if not string:
+        # Check if string can be found in cur_names
+        if string in cur_names:
             # If so, it is intermediate
             state = self.Intermediate
 
-        # Else, check if string can be found in cur_names
-        elif string in cur_names:
-            # If so, it is also intermediate
+            # Return state
+            return(state, string, pos)
+
+        # Check if string is already in the completions list
+        index = self.completer.completionModel().index(0, 0)
+        match = self.completer.completionModel().match(
+            index, QC.Qt.EditRole, string, flags=QC.Qt.MatchExactly)
+
+        # Check if there is a match
+        if not match:
+            # If not, set the completion prefix in the completer
+            self.completer.setCompletionPrefix(string)
+        else:
+            # If so, it is acceptable
+            state = self.Acceptable
+
+            # Return state
+            return(state, string, pos)
+
+        # Obtain the current completion string
+        completion = self.completer.currentCompletion()
+
+        # Check if this completion string is not empty
+        if completion:
+            # If so, it is acceptable
             state = self.Intermediate
 
         # Else, check if the string is banned
@@ -80,10 +125,14 @@ class EntryNameBoxValidator(QG.QValidator):
 
         # Else, it is acceptable
         else:
-            state = self.Acceptable
+            state = self.misc
 
         # Return state
         return(state, string, pos)
+
+    # Override fixup to return an empty string when an entry is invalid
+    def fixup(self, string):
+        return("")
 
 
 # %% CLASS DEFINITIONS
@@ -117,7 +166,7 @@ class EntriesBox(GW.BaseBox):
         """
 
         # Call super constructor
-        super().__init__(parent)
+        super().__init__(parent, auto_connect=False)
 
         # Create the entries box
         self.init()
@@ -193,7 +242,15 @@ class EntriesBox(GW.BaseBox):
 
     # This function returns the proper combobox to be used for name entries
     def get_entry_name_box(self):
-        return(GW.QComboBox())
+        # Create name_box
+        name_box = GW.EditableComboBox()
+
+        # Initialize and apply special validator
+        validator = EntryNameBoxValidator(name_box, self, False)
+        name_box.setValidator(validator)
+
+        # Return name_box
+        return(name_box)
 
     # This function returns whether a given name_box has a valid value
     def is_valid(self, name_box):
@@ -225,10 +282,6 @@ class EntriesBox(GW.BaseBox):
         set_box_value(name_box, -1)
         get_modified_signal(name_box).connect(
             lambda: self.create_value_box(name_box))
-
-        # Initialize and apply special validator
-        validator = EntryNameBoxValidator(self)
-        name_box.setValidator(validator)
 
         # Create a 'Delete'-button
         del_but = GW.QToolButton()
@@ -299,7 +352,7 @@ class EntriesBox(GW.BaseBox):
         cur_box = self.entries_grid.itemAt(index+1).widget()
 
         # Obtain the widget class associated with this entry_name
-        if valid:
+        if entry_name and valid:
             # If the given name is valid, obtain it from dict or use default
             new_box_class = self.entry_types.get(entry_name, GW.GenericBox)
         else:
@@ -317,7 +370,7 @@ class EntriesBox(GW.BaseBox):
 
             # If this entry is invalid and not empty, set the label
             if entry_name and not valid:
-                set_box_value(new_box, "Given entry name is either banned or "
+                set_box_value(new_box, "Given entry name is either invalid or "
                               "already in use!")
 
             # If this entry is valid and has a default value, use it
@@ -554,4 +607,12 @@ class EditableEntriesBox(EntriesBox):
 
     # This function returns the proper combobox to be used for name entries
     def get_entry_name_box(self):
-        return(GW.EditableComboBox())
+        # Create name_box
+        name_box = GW.EditableComboBox()
+
+        # Initialize and apply special validator
+        validator = EntryNameBoxValidator(name_box, self, True)
+        name_box.setValidator(validator)
+
+        # Return name_box
+        return(name_box)
