@@ -36,9 +36,14 @@ class MPLConfigPage(GP.PluginConfigPage):
         # Create layout
         layout = GL.QVBoxLayout(self)
 
+        # Create 'rcParams' group box
+        rcParams_group = GW.QGroupBox('rcParams')
+        layout.addWidget(rcParams_group)
+        rcParams_layout = GL.QVBoxLayout(rcParams_group)
+
         # Create entries_box
         entries_box = GW.EntriesBox()
-        layout.addWidget(entries_box)
+        rcParams_layout.addWidget(entries_box)
         self.add_config_entry('rcParams', entries_box)
         self.entries_box = entries_box
 

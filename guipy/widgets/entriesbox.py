@@ -153,10 +153,10 @@ class EntriesBox(GW.BaseBox):
     # Signals
     modified = QC.Signal([], [dict])
 
-    # Initialize the EditableEntriesBox class
+    # Initialize the EntriesBox class
     def __init__(self, parent=None):
         """
-        Initialize an instance of the :class:`~EditableEntriesBox` class.
+        Initialize an instance of the :class:`~EntriesBox` class.
 
         Optional
         --------
@@ -206,6 +206,7 @@ class EntriesBox(GW.BaseBox):
 
         # Create the entries_grid
         entries_grid = GL.QGridLayout()
+        entries_grid.setContentsMargins(0, 0, 0, 0)
         entries_grid.setColumnStretch(1, 1)
         entries_grid.setColumnStretch(2, 2)
         box_layout.addLayout(entries_grid)
