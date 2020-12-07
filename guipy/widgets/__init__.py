@@ -17,7 +17,7 @@ from .core import *
 
 # Import base modules
 from . import (
-    checkbox, color, combobox, dock, entriesbox, exceptions, lineedit, misc,
+    checkbox, color, combobox, dock, entriesbox, exceptions, lineedit,
     radiobutton, spinbox, tabbar, text, utils)
 from .checkbox import *
 from .color import *
@@ -26,12 +26,15 @@ from .dock import *
 from .entriesbox import *
 from .exceptions import *
 from .lineedit import *
-from .misc import *
 from .radiobutton import *
 from .spinbox import *
 from .tabbar import *
 from .text import *
 from .utils import *
+
+# Import misc module
+from . import misc
+from .misc import *
 
 # All declaration
 __all__ = ['base', 'checkbox', 'color', 'combobox', 'core', 'dock',

@@ -111,19 +111,19 @@ class GeneralConfigPage(BaseConfigPage):
 
         # Add combobox for language-settings
         language_box = LocaleComboBox('language')
-        language_box.addItems([QC.QLocale.system().language(),
-                               QC.QLocale.English])
+        language_box.addItems(list({QC.QLocale.system().language(),
+                                    QC.QLocale.English}))
         language_box.setToolTip("Set the language used for representing "
                                 "strings and values.")
         self.add_config_entry('language', language_box, True)
         general_layout.addRow("Language", language_box)
 
     # This function parses and processes a config section, and returns it
-    def decode_config_section(self, section_dict):
+    def decode_config(self, section_dict):
         # Initialize empty dict of parsed config values
         config_dict = sdict()
 
-        # Parse all values in section_dict
+        # Decode all values in section_dict
         for key, value in section_dict.items():
             # Add all values to config dict using literal_eval
             config_dict[key] = literal_eval(value)
@@ -141,24 +141,21 @@ class GeneralConfigPage(BaseConfigPage):
         return(default_dict)
 
     # This function returns its config section, as required by config parser
-    def encode_config_section(self, config_dict):
+    def encode_config(self, config_dict):
         # Initialize empty dict of section config values
         section_dict = sdict()
 
-        # Loop over all arguments in config and parse them in
+        # Loop over all arguments in config and encode them in
         for key, value in config_dict.items():
             section_dict[key] = '{!r}'.format(value)
 
         # Return section_dict
         return(section_dict)
 
-    # Override set_box_value to also set the Locale settings
-    def set_box_value(self, value, *value_sig):
-        # Call super method
-        super().set_box_value(value, *value_sig)
-
+    # This function applies the currently stored config
+    def apply_config(self, config_dict):
         # Create new QLocale
-        locale = QC.QLocale(value['language'])
+        locale = QC.QLocale(config_dict['language'])
 
         # Set this as the new default
         QC.QLocale.setDefault(locale)

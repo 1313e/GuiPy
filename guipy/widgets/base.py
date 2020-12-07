@@ -23,9 +23,9 @@ __all__ = ['QAbstractButton', 'QAction', 'QCheckBox', 'QComboBox', 'QDialog',
            'QDockWidget', 'QDoubleSpinBox', 'QFileDialog', 'QGroupBox',
            'QHeaderView', 'QLabel', 'QLineEdit', 'QListView', 'QListWidget',
            'QMainWindow', 'QMenu', 'QMessageBox', 'QPushButton',
-           'QRadioButton', 'QSpinBox', 'QSplitter', 'QStackedWidget',
-           'QTabBar', 'QTableView', 'QTabWidget', 'QTextEdit', 'QToolBar',
-           'QToolButton', 'QToolTip', 'QWidget']
+           'QRadioButton', 'QSpinBox', 'QSplitter', 'QScrollArea',
+           'QStackedWidget', 'QTabBar', 'QTableView', 'QTabWidget',
+           'QTextEdit', 'QToolBar', 'QToolButton', 'QToolTip', 'QWidget']
 
 
 # %% BASE CLASS DEFINITION
@@ -510,6 +510,11 @@ class QPushButton(QW.QPushButton, QAbstractButton):
 
 # Create custom QRadioButton class
 class QRadioButton(QW.QRadioButton, QAbstractButton):
+    pass
+
+
+# Create custom QScrollArea class
+class QScrollArea(QW.QScrollArea, QWidget):
     pass
 
 

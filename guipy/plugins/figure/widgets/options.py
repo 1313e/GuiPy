@@ -190,7 +190,7 @@ class FigureOptionsDialog(GW.QDialog):
         title_box[0].setToolTip("Figure title")
         title_box[1].setToolTip("Title size")
         set_box_value(
-            title_box, ('', {'fontsize': rcParams['axes.titlesize']}))
+            title_box, ('', {'fontsize': rcParams['figure.titlesize']}))
         self.add_options_entry(title_box)
         self.refreshing_figure.connect(lambda: self.axis.set_title(
             *get_box_value(title_box, str, dict)))

@@ -68,7 +68,7 @@ class BaseConfigPage(GW.BaseBox):
         """
 
         # Make sure that name is lowercase
-        name = name.lower()
+        name = name
 
         # Add widget as an entry to config_entries
         self.config_entries[name] = widget
@@ -83,7 +83,7 @@ class BaseConfigPage(GW.BaseBox):
         self.restart_flag = True
 
     # This function parses and processes a config section, and returns it
-    def parse_config_section(self, section_dict):
+    def decode_config(self, section_dict):
         """
         Parses a section of the config parser, converting it into the values as
         used by *GuiPy* and returns it.
@@ -119,7 +119,7 @@ class BaseConfigPage(GW.BaseBox):
         raise NotImplementedError(self.__class__)
 
     # This function returns its config section, as required by config parser
-    def get_config_section(self, config_dict):
+    def encode_config(self, config_dict):
         """
         Returns a dict containing the config values for the config section
         associated with this config page.
@@ -140,6 +140,25 @@ class BaseConfigPage(GW.BaseBox):
         """
 
         raise NotImplementedError(self.__class__)
+
+    # This function applies the currently stored config
+    def apply_config(self, config_dict):
+        """
+        Applies the config values for the config section associated with this
+        config page.
+
+        This function is called whenever the currently stored config values
+        must be applied to the various settings they are associated with.
+
+        Parameters
+        ----------
+        config_dict : dict
+            Dict containing the config values belonging to this config page as
+            used by *GuiPy*.
+
+        """
+
+        pass
 
     # This function returns a dict containing the current config values
     def get_box_value(self, *value_sig):

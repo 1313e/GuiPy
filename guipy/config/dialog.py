@@ -86,7 +86,6 @@ class ConfigDialog(GW.QDialog):
         """
 
         # Set properties of configuration dialog
-        # self.setAttribute(QC.Qt.WA_DeleteOnClose)
         self.setWindowTitle(self.NAME.replace('&', ''))
         self.setWindowFlags(
             QC.Qt.MSWindowsOwnDC |
@@ -179,6 +178,11 @@ class ConfigDialog(GW.QDialog):
 
         """
 
+        # Create scrollarea for the config page
+        scroll_area = GW.QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(config_page)
+
         # Obtain the page sections of this config page
         main, sub, tab = self.get_page_sections(config_page.section_name)
 
@@ -189,7 +193,7 @@ class ConfigDialog(GW.QDialog):
         # Check if this section existed before
         if(len(page_section) == 0):
             # Add the config page as a widget to the page_section and sections
-            self.sections.addWidget(config_page)
+            self.sections.addWidget(scroll_area)
             self.contents.addItem(main)
 
             # If this is the first section in contents, select it
@@ -213,18 +217,18 @@ class ConfigDialog(GW.QDialog):
 
             # Add the previous widget and the new config page to the tab_widget
             tab_widget.addTab(prev_page, page_section.keys()[1])
-            tab_widget.addTab(config_page, tab)
+            tab_widget.addTab(scroll_area, tab)
 
         else:
             # Obtain the current tab widget
             tab_widget = page_section['']
-            tab_widget.addTab(config_page, tab)
+            tab_widget.addTab(scroll_area, tab)
 
         # Connect signals
         get_modified_signal(config_page).connect(self.enable_apply_button)
 
         # Add this config page to the proper page section
-        page_section[tab] = config_page
+        page_section[tab] = scroll_area
 
     # This function determines the config dialog sections a name belongs to
     def get_page_sections(self, section_name):

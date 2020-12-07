@@ -12,13 +12,14 @@ Miscellaneous
 
 # Package imports
 from qtpy import QtCore as QC, QtWidgets as QW
+from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
 from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
 # All declaration
-__all__ = ['GenericBox']
+__all__ = ['GenericBox', 'type_box_dict']
 
 
 # %% CLASS DEFINITIONS
@@ -60,13 +61,6 @@ class GenericBox(GW.BaseBox):
 
         """
 
-        # Make a look-up dict for types
-        self.type_dict = {
-            'bool': GW.QCheckBox,
-            'float': lambda: GW.NumLineEdit(float),
-            'int': lambda: GW.NumLineEdit(int),
-            'str': GW.QLineEdit}
-
         # Create the box_layout
         box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
@@ -74,7 +68,7 @@ class GenericBox(GW.BaseBox):
 
         # Create a combobox for the type
         type_box = GW.QComboBox()
-        type_box.addItems(self.type_dict.keys())
+        type_box.addItems(type_box_dict.keys())
         type_box.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         set_box_value(type_box, -1)
         get_modified_signal(type_box).connect(self.create_value_box)
@@ -107,7 +101,7 @@ class GenericBox(GW.BaseBox):
         """
 
         # Create a widget box for the specified value_type
-        value_box = self.type_dict[value_type]()
+        value_box = type_box_dict[value_type]()
         value_box.setSizePolicy(QW.QSizePolicy.Expanding, QW.QSizePolicy.Fixed)
 
         # Set this value_box in the layout
@@ -152,3 +146,13 @@ class GenericBox(GW.BaseBox):
 
         set_box_value(self.type_box, type(value).__name__)
         set_box_value(self.value_box, value, *value_sig)
+
+
+# %% INSTANCES
+# Make a look-up dict for types
+type_box_dict = sdict({
+    'bool': GW.QCheckBox,
+    'float': lambda: GW.NumLineEdit(float),
+    'int': lambda: GW.NumLineEdit(int),
+    'str': GW.QLineEdit,
+    'dict': GW.EditableEntriesBox})

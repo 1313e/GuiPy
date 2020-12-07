@@ -34,6 +34,7 @@ class ConfigManager(object):
         # Initialize different configuration dicts and parsers
         self.config = sdict()
         self.parser = ConfigParser(interpolation=None)
+        self.parser.optionxform = str
         self.config_pages = sdict()
 
     # Initialize config manager for actual use in GuiPy
@@ -149,7 +150,7 @@ class ConfigManager(object):
         config_section = self.parser[section_name]
 
         # Parse the config section belonging to this config page
-        parsed_dict = config_page.decode_config_section(config_section)
+        parsed_dict = config_page.decode_config(config_section)
 
         # Obtain the default config of this section
         config_dict = config_page.get_default_config()
@@ -162,13 +163,14 @@ class ConfigManager(object):
 
         # Set this config_dict as the current values
         set_box_value(config_page, config_dict)
+        config_page.apply_config(config_dict)
 
         # Revert flags that were set due to the config page being modified
         self.config_dialog.disable_apply_button()
         config_page.restart_flag = False
 
         # Get updated config section from the config page
-        config_section = config_page.encode_config_section(config_dict)
+        config_section = config_page.encode_config(config_dict)
 
         # Update the parser with the config_section
         self.parser[section_name] = config_section
@@ -225,10 +227,11 @@ class ConfigManager(object):
         for name, page in self.config_pages.items():
             # Obtain config_dict
             config_dict = get_box_value(page)
+            page.apply_config(config_dict)
 
             # Store config_dict in saved config and parser
             self.config[name] = config_dict
-            self.parser[name] = page.encode_config_section(config_dict)
+            self.parser[name] = page.encode_config(config_dict)
 
             # Add restart_flag of page to current restart_flag
             restart_flag += page.restart_flag
@@ -263,10 +266,11 @@ class ConfigManager(object):
 
             # Set value of page to this dict
             set_box_value(page, config_dict)
+            page.apply_config(config_dict)
 
             # Store config_dict in saved config and parser
             self.config[name] = config_dict
-            self.parser[name] = page.encode_config_section(config_dict)
+            self.parser[name] = page.encode_config(config_dict)
 
             # Add restart_flag of page to current restart_flag
             restart_flag += page.restart_flag

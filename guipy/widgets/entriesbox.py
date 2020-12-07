@@ -51,6 +51,7 @@ class EntryNameBoxValidator(QG.QValidator):
 
         # Save the provided entries_box_obj
         self.entries_box_obj = entries_box_obj
+        self.combobox_obj = combobox_obj
         self.completer = combobox_obj.completer()
 
         # Set misc_flag
@@ -67,7 +68,7 @@ class EntryNameBoxValidator(QG.QValidator):
         # Check if string is empty
         if not string:
             # If so, it is acceptable
-            state = self.Acceptable
+            state = self.Intermediate
 
             # Return state
             return(state, string, pos)
@@ -130,9 +131,9 @@ class EntryNameBoxValidator(QG.QValidator):
         # Return state
         return(state, string, pos)
 
-    # Override fixup to return an empty string when an entry is invalid
+    # Override fixup to set the entry name to "" when it is invalid
     def fixup(self, string):
-        return("")
+        set_box_value(self.combobox_obj, "")
 
 
 # %% CLASS DEFINITIONS
@@ -278,6 +279,7 @@ class EntriesBox(GW.BaseBox):
 
         # Create a combobox with the name of the entry
         name_box = self.get_entry_name_box()
+        name_box.setToolTip("Select or type name for this entry")
         name_box.addItems(self.entry_types.keys())
         set_box_value(name_box, -1)
         get_modified_signal(name_box).connect(
@@ -303,7 +305,7 @@ class EntriesBox(GW.BaseBox):
             self.entries_grid.count()-1)[0]+1
         self.entries_grid.addWidget(del_but, next_row, 0)
         self.entries_grid.addWidget(name_box, next_row, 1)
-        self.entries_grid.addWidget(GW.QWidget(), next_row, 2)
+        self.entries_grid.addWidget(GW.QLabel(), next_row, 2)
 
     # This function is called whenever an entry must be removed
     @QC.Slot(GW.QComboBox)
@@ -313,6 +315,9 @@ class EntriesBox(GW.BaseBox):
         entries box.
 
         """
+
+        # Determine if name_box is valid
+        valid = self.is_valid(name_box)
 
         # Determine at what index the provided name_box currently is in grid
         index = self.entries_grid.indexOf(name_box)
@@ -325,6 +330,10 @@ class EntriesBox(GW.BaseBox):
             # Close the widget in this item and delete it
             item.widget().close()
             del item
+
+        # Emit modified signal if name_box was valid
+        if valid:
+            self.modified.emit()
 
     # This function is called whenever a new entry field box is requested
     @QC.Slot(GW.QComboBox)
@@ -352,37 +361,57 @@ class EntriesBox(GW.BaseBox):
         cur_box = self.entries_grid.itemAt(index+1).widget()
 
         # Obtain the widget class associated with this entry_name
-        if entry_name and valid:
+        if valid:
             # If the given name is valid, obtain it from dict or use default
             new_box_class = self.entry_types.get(entry_name, GW.GenericBox)
         else:
-            # If invalid, use empty widget if name is empty
-            if not entry_name:
-                new_box_class = GW.QWidget
-            # Else, use a label
-            else:
-                new_box_class = GW.QLabel
+            # If invalid, use a label
+            new_box_class = GW.QLabel
+
+        # Check if a modified signal must be emitted later
+        emit_signal = False
+        if valid or type(cur_box) is not GW.QLabel:
+            emit_signal = True
 
         # If the current value box is not this box type already, replace it
         if type(cur_box) is not new_box_class:
             # If not, create new value box
             new_box = new_box_class()
 
-            # If this entry is invalid and not empty, set the label
-            if entry_name and not valid:
-                set_box_value(new_box, "Given entry name is either invalid or "
-                              "already in use!")
-
-            # If this entry is valid and has a default value, use it
-            elif entry_name in self.entry_defaults and valid:
-                set_box_value(new_box, self.entry_defaults[entry_name])
+            # Connect to modified signal
+            if valid:
+                get_modified_signal(new_box).connect(self.modified)
 
             # Replace cur_box with new_box
             item = self.entries_grid.replaceWidget(cur_box, new_box)
+            cur_box = new_box
 
             # Close the widget in this item and delete it
             item.widget().close()
             del item
+
+        # If the box is invalid, set its value
+        if not valid:
+            # If it has a name, set a warning as the value
+            if entry_name:
+                set_box_value(cur_box, f"Entry <b>{entry_name}</b> is either "
+                              "invalid or already in use!")
+            # Else, set an empty string as the value
+            else:
+                set_box_value(cur_box, "")
+
+        # If this entry is valid, perform a few extra tasks
+        if valid:
+            # Modify tooltip
+            cur_box.setToolTip(f"Set value for entry <b>{entry_name}</b>")
+
+            # If this entry has a default value, use it
+            if entry_name in self.entry_defaults:
+                set_box_value(cur_box, self.entry_defaults[entry_name])
+
+        # Emit modified signal if required
+        if emit_signal:
+            self.modified.emit()
 
     # This function updates the entry types dict with a given dict
     def addEntryTypes(self, entry_types):

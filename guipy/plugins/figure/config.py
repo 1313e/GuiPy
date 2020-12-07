@@ -13,13 +13,13 @@ from ast import literal_eval
 
 # Package imports
 import cycler
-from matplotlib import rcParams
+from matplotlib import rcParams, rcParamsDefault
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
 from guipy import layouts as GL, plugins as GP, widgets as GW
-from guipy.widgets import get_modified_signal
+from guipy.widgets import get_modified_signal, type_box_dict
 
 # All declaration
 __all__ = ['MPLConfigPage']
@@ -46,15 +46,17 @@ class MPLConfigPage(GP.PluginConfigPage):
         entry_types = sdict()
 
         # Loop over all rcParams and determine what widget to use
-        for key, value in rcParams.items():
-            # For now, use default widgets for everything
-            entry_types[key] = None
+        for key, value in rcParamsDefault.items():
+            # For now, let's solely accept those starting with 'figure'
+            if key.startswith('figure') and (key != 'figure.figsize'):
+                # Add the proper box to the dict
+                entry_types[key] = (type_box_dict[type(value).__name__], value)
 
         # Add all rcParams entries to the box
         entries_box.addEntryTypes(entry_types)
 
     # This function parses and processes a config section, and returns it
-    def decode_config_section(self, section_dict):
+    def decode_config(self, section_dict):
         # Initialize empty dict of parsed config values
         config_dict = sdict()
 
@@ -67,7 +69,7 @@ class MPLConfigPage(GP.PluginConfigPage):
 #            else:
 #                config_dict[key] = literal_eval(value)
 
-        # Parse all values in section_dict
+        # Decode all values in section_dict
         for key, value in section_dict.items():
             config_dict[key] = literal_eval(value)
 
@@ -76,10 +78,10 @@ class MPLConfigPage(GP.PluginConfigPage):
 
     # This function returns a dict containing the default config values
     def get_default_config(self):
-        return(sdict())
+        return({'rcParams': sdict()})
 
     # This function returns its config section, as required by config parser
-    def encode_config_section(self, config_dict):
+    def encode_config(self, config_dict):
         # Initialize empty dict of section config values
         section_dict = sdict()
 
@@ -92,9 +94,15 @@ class MPLConfigPage(GP.PluginConfigPage):
 #            # Add raw string value
 #            section_dict[key] = '{!r}'.format(value)
 
-        # Loop over all arguments in config and parse them in
+        # Loop over all arguments in config and encode them in
         for key, value in config_dict.items():
             section_dict[key] = '{!r}'.format(dict(value))
 
         # Return section_dict
         return(section_dict)
+
+    # This function applies the currently stored config
+    def apply_config(self, config_dict):
+        # Update MPL's rcParams with the values stored in this config page
+        rcParams.update(rcParamsDefault)
+        rcParams.update(config_dict['rcParams'])
