@@ -55,7 +55,7 @@ class MPLConfigPage(GP.PluginConfigPage):
             # For now, let's solely accept those starting with 'figure'
             if key.startswith('figure') and (key != 'figure.figsize'):
                 # Add the proper box to the dict
-                entry_types[key] = (type_box_dict[type(value).__name__], value)
+                entry_types[key] = (type_box_dict[type(value)], value)
 
         # Add all rcParams entries to the box
         entries_box.addEntryTypes(entry_types)

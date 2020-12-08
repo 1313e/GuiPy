@@ -344,7 +344,7 @@ class EntriesBox(GW.BaseBox):
         current value, and replaces the current value box with it.
 
         If the current value of the given `name_box` does not have a specific
-        value box defined, a :class:`~guipy.widgets.GenericBox` is used
+        value box defined, a :class:`~guipy.widgets.FullGenericBox` is used
         instead.
 
         """
@@ -364,7 +364,7 @@ class EntriesBox(GW.BaseBox):
         # Obtain the widget class associated with this entry_name
         if valid:
             # If the given name is valid, obtain it from dict or use default
-            new_box_class = self.entry_types.get(entry_name, GW.GenericBox)
+            new_box_class = self.entry_types.get(entry_name, GW.FullGenericBox)
         else:
             # If invalid, use a label
             new_box_class = GW.QLabel

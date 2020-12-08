@@ -54,6 +54,11 @@ class GenericBox(GW.BaseBox):
     def default_modified_signal(self):
         return(self.modified[object])
 
+    # This property returns the types that this box supports
+    @property
+    def supported_types(self):
+        return([bool, float, int, str])
+
     # This function creates the generic box
     def init(self):
         """
@@ -68,7 +73,7 @@ class GenericBox(GW.BaseBox):
 
         # Create a combobox for the type
         type_box = GW.QComboBox()
-        type_box.addItems(type_box_dict.keys())
+        type_box.addItems(sorted([x.__name__ for x in self.supported_types]))
         type_box.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
         set_box_value(type_box, -1)
         get_modified_signal(type_box).connect(self.create_value_box)
@@ -101,7 +106,7 @@ class GenericBox(GW.BaseBox):
         """
 
         # Create a widget box for the specified value_type
-        value_box = type_box_dict[value_type]()
+        value_box = type_box_dict[eval(value_type)]()
         value_box.setSizePolicy(QW.QSizePolicy.Expanding, QW.QSizePolicy.Fixed)
 
         # Set this value_box in the layout
@@ -148,11 +153,28 @@ class GenericBox(GW.BaseBox):
         set_box_value(self.value_box, value, *value_sig)
 
 
+# Define class for creating generic value boxes that supports all types
+class FullGenericBox(GenericBox):
+    """
+    Defines the :class:`~FullGenericBox` class.
+
+    This class is used for making a generic value box that also accepts
+    iterables.
+    It currently supports inputs of all types found in :obj:`~type_box_dict`.
+
+    """
+
+    # This property returns the types that this box supports
+    @property
+    def supported_types(self):
+        return(type_box_dict.keys())
+
+
 # %% INSTANCES
 # Make a look-up dict for types
-type_box_dict = sdict({
-    'bool': GW.QCheckBox,
-    'float': lambda: GW.NumLineEdit(float),
-    'int': lambda: GW.NumLineEdit(int),
-    'str': GW.QLineEdit,
-    'dict': GW.EditableEntriesBox})
+type_box_dict = {
+    bool: GW.QCheckBox,
+    float: GW.FloatLineEdit,
+    int: GW.IntLineEdit,
+    str: GW.QLineEdit,
+    dict: GW.EditableEntriesBox}
