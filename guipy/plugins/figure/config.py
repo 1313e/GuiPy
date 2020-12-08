@@ -47,15 +47,65 @@ class MPLConfigPage(GP.PluginConfigPage):
         self.add_config_entry('rcParams', entries_box)
         self.entries_box = entries_box
 
+        # Create list of all prefixes that should be skipped
+        prefix_skip = ('_internal', 'agg', 'animation', 'backend', 'datapath',
+                       'docstring', 'figure.figsize', 'interactive', 'keymap',
+                       'mpl_toolkits', 'pdf', 'pgf', 'ps', 'savefig', 'svg',
+                       'tk', 'toolbar', 'verbose', 'webagg')
+
+        # Add all prefixes that should be skipped for now
+        prefix_skip += ('axes.prop_cycle', 'boxplot.bootstrap',
+                        'legend.title_fontsize', 'path.sketch')
+
+        # Create dict of all rcParams that use specific widgets
+        # TODO: Certain keywords with 'color' have special values
+        key_widgets = {
+            'axes.edgecolor': GW.ColorBox,
+            'axes.facecolor': GW.ColorBox,
+            'axes.formatter.limits': lambda: GW.ItemsBox([float, float]),
+            'axes.labelcolor': GW.ColorBox,
+            'boxplot.boxprops.color': GW.ColorBox,
+            'boxplot.capprops.color': GW.ColorBox,
+            'boxplot.flierprops.color': GW.ColorBox,
+            'boxplot.meanprops.color': GW.ColorBox,
+            'boxplot.medianprops.color': GW.ColorBox,
+            'boxplot.whiskerprops.color': GW.ColorBox,
+            'figure.edgecolor': GW.ColorBox,
+            'figure.facecolor': GW.ColorBox,
+            'font.cursive': lambda: GW.GenericItemsBox(str),
+            'font.family': lambda: GW.GenericItemsBox(str),
+            'font.fantasy': lambda: GW.GenericItemsBox(str),
+            'font.monospace': lambda: GW.GenericItemsBox(str),
+            'font.sans-serif': lambda: GW.GenericItemsBox(str),
+            'font.serif': lambda: GW.GenericItemsBox(str),
+            'grid.color': GW.ColorBox,
+            'hatch.color': GW.ColorBox,
+            'image.cmap': GW.ColorMapBox,
+            'lines.color': GW.ColorBox,
+            'lines.dashdot_pattern': lambda: GW.ItemsBox([float]*4),
+            'lines.dashed_pattern': lambda: GW.ItemsBox([float]*2),
+            'lines.dotted_pattern': lambda: GW.ItemsBox([float]*2),
+            'patch.edgecolor': GW.ColorBox,
+            'patch.facecolor': GW.ColorBox,
+            'text.color': GW.ColorBox,
+            'xtick.color': GW.ColorBox,
+            'ytick.color': GW.ColorBox}
+
         # Initialize empty dict of entry_types
         entry_types = sdict()
 
         # Loop over all rcParams and determine what widget to use
         for key, value in rcParamsDefault.items():
-            # For now, let's solely accept those starting with 'figure'
-            if key.startswith('figure') and (key != 'figure.figsize'):
-                # Add the proper box to the dict
-                entry_types[key] = (type_box_dict[type(value)], value)
+            # Check if key starts with anything in prefix_skip
+            if key.startswith(prefix_skip):
+                # If so, continue
+                continue
+
+            # Obtain proper box
+            box = key_widgets.get(key, type_box_dict[type(value)])
+
+            # Add box to entry_types dict
+            entry_types[key] = (box, value)
 
         # Add all rcParams entries to the box
         entries_box.addEntryTypes(entry_types)

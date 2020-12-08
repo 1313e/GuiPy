@@ -344,7 +344,7 @@ class EntriesBox(GW.BaseBox):
         current value, and replaces the current value box with it.
 
         If the current value of the given `name_box` does not have a specific
-        value box defined, a :class:`~guipy.widgets.FullGenericBox` is used
+        value box defined, a :class:`~guipy.widgets.LongGenericBox` is used
         instead.
 
         """
@@ -364,7 +364,7 @@ class EntriesBox(GW.BaseBox):
         # Obtain the widget class associated with this entry_name
         if valid:
             # If the given name is valid, obtain it from dict or use default
-            new_box_class = self.entry_types.get(entry_name, GW.FullGenericBox)
+            new_box_class = self.entry_types.get(entry_name, GW.LongGenericBox)
         else:
             # If invalid, use a label
             new_box_class = GW.QLabel
@@ -426,8 +426,8 @@ class EntriesBox(GW.BaseBox):
             Dict with the entry names that use a specific callable for
             obtaining the :obj:`~PyQt5.QtWidgets.QWidget` object to be used in
             the entries box.
-            If the callable is *None*, :class:`~guipy.widgets.GenericBox` is
-            used.
+            The types found in :obj:`~guipy.widgets.type_box_dict` can be given
+            instead of a callable as well.
             Optionally, the default value of the widget can
             also be provided.
             This dict is formatted as `{'<entry_name>':
@@ -460,8 +460,8 @@ class EntriesBox(GW.BaseBox):
                 defaults[key] = value[1]
                 value = value[0]
 
-            # Set proper callable or GenericBox if None was provided
-            types[key] = value if value is not None else GW.GenericBox
+            # Set proper callable
+            types[key] = GW.type_box_dict.get(value, value)
 
         # Update the current dict of entry types and entry defaults
         self.entry_types.update(types)
@@ -474,7 +474,7 @@ class EntriesBox(GW.BaseBox):
         have a default value when entered.
 
         Note that entry names that do not have a specific value box defined,
-        always use a :class:`~guipy.widgets.GenericBox`.
+        always use a :class:`~guipy.widgets.LongGenericBox`.
 
         Parameters
         ----------

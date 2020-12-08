@@ -443,6 +443,8 @@ class ColorMapBox(GW.BaseBox):
 
         # Create a combobox for cmaps
         cmaps_box = GW.QComboBox()
+
+        # Add all colormaps to cmaps_box
         for cmap in self.cmaps_cl:
             cmap_icon = self.cmap_icons[cmap]
             cmaps_box.addItem(cmap_icon, cmap)
@@ -454,6 +456,8 @@ class ColorMapBox(GW.BaseBox):
         # Set remaining properties
         set_box_value(cmaps_box, rcParams['image.cmap'])
         cmaps_box.setIconSize(QC.QSize(*self.cmap_size))
+        cmaps_box.setSizeAdjustPolicy(
+            cmaps_box.AdjustToMinimumContentsLengthWithIcon)
         get_modified_signal(cmaps_box, str).connect(self.cmap_selected)
         get_modified_signal(cmaps_box, str).connect(self.modified[str])
 
@@ -596,7 +600,7 @@ class ColorMapBox(GW.BaseBox):
 
         Returns
         -------
-        cmap : :obj:`~matplotlib.colors.Colormap` object
+        cmap : str or :obj:`~matplotlib.colors.Colormap` object
             The currently selected colormap.
 
         """
@@ -604,9 +608,9 @@ class ColorMapBox(GW.BaseBox):
         # Obtain the value
         cmap = get_box_value(self.cmaps_box)
 
-        # Convert to matplotlib colormap if needed
-        if str not in value_sig:
-            cmap = cm.get_cmap(cmap)
+        # Obtain the Colormap object if requested
+        if Colormap in value_sig:
+            cmap = plt.get_cmap(cmap)
 
         # Return it
         return(cmap)
@@ -618,7 +622,7 @@ class ColorMapBox(GW.BaseBox):
 
         Parameters
         ----------
-        value : :obj:`~matplotlib.colors.Colormap` object
+        value : str or :obj:`~matplotlib.colors.Colormap` object
             The colormap that must be used for this colormap box.
 
         """

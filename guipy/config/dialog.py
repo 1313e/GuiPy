@@ -113,7 +113,7 @@ class ConfigDialog(GW.QDialog):
         # Create a sections widget
         sections = GW.QStackedWidget()
         splitter.addWidget(sections)
-        splitter.setStretchFactor(1, 3)
+        splitter.setStretchFactor(1, 5)
         self.sections = sections
 
         # Connect signals
@@ -161,6 +161,9 @@ class ConfigDialog(GW.QDialog):
                 self.apply_options],
             button_box.ResetRole: [
                 self.reset_options]}
+
+        # Set the size of the dialog
+        self.resize(800, 600)
 
     # This function adds a new BasicConfigPage to the dialog
     @QC.Slot(QW.QWidget)
