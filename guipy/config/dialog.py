@@ -113,7 +113,7 @@ class ConfigDialog(GW.QDialog):
         # Create a sections widget
         sections = GW.QStackedWidget()
         splitter.addWidget(sections)
-        splitter.setStretchFactor(1, 5)
+        splitter.setStretchFactor(1, 4)
         self.sections = sections
 
         # Connect signals
@@ -180,6 +180,9 @@ class ConfigDialog(GW.QDialog):
             The config page object that must be added to this dialog.
 
         """
+
+        # Add a stretch to the layout of the page
+        config_page.layout().addStretch()
 
         # Create scrollarea for the config page
         scroll_area = GW.QScrollArea(self)
@@ -364,3 +367,8 @@ class ConfigDialog(GW.QDialog):
 
         # Disable the apply button
         self.disable_apply_button()
+
+    # Override reject to discard all options if called
+    def reject(self):
+        self.discard_options()
+        super().reject()

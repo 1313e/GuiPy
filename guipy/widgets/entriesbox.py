@@ -231,8 +231,8 @@ class EntriesBox(GW.BaseBox):
         else:
             add_but.setText('+')
 
-        # Add a stretch
-        box_layout.addStretch()
+        # Set size policy
+        self.setSizePolicy(QW.QSizePolicy.Preferred, QW.QSizePolicy.Fixed)
 
         # Set a minimum width for the first column
         self.entries_grid.setColumnMinimumWidth(0, self.entry_height)
@@ -378,6 +378,8 @@ class EntriesBox(GW.BaseBox):
         if type(cur_box) is not new_box_class:
             # If not, create new value box
             new_box = new_box_class()
+            new_box.setSizePolicy(QW.QSizePolicy.MinimumExpanding,
+                                  QW.QSizePolicy.Fixed)
 
             # Connect to modified signal
             if valid:

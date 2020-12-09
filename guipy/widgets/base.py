@@ -266,6 +266,10 @@ class QComboBox(QW.QComboBox, QWidget):
     popup_shown = QC.Signal([int], [str])
     popup_hidden = QC.Signal([int], [str])
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setSizeAdjustPolicy(self.AdjustToContents)
+
     # Override the showPopup to emit a signal whenever it is triggered
     def showPopup(self, *args, **kwargs):
         self.popup_shown[int].emit(self.currentIndex())
@@ -367,6 +371,10 @@ class QLabel(QW.QLabel, QWidget):
             super().__init__(*args, **kwargs)
         else:
             super().__init__(text, *args, **kwargs)
+
+        # Set some settings
+        self.setWordWrap(True)
+        self.setOpenExternalLinks(True)
 
     # Override the mousePressEvent to emit a signal whenever it is triggered
     def mousePressEvent(self, event):

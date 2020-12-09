@@ -113,8 +113,8 @@ class GenericItemsBox(GW.BaseBox):
         else:
             add_but.setText('+')
 
-        # Add a stretch
-        box_layout.addStretch()
+        # Set size policy
+        self.setSizePolicy(QW.QSizePolicy.Preferred, QW.QSizePolicy.Fixed)
 
     # This function is automatically called whenever 'modified' is emitted
     @QC.Slot()
