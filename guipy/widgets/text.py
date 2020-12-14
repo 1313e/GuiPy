@@ -13,13 +13,12 @@ handling text and labels in :mod:`~matplotlib`.
 # Built-in imports
 
 # Package imports
-from matplotlib import rcParams
-from matplotlib.font_manager import font_scalings
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
 from guipy.widgets import get_box_value, set_box_value
+from guipy.widgets.spinbox import FontSizeBox
 
 # All declaration
 __all__ = ['FigureLabelBox']
@@ -77,10 +76,7 @@ class FigureLabelBox(GW.DualBaseBox):
         self.left_box = label_box
 
         # Create a spinbox for setting the fontsize
-        size_box = GW.QDoubleSpinBox()
-        size_box.setDecimals(1)
-        size_box.setRange(0, 999)
-        size_box.setSuffix(" pts")
+        size_box = FontSizeBox()
         box_layout.addWidget(size_box)
         self.right_box = size_box
 
@@ -120,16 +116,6 @@ class FigureLabelBox(GW.DualBaseBox):
 
         """
 
-        # Set box value of label
+        # Set box value of label and size
         set_box_value(self.left_box, value[0])
-
-        # Obtain fontsize
-        fontsize = value[1]['fontsize']
-
-        # If fontsize is a string, it is a font scaling keyword
-        if isinstance(fontsize, str):
-            # Obtain actual float fontsize
-            fontsize = rcParams['font.size']*font_scalings[fontsize]
-
-        # Set box value of fontsize
-        set_box_value(self.right_box, fontsize)
+        set_box_value(self.right_box, value[1]['fontsize'])

@@ -87,8 +87,8 @@ class MPLConfigPage(GP.PluginConfigPage):
                        'tk', 'toolbar', 'verbose', 'webagg')
 
         # Add all prefixes that should be skipped for now
-        prefix_skip += ('boxplot.bootstrap',
-                        'legend.title_fontsize', 'path.sketch')
+        prefix_skip += ('boxplot.bootstrap', 'legend.title_fontsize',
+                        'path.sketch')
 
         # Create dict of all rcParams that use specific widgets
         # TODO: Certain keywords with 'color' have special values
@@ -97,8 +97,10 @@ class MPLConfigPage(GP.PluginConfigPage):
             'axes.facecolor': GW.ColorBox,
             'axes.formatter.limits': lambda: GW.ItemsBox([float]*2),
             'axes.labelcolor': GW.ColorBox,
+            'axes.labelsize': GW.FontSizeBox,
             'axes.prop_cycle': lambda: GW.GenericItemsBox(
                 lambda: GW.ColorBox(False)),
+            'axes.titlesize': GW.FontSizeBox,
             'boxplot.boxprops.color': GW.ColorBox,
             'boxplot.capprops.color': GW.ColorBox,
             'boxplot.flierprops.color': GW.ColorBox,
@@ -107,15 +109,18 @@ class MPLConfigPage(GP.PluginConfigPage):
             'boxplot.whiskerprops.color': GW.ColorBox,
             'figure.edgecolor': GW.ColorBox,
             'figure.facecolor': GW.ColorBox,
+            'figure.titlesize': GW.FontSizeBox,
             'font.cursive': lambda: GW.GenericItemsBox(str),
             'font.family': lambda: GW.GenericItemsBox(str),
             'font.fantasy': lambda: GW.GenericItemsBox(str),
             'font.monospace': lambda: GW.GenericItemsBox(str),
             'font.sans-serif': lambda: GW.GenericItemsBox(str),
             'font.serif': lambda: GW.GenericItemsBox(str),
+            'font.size': GW.FontSizeBox,
             'grid.color': GW.ColorBox,
             'hatch.color': GW.ColorBox,
             'image.cmap': GW.ColorMapBox,
+            'legend.fontsize': GW.FontSizeBox,
             'lines.color': GW.ColorBox,
             'lines.dashdot_pattern': lambda: GW.ItemsBox([float]*4),
             'lines.dashed_pattern': lambda: GW.ItemsBox([float]*2),
@@ -124,7 +129,9 @@ class MPLConfigPage(GP.PluginConfigPage):
             'patch.facecolor': GW.ColorBox,
             'text.color': GW.ColorBox,
             'xtick.color': GW.ColorBox,
-            'ytick.color': GW.ColorBox}
+            'xtick.labelsize': GW.FontSizeBox,
+            'ytick.color': GW.ColorBox,
+            'ytick.labelsize': GW.FontSizeBox}
 
         # Initialize empty dict of entry_types
         entry_types = sdict()
@@ -150,6 +157,10 @@ class MPLConfigPage(GP.PluginConfigPage):
 
         # Add all rcParams entries to the box
         entries_box.addEntryTypes(entry_types)
+
+
+        spinbox = GW.QDoubleSpinBox()
+        layout.addWidget(spinbox)
 
     # This function parses and processes a config section, and returns it
     def decode_config(self, section_dict):

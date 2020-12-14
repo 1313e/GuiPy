@@ -11,13 +11,15 @@ Spinboxes
 # Built-in imports
 
 # Package imports
+from matplotlib import rcParams
+from matplotlib.font_manager import font_scalings
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
 
 # All declaration
-__all__ = ['DualSpinBox']
+__all__ = ['DualSpinBox', 'FontSizeBox']
 
 
 # %% CLASS DEFINITIONS
@@ -103,3 +105,30 @@ class DualSpinBox(GW.DualBaseBox):
         # Emit modified signal with proper types
         self.modified[self.types[0], self.types[1]].emit(
             *DualSpinBox.get_box_value(self))
+
+
+# Make class for setting the font size of a label in a figure
+class FontSizeBox(GW.QDoubleSpinBox):
+    def __init__(self, *args, **kwargs):
+        # Call super constructor
+        super().__init__(*args, **kwargs)
+
+        # Set up fontsize box
+        self.init()
+
+    # This function sets up the fontsize box after it was initialized
+    def init(self):
+        # Set some properties
+        self.setDecimals(1)
+        self.setRange(0, 999)
+        self.setSuffix(" pts")
+
+    # This function set the value of this special box
+    def set_box_value(self, value, *value_sig):
+        # If value is a string, it is a font scaling keyword
+        if isinstance(value, str):
+            # Obtain actual float fontsize
+            value = rcParams['font.size']*font_scalings[value]
+
+        # Set value
+        self.setValue(value)

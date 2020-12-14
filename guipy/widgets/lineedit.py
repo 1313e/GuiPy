@@ -147,6 +147,15 @@ class IntLineEdit(GW.QLineEdit):
     def numtype(self):
         return(int)
 
+    # This property returns the number getter of this box
+    @property
+    def num_getter(self):
+        return(self.locale().toInt)
+
+    # This property returns the proper validator to use
+    def get_validator(self):
+        return(QG.QIntValidator)
+
     # This function creates the number line-edit box
     def init(self):
         """
@@ -154,13 +163,8 @@ class IntLineEdit(GW.QLineEdit):
 
         """
 
-        # Obtain the proper validator and value getter
-        if self.numtype is int:
-            validator = QG.QIntValidator(self)
-            self.num_getter = QC.QLocale().toInt
-        else:
-            validator = QG.QDoubleValidator(self)
-            self.num_getter = QC.QLocale().toDouble
+        # Obtain the proper validator
+        validator = self.get_validator()(self)
 
         # Set the validator
         self.setValidator(validator)
@@ -172,7 +176,7 @@ class IntLineEdit(GW.QLineEdit):
     def focusInEvent(self, event):
         # Obtain a normal string version of the current number
         num = str(self.value)
-        num = num.replace('.', QC.QLocale().decimalPoint())
+        num = num.replace('.', self.locale().decimalPoint())
 
         # Set this as the current text
         self.setText(num)
@@ -231,7 +235,7 @@ class IntLineEdit(GW.QLineEdit):
 
         # Save value
         self.value = value
-        self.setText(QC.QLocale().toString(value))
+        self.setText(self.locale().toString(value))
 
         # Emit modified signal if value was changed
         if(cur_value != self.value):
@@ -252,3 +256,12 @@ class FloatLineEdit(IntLineEdit):
     @property
     def numtype(self):
         return(float)
+
+    # This property returns the number getter of this box
+    @property
+    def num_getter(self):
+        return(self.locale().toDouble)
+
+    # This property returns the proper validator to use
+    def get_validator(self):
+        return(QG.QDoubleValidator)
