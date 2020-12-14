@@ -20,9 +20,9 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # All declaration
 __all__ = ['QAbstractButton', 'QAction', 'QCheckBox', 'QComboBox', 'QDialog',
-           'QDockWidget', 'QDoubleSpinBox', 'QFileDialog', 'QGroupBox',
-           'QHeaderView', 'QLabel', 'QLineEdit', 'QListView', 'QListWidget',
-           'QMainWindow', 'QMenu', 'QMessageBox', 'QPushButton',
+           'QDockWidget', 'QDoubleSpinBox', 'QFileDialog', 'QFontComboBox',
+           'QGroupBox', 'QHeaderView', 'QLabel', 'QLineEdit', 'QListView',
+           'QListWidget', 'QMainWindow', 'QMenu', 'QMessageBox', 'QPushButton',
            'QRadioButton', 'QSpinBox', 'QSplitter', 'QScrollArea',
            'QStackedWidget', 'QTabBar', 'QTableView', 'QTabWidget',
            'QTextEdit', 'QToolBar', 'QToolButton', 'QToolTip', 'QWidget']
@@ -291,6 +291,11 @@ class QComboBox(QW.QComboBox, QWidget):
         self.popup_hidden[int].emit(self.currentIndex())
         self.popup_hidden[str].emit(self.currentText())
         return(super().hidePopup(*args, **kwargs))
+
+
+# Create custom QFontComboBox
+class QFontComboBox(QW.QFontComboBox, QComboBox):
+    pass
 
 
 # Create custom QDialog

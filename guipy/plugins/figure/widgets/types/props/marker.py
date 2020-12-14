@@ -10,8 +10,6 @@ Marker Property
 # %% IMPORTS
 # Package imports
 from matplotlib import rcParams
-from matplotlib.lines import lineMarkers
-from qtpy import QtCore as QC
 
 # GuiPy imports
 from guipy import widgets as GW
@@ -38,25 +36,9 @@ class MarkerProp(BasePlotProp):
 
         """
 
-        # Obtain list with all supported markerstyles if not existing already
-        if not hasattr(self, 'MARKERS'):
-            # Create list of all supported markerstyles
-            markers = [(key, value) for key, value in lineMarkers.items()
-                       if(value != 'nothing' and isinstance(key, str))]
-            markers.append(('', 'nothing'))
-            markers.sort(key=lambda x: x[0])
-
-            # Save as class attribute
-            MarkerProp.MARKERS = markers
-
         # Make combobox for markerstyles
-        marker_style_box = GW.QComboBox()
+        marker_style_box = GW.MarkerStyleBox()
         marker_style_box.setToolTip("Marker to be used for this plot")
-
-        # Populate box with all supported linestyles
-        for i, (marker, tooltip) in enumerate(self.MARKERS):
-            marker_style_box.addItem(marker)
-            marker_style_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
 
         # Set initial value to the default value in MPL
         set_box_value(marker_style_box, self.default_marker)
