@@ -58,9 +58,18 @@ class ColorBox(GW.BaseBox):
     # Set the size for the color labels
     clabel_size = (70, 18)
 
-    def __init__(self, parent=None):
+    def __init__(self, add_cycler=True, parent=None):
         """
         Initialize an instance of the :class:`~ColorBox` class.
+
+        Optional
+        --------
+        add_cycler : bool. Default: True
+            Whether or not to add *matplotlib*'s cyclic colors to the list of
+            preset colors.
+        parent : :obj:`~PyQt5.QtCore.QObject` object or None. Default: None
+            The parent object to use for this colorbox or *None* for no
+            parent.
 
         """
 
@@ -68,7 +77,7 @@ class ColorBox(GW.BaseBox):
         super().__init__(parent)
 
         # Create the color box
-        self.init()
+        self.init(add_cycler)
 
     # This property returns the default 'modified' signal
     @property
@@ -76,7 +85,7 @@ class ColorBox(GW.BaseBox):
         return(self.modified[str])
 
     # This function creates the color box
-    def init(self):
+    def init(self, add_cycler):
         """
         Sets up the color box entry after it has been initialized.
 
@@ -96,7 +105,7 @@ class ColorBox(GW.BaseBox):
         box_layout.addWidget(color_label)
 
         # Create a color combobox
-        color_combobox = self.create_color_combobox()
+        color_combobox = self.create_color_combobox(add_cycler)
         box_layout.addWidget(color_combobox)
         self.color_combobox = color_combobox
 
@@ -130,17 +139,20 @@ class ColorBox(GW.BaseBox):
         return(color_label)
 
     # This function creates the color combobox
-    def create_color_combobox(self):
+    def create_color_combobox(self, add_cycler):
         """
         Creates a combobox that holds all default colors accepted by matplotlib
         and returns it.
 
         """
 
-        # Obtain the CN colors
-        n_cyclic = len(rcParams['axes.prop_cycle'])
-        CN_COLORS = [("C%i" % (i), "This is MPL cyclic color #%i" % (i))
-                     for i in range(n_cyclic)]
+        # Obtain the CN colors if requested
+        if add_cycler:
+            n_cyclic = len(rcParams['axes.prop_cycle'])
+            CN_COLORS = [("C%i" % (i), "This is MPL cyclic color #%i" % (i))
+                         for i in range(n_cyclic)]
+        else:
+            CN_COLORS = []
 
         # Make tuple of all colors
         colors = (CN_COLORS, BASE_COLORS, CSS4_COLORS)

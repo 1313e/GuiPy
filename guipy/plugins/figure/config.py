@@ -13,14 +13,14 @@ from ast import literal_eval
 from importlib import import_module
 
 # Package imports
-import cycler
+from cycler import cycler
 from matplotlib import rcParams, rcParamsDefault
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
 from guipy import layouts as GL, plugins as GP, widgets as GW
-from guipy.widgets import get_modified_signal, type_box_dict
+from guipy.widgets import type_box_dict
 
 # All declaration
 __all__ = ['MPLConfigPage']
@@ -87,7 +87,7 @@ class MPLConfigPage(GP.PluginConfigPage):
                        'tk', 'toolbar', 'verbose', 'webagg')
 
         # Add all prefixes that should be skipped for now
-        prefix_skip += ('axes.prop_cycle', 'boxplot.bootstrap',
+        prefix_skip += ('boxplot.bootstrap',
                         'legend.title_fontsize', 'path.sketch')
 
         # Create dict of all rcParams that use specific widgets
@@ -97,6 +97,8 @@ class MPLConfigPage(GP.PluginConfigPage):
             'axes.facecolor': GW.ColorBox,
             'axes.formatter.limits': lambda: GW.ItemsBox([float]*2),
             'axes.labelcolor': GW.ColorBox,
+            'axes.prop_cycle': lambda: GW.GenericItemsBox(
+                lambda: GW.ColorBox(False)),
             'boxplot.boxprops.color': GW.ColorBox,
             'boxplot.capprops.color': GW.ColorBox,
             'boxplot.flierprops.color': GW.ColorBox,
@@ -135,9 +137,15 @@ class MPLConfigPage(GP.PluginConfigPage):
                 continue
 
             # Obtain proper box
-            box = key_widgets.get(key, type_box_dict[type(value)])
+            box = key_widgets.get(key)
+            if box is None:
+                box = type_box_dict[type(value)]
 
-            # Add box to entry_types dict
+            # If key is 'axes.prop_cycle', obtain the proper value
+            if(key == 'axes.prop_cycle'):
+                value = value.by_key()['color']
+
+            # Add box to entry_types dict with default value
             entry_types[key] = (box, value)
 
         # Add all rcParams entries to the box
@@ -148,23 +156,10 @@ class MPLConfigPage(GP.PluginConfigPage):
         # Initialize empty dict of parsed config values
         config_dict = sdict()
 
-#        # Parse all values in section_dict
-#        for key, value in section_dict.items():
-#            # If key is 'axes.prop_cycle', create new cycler object
-#            if(key == 'axes.prop_cycle'):
-#                config_dict[key] = cycler.cycler(**literal_eval(value))
-#            # Else, add it as normal
-#            else:
-#                config_dict[key] = literal_eval(value)
-
         # Decode all values in section_dict
         for key, value in section_dict.items():
             # Convert to Python object
             value = literal_eval(value)
-
-            # If key is rcParams, convert to sdict
-            if(key == 'rcParams'):
-                value = sdict(value)
 
             # Add to dict
             config_dict[key] = value
@@ -182,21 +177,8 @@ class MPLConfigPage(GP.PluginConfigPage):
         # Initialize empty dict of section config values
         section_dict = sdict()
 
-#        # Loop over all arguments in config and parse them in
-#        for key, value in config_dict.items():
-#            # If key is 'axes.prop_cycle', retrieve the cycler values first
-#            if(key == 'axes.prop_cycle'):
-#                value = value.by_key()
-#
-#            # Add raw string value
-#            section_dict[key] = '{!r}'.format(value)
-
         # Loop over all arguments in config and encode them in
         for key, value in config_dict.items():
-            # If key is rcParams, convert to dict
-            if(key == 'rcParams'):
-                value = dict(value)
-
             # Add to dict
             section_dict[key] = '{!r}'.format(value)
 
@@ -213,6 +195,14 @@ class MPLConfigPage(GP.PluginConfigPage):
             except ImportError:
                 pass
 
+        # Obtain rcParams from config_dict and make a copy
+        rcParams_config = dict(config_dict['rcParams'])
+
+        # Modify the axes.prop_cycle if it is present
+        if 'axes.prop_cycle' in rcParams_config:
+            rcParams_config['axes.prop_cycle'] =\
+                cycler(color=rcParams_config['axes.prop_cycle'])
+
         # Update MPL's rcParams with the values stored in this config page
         rcParams.update(rcParamsDefault)
-        rcParams.update(config_dict['rcParams'])
+        rcParams.update(rcParams_config)

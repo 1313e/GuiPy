@@ -539,7 +539,7 @@ class EntriesBox(GW.BaseBox):
         """
 
         # Create an empty dict to hold the entry values in
-        entries_dict = sdict()
+        entries_dict = dict()
 
         # Loop over all entries in the entries grid and save them to the dict
         for i in range(4, 4+3*self.entryCount(), 3):
@@ -579,8 +579,8 @@ class EntriesBox(GW.BaseBox):
         self.hide()
 
         # Remove all banned names from entries_dict
-        entries_dict = {key: value for key, value in entries_dict.items()
-                        if key not in self.banned_names}
+        entries_dict = sdict({key: value for key, value in entries_dict.items()
+                              if key not in self.banned_names})
 
         # Create empty dict for all current entries
         cur_entries_dict = {}

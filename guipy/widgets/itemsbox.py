@@ -71,7 +71,7 @@ class GenericItemsBox(GW.BaseBox):
 
     # This property returns the number of items in the box
     def itemCount(self):
-        return(self.items_layout.rowCount())
+        return(self.items_layout.count())
 
     # This function creates the items box
     def init(self, item_type):
@@ -94,7 +94,7 @@ class GenericItemsBox(GW.BaseBox):
         box_layout.setContentsMargins(0, 0, 0, 0)
 
         # Create the items_layout
-        items_layout = GL.QFormLayout()
+        items_layout = GL.QVBoxLayout()
         items_layout.setContentsMargins(0, 0, 0, 0)
         box_layout.addLayout(items_layout)
         self.items_layout = items_layout
@@ -156,7 +156,7 @@ class GenericItemsBox(GW.BaseBox):
         # Add a new row to the items layout
         item_layout.addWidget(del_but)
         item_layout.addWidget(item_box)
-        self.items_layout.addRow(item_layout)
+        self.items_layout.addLayout(item_layout)
 
         # Emit signal if item_box is not LongGenericBox
         if not isinstance(item_box, GW.LongGenericBox):
@@ -179,7 +179,16 @@ class GenericItemsBox(GW.BaseBox):
         emit_signal = (item_value is not None)
 
         # Remove corresponding item layout
-        self.items_layout.removeRow(item_layout)
+        self.items_layout.removeItem(item_layout)
+
+        # Remove the two items in item_layout
+        for _ in range(2):
+            # Remove the current item at index 0
+            item = item_layout.takeAt(0)
+
+            # Close the widget in this item and delete it
+            item.widget().close()
+            del item
 
         # Emit modified signal if required
         if emit_signal:
@@ -203,7 +212,7 @@ class GenericItemsBox(GW.BaseBox):
         # Loop over all items in the items form and save them to the list
         for i in range(self.itemCount()):
             # Obtain the value of this entry
-            item_layout = self.items_layout.itemAt(i).layout()
+            item_layout = self.items_layout.itemAt(i)
             item_box = item_layout.itemAt(1).widget()
             item_value = get_box_value(item_box)
 
@@ -218,7 +227,7 @@ class GenericItemsBox(GW.BaseBox):
     def set_box_value(self, value_list, *value_sig):
         """
         Sets the values of the items in this items box to the provided
-        `items_list`.
+        `value_list`.
 
         Parameters
         ----------
@@ -231,20 +240,35 @@ class GenericItemsBox(GW.BaseBox):
         # Hide the items box to allow for its values to be set properly
         self.hide()
 
-        # Remove all items from the items box
+        # Remove all items from the items box, registering their values
+        cur_items_dict = {}
         for _ in range(self.itemCount()):
-            # Remove this item
-            self.items_layout.removeRow(0)
+            # Remove this item and obtain its value
+            layout = self.items_layout.takeAt(0)
+            value = get_box_value(layout.itemAt(1).widget())
 
-        # Add all items in items_list
+            # Check if it is required later
+            if value in value_list:
+                # If so, store for later
+                cur_items_dict[value] = layout
+            else:
+                # If not, delete it
+                self.remove_item(layout)
+
+        # Add all items in value_list
         for row, value in enumerate(value_list):
-            # Add a new item
-            self.add_item()
+            # Check if this value is in cur_items_dict
+            if value in cur_items_dict:
+                # If so, put it back into the items box
+                self.items_layout.insertLayout(row, cur_items_dict.pop(value))
+            else:
+                # If not, add a new item
+                self.add_item()
 
-            # Set the value of this item
-            item_layout = self.items_layout.itemAt(row).layout()
-            item_box = item_layout.itemAt(1).widget()
-            set_box_value(item_box, value)
+                # Set the value of this item
+                item_layout = self.items_layout.itemAt(row)
+                item_box = item_layout.itemAt(1).widget()
+                set_box_value(item_box, value)
 
         # Show the items box again now that its values have been set
         self.show()
