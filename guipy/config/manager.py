@@ -58,7 +58,6 @@ class ConfigManager(object):
 
         # Make sure that the locale of the parent and dialog are set properly
         self.parent.setLocale(QC.QLocale())
-        self.config_dialog.setLocale(self.parent.locale())
 
     # This function returns the value of a specific config
     def get_option(self, section, option):

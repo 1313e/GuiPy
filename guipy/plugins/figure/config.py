@@ -158,10 +158,6 @@ class MPLConfigPage(GP.PluginConfigPage):
         # Add all rcParams entries to the box
         entries_box.addEntryTypes(entry_types)
 
-
-        spinbox = GW.QDoubleSpinBox()
-        layout.addWidget(spinbox)
-
     # This function parses and processes a config section, and returns it
     def decode_config(self, section_dict):
         # Initialize empty dict of parsed config values

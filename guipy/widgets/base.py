@@ -89,6 +89,16 @@ class QWidget(QW.QWidget):
         # Call and return super method
         return(super().childEvent(event))
 
+    # Override setLocale to also set it for all children
+    def setLocale(self, locale):
+        # Set locale for this object
+        super().setLocale(locale)
+
+        # Also set this locale for all children that are widgets
+        for child in self.children():
+            if isinstance(child, QWidget):
+                child.setLocale(locale)
+
 
 # %% CLASS DEFINITIONS
 # Create custom QAbstractButton
