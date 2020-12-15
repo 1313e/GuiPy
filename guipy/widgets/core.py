@@ -220,13 +220,15 @@ class DualBaseBox(BaseBox):
 
 # %% FUNCTION DEFINITIONS
 # This function gets the value of a provided box
-def get_box_value(box, *value_sig):
+def get_box_value(box, *value_sig, no_custom=False):
     """
     Retrieves the value of the provided widget `box` and returns it.
 
     If `box` has the `get_box_value()` method defined (always the case for
     instances of :class:`~BaseBox`), it will be used instead. If this raises a
     :class:`~NotImplementedError`, the method is skipped.
+    If `no_custom` is *True*, the `get_box_value()` method is also skipped.
+    Note that this only works if `box` is not an instance of :class:`~BaseBox`.
 
     Parameters
     ----------
@@ -238,6 +240,13 @@ def get_box_value(box, *value_sig):
         If `box` has the `get_box_value()` method defined, this argument is
         passed to it.
 
+    Optional
+    --------
+    no_custom : bool. Default: False
+        Whether to skip any present `get_box_value()` methods of the provided
+        `box`. Note that setting this to *True* for instances of
+        :class:`~BaseBox` will result in an error.
+
     Returns
     -------
     box_value : obj
@@ -246,7 +255,7 @@ def get_box_value(box, *value_sig):
     """
 
     # Custom boxes (get_box_value()-method)
-    if hasattr(box, 'get_box_value'):
+    if hasattr(box, 'get_box_value') and not no_custom:
         # Try to use the custom get_box_value()-method
         try:
             return(box.get_box_value(*value_sig))
@@ -366,13 +375,15 @@ def get_modified_signal(box, *signal_sig):
 
 
 # This function sets the value of a provided box
-def set_box_value(box, value, *value_sig):
+def set_box_value(box, value, *value_sig, no_custom=False):
     """
     Sets the value of the provided widget `box` to `value`.
 
     If `box` has the `set_box_value()` method defined (always the case for
     instances of :class:`~BaseBox`), it will be used instead. If this raises a
     :class:`~NotImplementedError`, the method is skipped.
+    If `no_custom` is *True*, the `set_box_value()` method is also skipped.
+    Note that this only works if `box` is not an instance of :class:`~BaseBox`
 
     Parameters
     ----------
@@ -389,10 +400,17 @@ def set_box_value(box, value, *value_sig):
         If `box` has the `set_box_value()` method defined, this argument is
         passed to it.
 
+    Optional
+    --------
+    no_custom : bool. Default: False
+        Whether to skip any present `set_box_value()` methods of the provided
+        `box`. Note that setting this to *True* for instances of
+        :class:`~BaseBox` will result in an error.
+
     """
 
     # Custom boxes (set_box_value()-method)
-    if hasattr(box, 'set_box_value'):
+    if hasattr(box, 'set_box_value') and not no_custom:
         # Try to use the custom set_box_value()-method
         try:
             box.set_box_value(value, *value_sig)

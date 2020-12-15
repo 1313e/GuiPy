@@ -17,7 +17,8 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from guipy import layouts as GL, widgets as GW
 
 # All declaration
-__all__ = ['ComboBoxValidator', 'DualComboBox', 'EditableComboBox']
+__all__ = ['ComboBoxValidator', 'DualComboBox', 'EditableComboBox',
+           'create_combobox']
 
 
 # %% CLASS DEFINITIONS
@@ -192,3 +193,42 @@ class EditableComboBox(GW.QComboBox):
 
         # Call super method
         return(super().focusOutEvent(event))
+
+
+# %% FUNCTION DEFINITIONS
+# Create small function factory for comboboxes
+def create_combobox(items, editable=False, parent=None):
+    """
+    Creates and returns a function that, when called, creates the requested
+    :obj:`~guipy.widgets.QComboBox` and populates it with the `items` provided.
+
+    Parameters
+    ----------
+    items : list of str
+        List containing the items that the combobox must have when created.
+
+    Optional
+    --------
+    editable : bool. Default: False
+        Whether the combobox that is created must be editable.
+    parent : :obj:`~PyQt5.QtWidgets.QWidget` object or None. Default: None
+        The parent widget to use for thecombobox or *None* for no parent.
+
+    """
+
+    # Create function
+    def func():
+        # Obtain the proper combobox
+        if editable:
+            combobox = EditableComboBox(parent=parent)
+        else:
+            combobox = GW.QComboBox(parent=parent)
+
+        # Add items
+        combobox.addItems(items)
+
+        # Return combobox
+        return(combobox)
+
+    # Return func
+    return(func)

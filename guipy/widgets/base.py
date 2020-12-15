@@ -293,9 +293,27 @@ class QComboBox(QW.QComboBox, QWidget):
         return(super().hidePopup(*args, **kwargs))
 
 
-# Create custom QFontComboBox
-class QFontComboBox(QW.QFontComboBox, QComboBox):
-    pass
+# Create custom QFontComboBox class
+class QFontComboBox(QW.QFontComboBox, QWidget):
+    # Signals
+    popup_shown = QC.Signal([int], [str])
+    popup_hidden = QC.Signal([int], [str])
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setSizeAdjustPolicy(self.AdjustToContents)
+
+    # Override the showPopup to emit a signal whenever it is triggered
+    def showPopup(self, *args, **kwargs):
+        self.popup_shown[int].emit(self.currentIndex())
+        self.popup_shown[str].emit(self.currentText())
+        return(super().showPopup(*args, **kwargs))
+
+    # Override the hidePopup to emit a signal whenever it is triggered.
+    def hidePopup(self, *args, **kwargs):
+        self.popup_hidden[int].emit(self.currentIndex())
+        self.popup_hidden[str].emit(self.currentText())
+        return(super().hidePopup(*args, **kwargs))
 
 
 # Create custom QDialog

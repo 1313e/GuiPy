@@ -17,6 +17,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
+from guipy.widgets import set_box_value
 
 # All declaration
 __all__ = ['DualSpinBox', 'FontSizeBox']
@@ -131,4 +132,4 @@ class FontSizeBox(GW.QDoubleSpinBox):
             value = rcParams['font.size']*font_scalings[value]
 
         # Set value
-        self.setValue(value)
+        set_box_value(self, value, *value_sig, no_custom=True)

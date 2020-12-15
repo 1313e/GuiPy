@@ -57,9 +57,13 @@ class LineStyleBox(GW.QComboBox):
         # Set value to empty if it uses a different spelling
         if value.lower() in ('none', ' '):
             value = ''
+        elif value.lower() in ('dashed', ):
+            value = '--'
+        elif value.lower() in ('dotted', ):
+            value = ':'
 
-        # Call super method
-        super().set_box_value(value, *value_sig)
+        # Call normal method
+        set_box_value(self, value, *value_sig, no_custom=True)
 
 
 # Make class for setting the markerstyle
@@ -98,5 +102,5 @@ class MarkerStyleBox(GW.QComboBox):
         if value.lower() in ('none', ' '):
             value = ''
 
-        # Call super method
-        super().set_box_value(value, *value_sig)
+        # Call normal method
+        set_box_value(self, value, *value_sig, no_custom=True)

@@ -18,7 +18,8 @@ import re
 # Package imports
 from cmasher.utils import get_cmap_type
 from matplotlib import cm, rcParams
-from matplotlib.colors import BASE_COLORS, CSS4_COLORS, Colormap, to_rgba
+from matplotlib.colors import (
+    BASE_COLORS, CSS4_COLORS, Colormap, to_hex, to_rgba)
 import matplotlib.pyplot as plt
 import numpy as np
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
@@ -110,7 +111,7 @@ class ColorBox(GW.BaseBox):
         self.color_combobox = color_combobox
 
         # Set the default starting color of the color box
-        self.set_box_value(rcParams['lines.color'])
+        self.set_box_value('C0')
 
     # This function is automatically called whenever 'modified' is emitted
     @QC.Slot()
@@ -421,6 +422,9 @@ class ColorBox(GW.BaseBox):
             The matplotlib color value that must be set for this colorbox.
 
         """
+        # Convert color to a proper MPL color if it is a float
+        if '.' in value:
+            value = to_hex(value)
 
         # Set the current default color
         self.set_default_color(value)
