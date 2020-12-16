@@ -11,6 +11,7 @@ Scatter Type
 # Built-in imports
 
 # Package imports
+from matplotlib import rcParams
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
@@ -43,8 +44,7 @@ class ScatterType(BasePlotType):
 
         # Set the starting color to be the number of scatters already present
         n_lines = len(self.axis.lines)
-        color = "C%i" % (n_lines % len(self.get_option('rcParams',
-                                                       'axes.prop_cycle')))
+        color = "C%i" % (n_lines % len(rcParams['axes.prop_cycle']))
         set_box_value(self.marker_color_box, color)
 
     # This function draws the 2D scatter plot

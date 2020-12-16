@@ -11,6 +11,7 @@ Histogram Type
 # Built-in imports
 
 # Package imports
+from matplotlib import rcParams
 import numpy as np
 import pandas as pd
 from qtpy import QtCore as QC, QtWidgets as QW
@@ -62,8 +63,7 @@ class HistogramType(BasePlotType):
         n_tabs = self.multi_data_box.count()
 
         # Use this number to cycle through MPL's color cycler
-        color = "C%i" % (n_tabs-1 % len(self.get_option('rcParams',
-                                                        'axes.prop_cycle')))
+        color = "C%i" % (n_tabs-1 % len(rcParams['axes.prop_cycle']))
         set_box_value(self.multi_data_box, color, index, 'hist_color_box')
 
     # This function draws the histogram plot

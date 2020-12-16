@@ -73,4 +73,4 @@ class PluginConfigPage(BaseConfigPage):
         self.plugin = plugin
 
         # Call super constructor
-        super().__init__(f'plugin:{plugin.TITLE}/{self.NAME}', parent)
+        super().__init__(f'plugins/{plugin.TITLE}:{self.NAME}', parent)

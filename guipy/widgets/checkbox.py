@@ -14,7 +14,6 @@ Checkboxes
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy import INT_TYPES
 from guipy import layouts as GL, widgets as GW
 from guipy.widgets import get_box_value, get_modified_signal, set_box_value
 
@@ -136,7 +135,7 @@ class ToggleBox(GW.DualBaseBox):
                    get_box_value(self.widget, *value_sig))
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current value of the togglebox to `value`.
 
@@ -149,4 +148,4 @@ class ToggleBox(GW.DualBaseBox):
         """
 
         set_box_value(self.checkbox, value[0])
-        set_box_value(self.widget, value[1], *args, **kwargs)
+        set_box_value(self.widget, value[1], *value_sig)

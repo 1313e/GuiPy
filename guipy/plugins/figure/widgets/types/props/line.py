@@ -9,8 +9,7 @@ Line Property
 
 # %% IMPORTS
 # Package imports
-from matplotlib.lines import lineStyles
-from qtpy import QtCore as QC
+from matplotlib import rcParams
 
 # GuiPy imports
 from guipy import widgets as GW
@@ -46,29 +45,12 @@ class LineProp(BasePlotProp):
 
         """
 
-        # Obtain list with all supported linestyles if not existing already
-        if not hasattr(self, 'LINESTYLES'):
-            # Create list of all supported linestyles
-            linestyles = [(key, value[6:]) for key, value in lineStyles.items()
-                          if value != '_draw_nothing']
-            linestyles.append(('', 'nothing'))
-            linestyles.sort(key=lambda x: x[0])
-
-            # Save as class attribute
-            LineProp.LINESTYLES = linestyles
-
         # Make combobox for linestyles
-        line_style_box = GW.QComboBox()
+        line_style_box = GW.LineStyleBox()
         line_style_box.setToolTip("Linestyle to be used for this line plot")
 
-        # Populate box with all supported linestyles
-        for i, (linestyle, tooltip) in enumerate(self.LINESTYLES):
-            line_style_box.addItem(linestyle)
-            line_style_box.setItemData(i, tooltip, QC.Qt.ToolTipRole)
-
         # Set initial value to the default value in MPL
-        set_box_value(line_style_box,
-                      self.get_option('rcParams', 'lines.linestyle'))
+        set_box_value(line_style_box, rcParams['lines.linestyle'])
 
         # Return name and box
         return('Style', line_style_box)
@@ -88,8 +70,7 @@ class LineProp(BasePlotProp):
         line_width_box.setSuffix(" pts")
 
         # Set initial value to the default value in MPL
-        set_box_value(line_width_box,
-                      self.get_option('rcParams', 'lines.linewidth'))
+        set_box_value(line_width_box, rcParams['lines.linewidth'])
 
         # Return name and box
         return('Width', line_width_box)
@@ -104,6 +85,7 @@ class LineProp(BasePlotProp):
 
         # Make a color box
         line_color_box = GW.ColorBox()
+        line_color_box.setToolTip("Color to be used for this line")
 
         # Connect 'applying' signal
         self.options.applying.connect(line_color_box.set_default_color)

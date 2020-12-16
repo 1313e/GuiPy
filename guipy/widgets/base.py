@@ -20,9 +20,10 @@ from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # All declaration
 __all__ = ['QAbstractButton', 'QAction', 'QCheckBox', 'QComboBox', 'QDialog',
-           'QDockWidget', 'QDoubleSpinBox', 'QFileDialog', 'QGroupBox',
-           'QHeaderView', 'QLabel', 'QLineEdit', 'QMainWindow', 'QMenu',
-           'QMessageBox', 'QPushButton', 'QRadioButton', 'QSpinBox',
+           'QDockWidget', 'QDoubleSpinBox', 'QFileDialog', 'QFontComboBox',
+           'QGroupBox', 'QHeaderView', 'QLabel', 'QLineEdit', 'QListView',
+           'QListWidget', 'QMainWindow', 'QMenu', 'QMessageBox', 'QPushButton',
+           'QRadioButton', 'QSpinBox', 'QSplitter', 'QScrollArea',
            'QStackedWidget', 'QTabBar', 'QTableView', 'QTabWidget',
            'QTextEdit', 'QToolBar', 'QToolButton', 'QToolTip', 'QWidget']
 
@@ -46,9 +47,6 @@ class QWidget(QW.QWidget):
 
         # Retrieve certain methods from parent
         self.get_parent_methods()
-
-        # Make sure that the widget is deleted when it is closed
-        self.setAttribute(QC.Qt.WA_DeleteOnClose)
 
     # This function retrieves a set of methods from the parent if possible
     def get_parent_methods(self):
@@ -90,6 +88,16 @@ class QWidget(QW.QWidget):
 
         # Call and return super method
         return(super().childEvent(event))
+
+    # Override setLocale to also set it for all children
+    def setLocale(self, locale):
+        # Set locale for this object
+        super().setLocale(locale)
+
+        # Also set this locale for all children that are widgets
+        for child in self.children():
+            if isinstance(child, QWidget):
+                child.setLocale(locale)
 
 
 # %% CLASS DEFINITIONS
@@ -268,6 +276,33 @@ class QComboBox(QW.QComboBox, QWidget):
     popup_shown = QC.Signal([int], [str])
     popup_hidden = QC.Signal([int], [str])
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setSizeAdjustPolicy(self.AdjustToContents)
+
+    # Override the showPopup to emit a signal whenever it is triggered
+    def showPopup(self, *args, **kwargs):
+        self.popup_shown[int].emit(self.currentIndex())
+        self.popup_shown[str].emit(self.currentText())
+        return(super().showPopup(*args, **kwargs))
+
+    # Override the hidePopup to emit a signal whenever it is triggered.
+    def hidePopup(self, *args, **kwargs):
+        self.popup_hidden[int].emit(self.currentIndex())
+        self.popup_hidden[str].emit(self.currentText())
+        return(super().hidePopup(*args, **kwargs))
+
+
+# Create custom QFontComboBox class
+class QFontComboBox(QW.QFontComboBox, QWidget):
+    # Signals
+    popup_shown = QC.Signal([int], [str])
+    popup_hidden = QC.Signal([int], [str])
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setSizeAdjustPolicy(self.AdjustToContents)
+
     # Override the showPopup to emit a signal whenever it is triggered
     def showPopup(self, *args, **kwargs):
         self.popup_shown[int].emit(self.currentIndex())
@@ -370,6 +405,10 @@ class QLabel(QW.QLabel, QWidget):
         else:
             super().__init__(text, *args, **kwargs)
 
+        # Set some settings
+        self.setWordWrap(True)
+        self.setOpenExternalLinks(True)
+
     # Override the mousePressEvent to emit a signal whenever it is triggered
     def mousePressEvent(self, event):
         self.mousePressed.emit()
@@ -403,6 +442,16 @@ class QLabel(QW.QLabel, QWidget):
 
 # Create custom QLineEdit class
 class QLineEdit(QW.QLineEdit, QWidget):
+    pass
+
+
+# Create custom QListView class
+class QListView(QW.QListView, QWidget):
+    pass
+
+
+# Create custom QListWidget class
+class QListWidget(QW.QListWidget, QWidget):
     pass
 
 
@@ -505,6 +554,16 @@ class QRadioButton(QW.QRadioButton, QAbstractButton):
     pass
 
 
+# Create custom QScrollArea class
+class QScrollArea(QW.QScrollArea, QWidget):
+    pass
+
+
+# Create custom QSplitter class
+class QSplitter(QW.QSplitter, QWidget):
+    pass
+
+
 # Create custom QStackedWidget class
 class QStackedWidget(QW.QStackedWidget, QWidget):
     pass
@@ -556,7 +615,7 @@ class QTabWidget(QW.QTabWidget, QWidget):
     tabWasRemoved = QC.Signal(int)
 
     # Override constructor to connect some signals
-    def __init__(self, *args, browse_tabs=True, **kwargs):
+    def __init__(self, *args, browse_tabs=False, **kwargs):
         # Call super constructor
         super().__init__(*args, **kwargs)
 

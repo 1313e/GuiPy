@@ -116,6 +116,7 @@ class HistDataProp(Data1DProp):
 
         # Make a color box
         hist_color_box = GW.ColorBox()
+        hist_color_box.setToolTip("Color to be used for this histogram")
 
         # Connect 'applying' signal
         self.options.applying.connect(hist_color_box.set_default_color)

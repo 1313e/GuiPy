@@ -10,6 +10,9 @@ definition, which are core to the functioning of all widgets.
 
 
 # %% IMPORTS
+# Built-in import
+from inspect import isclass
+
 # Package imports
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
@@ -26,14 +29,14 @@ __all__ = ['BaseBox', 'DualBaseBox', 'get_box_value', 'get_modified_signal',
 # %% CLASS DEFINITIONS
 # Make base class for custom boxes
 # As QW.QWidget is a strict class (in C++), this cannot be an ABC
-# TODO: Create a DualBaseBox class for dual widgets?
 class BaseBox(GW_QWidget):
     """
     Defines the :class:`~BaseBox` base class.
 
     This class is used by many custom :class:`~PyQt5.QtWidgets.QWidget` classes
     as their base. It defines the :attr:`~modified` signal, which is
-    automatically connected to any widget that changes its state.
+    automatically connected to any widget that changes its state, unless
+    `auto_connect` is set set *False*.
 
     """
 
@@ -41,9 +44,12 @@ class BaseBox(GW_QWidget):
     modified = QC.Signal()
 
     # Initialize the BaseBox class
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, auto_connect=True, **kwargs):
         # Call super constructor
         super().__init__(*args, **kwargs)
+
+        # Store auto_connect
+        self.auto_connect = auto_connect
 
         # If the 'modified_signal_slot' slot is available, connect it
         if hasattr(self, 'modified_signal_slot'):
@@ -59,7 +65,7 @@ class BaseBox(GW_QWidget):
         """
 
         # If this event involved a child being added, check child object
-        if(event.type() == QC.QEvent.ChildAdded):
+        if self.auto_connect and (event.type() == QC.QEvent.ChildAdded):
             # Obtain child object
             child = event.child()
 
@@ -115,9 +121,9 @@ class BaseBox(GW_QWidget):
 
 # Define DualBaseBox class for making dual widgets
 class DualBaseBox(BaseBox):
-    # Override __getitem__ to return the left and/or right combobox
+    # Override __getitem__ to return the left and/or right widget
     def __getitem__(self, key):
-        # If key is an integer, return the corresponding combobox
+        # If key is an integer, return the corresponding widget
         if isinstance(key, INT_TYPES):
             # If key is 0 or -2, return left_box
             if key in (0, -2):
@@ -151,16 +157,27 @@ class DualBaseBox(BaseBox):
 
         """
 
-        # If value_sig contains more than 1 element, use them separately
-        if(len(value_sig) > 1):
-            return(get_box_value(self.left_box, value_sig[0]),
-                   get_box_value(self.right_box, value_sig[1]))
+        # Get values of both widgets
+        if(len(value_sig) == 2):
+            # If value_sig contains exactly 2 elements, use them separately
+            left_sig, right_sig = value_sig
+
+            # Make sure that left_sig and right_sig are iterables to unpack
+            if not isinstance(left_sig, (list, tuple, set)):
+                left_sig = (left_sig,)
+            if not isinstance(right_sig, (list, tuple, set)):
+                right_sig = (right_sig,)
+
+            # Get values
+            return(get_box_value(self.left_box, *left_sig),
+                   get_box_value(self.right_box, *right_sig))
         else:
+            # Else, use value_sig for both
             return(get_box_value(self.left_box, *value_sig),
                    get_box_value(self.right_box, *value_sig))
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current value of the dual widget to `value`.
 
@@ -173,8 +190,23 @@ class DualBaseBox(BaseBox):
         """
 
         # Set values of both widgets
-        set_box_value(self.left_box, value[0], *args, **kwargs)
-        set_box_value(self.right_box, value[1], *args, **kwargs)
+        if(len(value_sig) == 2):
+            # If value_sig contains exactly 2 elements, use them separately
+            left_sig, right_sig = value_sig
+
+            # Make sure that left_sig and right_sig are iterables to unpack
+            if not isinstance(left_sig, (list, tuple, set)):
+                left_sig = (left_sig,)
+            if not isinstance(right_sig, (list, tuple, set)):
+                right_sig = (right_sig,)
+
+            # Set values
+            set_box_value(self.left_box, *left_sig)
+            set_box_value(self.right_box, *right_sig)
+        else:
+            # Else, use value_sig for both
+            set_box_value(self.left_box, value[0], *value_sig)
+            set_box_value(self.right_box, value[1], *value_sig)
 
     # Override closeEvent to make sure both widgets are deleted when closed
     def closeEvent(self, event):
@@ -188,13 +220,15 @@ class DualBaseBox(BaseBox):
 
 # %% FUNCTION DEFINITIONS
 # This function gets the value of a provided box
-def get_box_value(box, *value_sig):
+def get_box_value(box, *value_sig, no_custom=False):
     """
     Retrieves the value of the provided widget `box` and returns it.
 
     If `box` has the `get_box_value()` method defined (always the case for
     instances of :class:`~BaseBox`), it will be used instead. If this raises a
     :class:`~NotImplementedError`, the method is skipped.
+    If `no_custom` is *True*, the `get_box_value()` method is also skipped.
+    Note that this only works if `box` is not an instance of :class:`~BaseBox`.
 
     Parameters
     ----------
@@ -206,6 +240,13 @@ def get_box_value(box, *value_sig):
         If `box` has the `get_box_value()` method defined, this argument is
         passed to it.
 
+    Optional
+    --------
+    no_custom : bool. Default: False
+        Whether to skip any present `get_box_value()` methods of the provided
+        `box`. Note that setting this to *True* for instances of
+        :class:`~BaseBox` will result in an error.
+
     Returns
     -------
     box_value : obj
@@ -214,7 +255,7 @@ def get_box_value(box, *value_sig):
     """
 
     # Custom boxes (get_box_value()-method)
-    if hasattr(box, 'get_box_value'):
+    if hasattr(box, 'get_box_value') and not no_custom:
         # Try to use the custom get_box_value()-method
         try:
             return(box.get_box_value(*value_sig))
@@ -334,13 +375,15 @@ def get_modified_signal(box, *signal_sig):
 
 
 # This function sets the value of a provided box
-def set_box_value(box, value, *value_sig):
+def set_box_value(box, value, *value_sig, no_custom=False):
     """
     Sets the value of the provided widget `box` to `value`.
 
     If `box` has the `set_box_value()` method defined (always the case for
     instances of :class:`~BaseBox`), it will be used instead. If this raises a
     :class:`~NotImplementedError`, the method is skipped.
+    If `no_custom` is *True*, the `set_box_value()` method is also skipped.
+    Note that this only works if `box` is not an instance of :class:`~BaseBox`
 
     Parameters
     ----------
@@ -357,10 +400,17 @@ def set_box_value(box, value, *value_sig):
         If `box` has the `set_box_value()` method defined, this argument is
         passed to it.
 
+    Optional
+    --------
+    no_custom : bool. Default: False
+        Whether to skip any present `set_box_value()` methods of the provided
+        `box`. Note that setting this to *True* for instances of
+        :class:`~BaseBox` will result in an error.
+
     """
 
     # Custom boxes (set_box_value()-method)
-    if hasattr(box, 'set_box_value'):
+    if hasattr(box, 'set_box_value') and not no_custom:
         # Try to use the custom set_box_value()-method
         try:
             box.set_box_value(value, *value_sig)
@@ -390,8 +440,26 @@ def set_box_value(box, value, *value_sig):
             index = box.findText(value)
             if(index != -1):
                 box.setCurrentIndex(index)
-            else:
+            elif box.isEditable():
+                # Obtain current index and text of this combobox
+                index = box.currentIndex()
+                text = box.currentText()
+
+                # Block all signals coming from this combobox
+                blocked = box.blockSignals(True)
+
+                # Set the current index to -1 and set the text to value
+                box.setCurrentIndex(-1)
                 box.setCurrentText(value)
+
+                # No longer block signals (unless they were blocked before)
+                box.blockSignals(blocked)
+
+                # Emit the proper signals if their values actually changed
+                if(text != value):
+                    box.currentTextChanged.emit(value)
+                if(index != -1):
+                    box.currentIndexChanged.emit(-1)
 
     # Tabs (QTabWidget)
     elif isinstance(box, QW.QTabWidget):

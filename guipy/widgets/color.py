@@ -16,9 +16,11 @@ from itertools import chain
 import re
 
 # Package imports
-from cmasher.utils import _get_cm_type as get_cm_type
+from cmasher.utils import get_cmap_type
 from matplotlib import cm, rcParams
-from matplotlib.colors import BASE_COLORS, CSS4_COLORS, to_rgba
+from matplotlib.colors import (
+    BASE_COLORS, CSS4_COLORS, Colormap, to_hex, to_rgba)
+import matplotlib.pyplot as plt
 import numpy as np
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 from sortedcontainers import SortedDict as sdict, SortedSet as sset
@@ -26,25 +28,9 @@ from sortedcontainers import SortedDict as sdict, SortedSet as sset
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
 from guipy.widgets import get_box_value, get_modified_signal, set_box_value
-from guipy.widgets.combobox import ComboBoxValidator, EditableComboBox
 
 # All declaration
 __all__ = ['ColorBox', 'ColorMapBox']
-
-
-# %% HELPER DEFINITIONS
-# Define EditableComboBox class that emits a signal when losing focus
-class FocusComboBox(EditableComboBox):
-    # Create focusLost signal
-    focusLost = QC.Signal()
-
-    # Override focusOutEvent to emit signal whenever triggered
-    def focusOutEvent(self, event):
-        # Emit focusLost signal
-        self.focusLost.emit()
-
-        # Call super method
-        return(super().focusOutEvent(event))
 
 
 # %% CLASS DEFINITIONS
@@ -53,14 +39,38 @@ class ColorBox(GW.BaseBox):
     """
     Defines the :class:`~ColorBox` class.
 
+    This widget allows for colors in *matplotlib* to be easily picked by the
+    user.
+    All cyclic; basic; and CSS4 colors in *matplotlib* are available from the
+    combobox.
+    Additionally, the HEX code of a color can be typed in as well.
+    Finally, the user has access to a colorwheel by clicking on the color
+    label, which allows for any color to be picked manually, including any
+    colors currently on screen using a screenpicker.
+
+    The default color, which is used when an invalid color is currently typed
+    in, can be set using :meth:`~set_default_color`.
+
     """
 
     # Signals
     modified = QC.Signal([], [str])
 
-    def __init__(self, parent=None, *args, **kwargs):
+    # Set the size for the color labels
+    clabel_size = (70, 18)
+
+    def __init__(self, add_cycler=True, parent=None):
         """
         Initialize an instance of the :class:`~ColorBox` class.
+
+        Optional
+        --------
+        add_cycler : bool. Default: True
+            Whether or not to add *matplotlib*'s cyclic colors to the list of
+            preset colors.
+        parent : :obj:`~PyQt5.QtCore.QObject` object or None. Default: None
+            The parent object to use for this colorbox or *None* for no
+            parent.
 
         """
 
@@ -68,7 +78,7 @@ class ColorBox(GW.BaseBox):
         super().__init__(parent)
 
         # Create the color box
-        self.init(*args, **kwargs)
+        self.init(add_cycler)
 
     # This property returns the default 'modified' signal
     @property
@@ -76,7 +86,7 @@ class ColorBox(GW.BaseBox):
         return(self.modified[str])
 
     # This function creates the color box
-    def init(self):
+    def init(self, add_cycler):
         """
         Sets up the color box entry after it has been initialized.
 
@@ -89,7 +99,6 @@ class ColorBox(GW.BaseBox):
         # Create the box layout
         box_layout = GL.QHBoxLayout(self)
         box_layout.setContentsMargins(0, 0, 0, 0)
-        self.setToolTip("Color to be used for the corresponding plot type")
 
         # Create a color label
         color_label = self.create_color_label()
@@ -97,15 +106,17 @@ class ColorBox(GW.BaseBox):
         box_layout.addWidget(color_label)
 
         # Create a color combobox
-        color_combobox = self.create_color_combobox()
+        color_combobox = self.create_color_combobox(add_cycler)
         box_layout.addWidget(color_combobox)
         self.color_combobox = color_combobox
 
-        # Declare the default color
-        self.set_default_color(rcParams['lines.color'])
+        # Set the default starting color of the color box
+        self.set_box_value('C0')
 
-        # Set the starting color of the color box
-        self.set_box_value(self.default_color)
+    # This function is automatically called whenever 'modified' is emitted
+    @QC.Slot()
+    def modified_signal_slot(self):
+        self.modified[str].emit(get_box_value(self.color_combobox))
 
     # This function creates the color label
     def create_color_label(self):
@@ -129,17 +140,20 @@ class ColorBox(GW.BaseBox):
         return(color_label)
 
     # This function creates the color combobox
-    def create_color_combobox(self):
+    def create_color_combobox(self, add_cycler):
         """
         Creates a combobox that holds all default colors accepted by matplotlib
         and returns it.
 
         """
 
-        # Obtain the CN colors
-        n_cyclic = len(rcParams['axes.prop_cycle'])
-        CN_COLORS = [("C%i" % (i), "This is MPL cyclic color #%i" % (i))
-                     for i in range(n_cyclic)]
+        # Obtain the CN colors if requested
+        if add_cycler:
+            n_cyclic = len(rcParams['axes.prop_cycle'])
+            CN_COLORS = [("C%i" % (i), "This is MPL cyclic color #%i" % (i))
+                         for i in range(n_cyclic)]
+        else:
+            CN_COLORS = []
 
         # Make tuple of all colors
         colors = (CN_COLORS, BASE_COLORS, CSS4_COLORS)
@@ -148,10 +162,10 @@ class ColorBox(GW.BaseBox):
         cum_len = np.cumsum(list(map(len, colors)))
 
         # Make combobox for colors
-        color_box = FocusComboBox()
+        color_box = GW.EditableComboBox()
 
         # Add a special validator to this combobox
-        validator = ComboBoxValidator(color_box, r"#?[\da-fA-F]{6}")
+        validator = GW.ComboBoxValidator(color_box, r"#?[\da-fA-F]{6}")
         color_box.setValidator(validator)
 
         # Fill combobox with all colors
@@ -174,7 +188,6 @@ class ColorBox(GW.BaseBox):
         color_box.editTextChanged.connect(self.set_color)
         color_box.focusLost.connect(
             lambda: self.set_color(self.get_box_value()))
-        get_modified_signal(color_box, str).connect(self.modified[str])
         return(color_box)
 
     # This function converts an MPL color to a QColor
@@ -353,8 +366,7 @@ class ColorBox(GW.BaseBox):
         """
 
         # Create pixmap of given color
-        pixmap = self.create_color_pixmap(
-            color, (70, self.color_combobox.height()-2))
+        pixmap = self.create_color_pixmap(color, self.clabel_size)
 
         # Set the colorlabel
         set_box_value(self.color_label, pixmap)
@@ -384,7 +396,7 @@ class ColorBox(GW.BaseBox):
         self.color_combobox.lineEdit().setPlaceholderText(color)
 
     # This function retrieves a value of this special box
-    def get_box_value(self, *args, **kwargs):
+    def get_box_value(self, *value_sig):
         """
         Returns the current color value of the color combobox.
 
@@ -396,12 +408,13 @@ class ColorBox(GW.BaseBox):
         """
 
         # Return the value currently set
-        return(get_box_value(self.color_combobox, *args, **kwargs))
+        return(get_box_value(self.color_combobox, *value_sig))
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current color value to `value`.
+        This also sets the default color to `value`.
 
         Parameters
         ----------
@@ -409,22 +422,47 @@ class ColorBox(GW.BaseBox):
             The matplotlib color value that must be set for this colorbox.
 
         """
+        # Convert color to a proper MPL color if it is a float
+        if '.' in value:
+            value = to_hex(value)
 
-        # Set the current color
+        # Set the current default color
+        self.set_default_color(value)
         self._set_color(value)
 
 
-# Make class with a special box for setting the colormap of a plotted hexbin
+# Make class with a special box for setting the colormap of a plotted 2D hist
 class ColorMapBox(GW.BaseBox):
     """
     Defines the :class:`~ColorMapBox` class.
+
+    This widget allows for colormaps in *matplotlib* to be easily picked by the
+    user.
+    All colormaps that are registered in :mod:`matplotlib.cm` before the first
+    time that this widget is initialized, are available in the combobox.
+    Colormaps can be added to *matplotlib* using the
+    :func:`~matplotlib.cm.register_cmap` function.
+
+    The first time this widget is initialized, all icons for all colormaps are
+    drawn and stored in memory, which can take a few seconds. Every
 
     """
 
     # Signals
     modified = QC.Signal([], [str])
 
-    def __init__(self, parent=None, *args, **kwargs):
+    # Set the size for the colormap previews
+    cmap_size = (70, 16)
+
+    # Set flag for first_init
+    init_flag = False
+
+    # Set property for bad_cmaps
+    bad_cmaps = {'gist_ncar', 'gist_rainbow', 'gist_stern', 'hsv', 'jet',
+                 'nipy_spectral'}
+
+    # Initialize ColorMapBox
+    def __init__(self, parent=None):
         """
         Initialize an instance of the :class:`~ColorMapBox` class.
 
@@ -434,7 +472,7 @@ class ColorMapBox(GW.BaseBox):
         super().__init__(parent)
 
         # Create the colormap box
-        self.init(*args, **kwargs)
+        self.init()
 
     # This property returns the default 'modified' signal
     @property
@@ -443,23 +481,50 @@ class ColorMapBox(GW.BaseBox):
 
     # This function creates a combobox with colormaps
     def init(self):
-        # Try to import a few packages to get their colormaps registered
-        # TODO: Make it a GuiPy configuration option to set these?
-        for pkg in ['cmasher', 'cmocean']:
-            # Try to import this package
-            try:
-                import_module(pkg)
-            except ImportError:
-                pass
+        # Check if this class has been initialized before, and do so if not
+        if not self.init_flag:
+            self.first_init()
 
+        # Create a layout for this widget
+        box_layout = GL.QHBoxLayout(self)
+        box_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Create a combobox for cmaps
+        cmaps_box = GW.EditableComboBox()
+        validator = GW.ComboBoxValidator(cmaps_box)
+        cmaps_box.setValidator(validator)
+
+        # Add all colormaps to cmaps_box
+        for cmap in self.cmaps_cl:
+            cmap_icon = self.cmap_icons[cmap]
+            cmaps_box.addItem(cmap_icon, cmap)
+
+        # Add some separators
+        for i in reversed(self.cum_len[:-2]):
+            cmaps_box.insertSeparator(i)
+
+        # Set remaining properties
+        set_box_value(cmaps_box, rcParams['image.cmap'])
+        cmaps_box.setIconSize(QC.QSize(*self.cmap_size))
+        cmaps_box.completer().popup().setIconSize(QC.QSize(*self.cmap_size))
+        get_modified_signal(cmaps_box, str).connect(self.cmap_selected)
+        cmaps_box.focusLost.connect(
+            lambda: set_box_value(cmaps_box, get_box_value(cmaps_box, int)))
+
+        # Add cmaps_box to layout
+        box_layout.addWidget(cmaps_box)
+        self.cmaps_box = cmaps_box
+
+    # This function prepares the class for being initialized for the first time
+    def first_init(self):
         # Obtain all colormaps that are registered in MPL
-        cmaps = list(cm.cmap_d)
+        cmaps = plt.colormaps()
 
         # Split cmaps up into their cmap types
         cm_types = ['sequential', 'diverging', 'cyclic', 'qualitative', 'misc']
         cmaps_cd = {cm_type: sset() for cm_type in cm_types}
         for cmap in cmaps:
-            cmaps_cd[get_cm_type(cmap)].add(cmap)
+            cmaps_cd[get_cmap_type(cmap)].add(cmap)
 
         # Create empty list of cmaps sorted on type
         cmaps_cl = []
@@ -476,40 +541,23 @@ class ColorMapBox(GW.BaseBox):
             cmaps_cl.extend([cmap for cmap in cmaps_cs if cmap.endswith('_r')])
             cum_len.extend([len(cmaps_cl)]*2)
 
-        # Set the size for the colormap previews
-        cmap_size = (100, 15)
+        # Store list of colormaps and the category lengths
+        ColorMapBox.cmaps_cl = cmaps_cl
+        ColorMapBox.cum_len = cum_len
 
-        # If the colormap icons have not been created yet, do that now
-        if not hasattr(self, 'cmap_icons'):
-            cmap_icons = sdict()
-            for cmap in cmaps:
-                cmap_icons[cmap] = self.create_cmap_icon(cmap, cmap_size)
-            ColorMapBox.cmap_icons = cmap_icons
+        # Create the colormap icons
+        cmap_icons = sdict()
+        for cmap in cmaps:
+            cmap_icons[cmap] = self.create_cmap_icon(cmap, self.cmap_size)
+        ColorMapBox.cmap_icons = cmap_icons
 
-        # Create a layout for this widget
-        box_layout = GL.QHBoxLayout(self)
-        box_layout.setContentsMargins(0, 0, 0, 0)
-        self.setToolTip("Colormap to be used for the corresponding plot type")
+        # Save that class has been initialized for the first time
+        ColorMapBox.init_flag = True
 
-        # Create a combobox for cmaps
-        cmaps_box = GW.QComboBox()
-        for cmap in cmaps_cl:
-            cmap_icon = self.cmap_icons[cmap]
-            cmaps_box.addItem(cmap_icon, cmap)
-
-        # Add some separators
-        for i in reversed(cum_len[:-2]):
-            cmaps_box.insertSeparator(i)
-
-        # Set remaining properties
-        set_box_value(cmaps_box, rcParams['image.cmap'])
-        cmaps_box.setIconSize(QC.QSize(*cmap_size))
-        get_modified_signal(cmaps_box, str).connect(self.cmap_selected)
-        get_modified_signal(cmaps_box, str).connect(self.modified[str])
-
-        # Add cmaps_box to layout
-        box_layout.addWidget(cmaps_box)
-        self.cmaps_box = cmaps_box
+    # This function is automatically called whenever 'modified' is emitted
+    @QC.Slot()
+    def modified_signal_slot(self):
+        self.modified[str].emit(get_box_value(self.cmaps_box))
 
     # This function creates an icon of a colormap
     @staticmethod
@@ -562,6 +610,33 @@ class ColorMapBox(GW.BaseBox):
         # Return the icon
         return(icon)
 
+    # This function allows cmaps to be added to the 'bad_cmaps' set
+    def addBadCmaps(self, cmaps):
+        """
+        Adds the provided list of `cmaps` to the set of colormaps that should
+        not be used by the user under any circumstances.
+
+        If a user selects a colormap that is considered 'bad', a warning
+        message will be shown to the user.
+
+        Parameters
+        ----------
+        cmaps : list of str
+            List of names of colormaps that are registered in
+            :mod:`matplotlib.cm` that should be added to the list of 'bad'
+            colormaps.
+
+        """
+
+        # Obtain the names of all colormaps
+        cmap_names = plt.colormaps()
+
+        # Make sure every colormap provided is a valid colormap
+        for cmap in cmaps:
+            if cmap in cmap_names and not cmap.endswith('_r'):
+                # If so, add it to the set
+                self.bad_cmaps.add(cmap)
+
     # This function checks a selected cmap
     @QC.Slot(str)
     def cmap_selected(self, cmap):
@@ -571,61 +646,60 @@ class ColorMapBox(GW.BaseBox):
 
         """
 
-        # Make a tuple with terrible colormaps
-        bad_cmaps = ('gist_ncar', 'gist_rainbow', 'gist_stern', 'hsv', 'jet',
-                     'nipy_spectral')
-
         # If a terrible colormap is selected, show error message
-        if cmap.startswith(bad_cmaps):
+        if cmap.startswith(tuple(self.bad_cmaps)):
             # Create error message
             err_msg = ("The selected <b><i>%s</i></b> cmap is a bad choice for"
                        " plotting data. To avoid introducing fake perceptual "
                        "features, it is recommended to pick a <i>perceptually "
-                       "uniform sequential</i> colormap, like the ones at the "
-                       "top of this list.<br><br>"
+                       "uniform sequential</i> colormap, like the ones with "
+                       "the <i>cmr.</i> prefix.<br><br>"
                        "See <a href=\"%s\">here</a> for more information on "
-                       "this subject."
-                       % (cmap, ("https://cmasher.readthedocs.io/en/latest")))
+                       "this subject." %
+                       (cmap,
+                        "https://cmasher.readthedocs.io/user/background.html"))
 
             # Show error window
             QW.QMessageBox.warning(
                 self, "%s WARNING" % (cmap.upper()), err_msg)
 
     # This function retrieves a value of this special box
-    def get_box_value(self, *args, **kwargs):
+    def get_box_value(self, *value_sig):
         """
         Returns the current colormap of the colormap box.
 
         Returns
         -------
-        cmap : :obj:`~matplotlib.colors.Colormap` object
+        cmap : str or :obj:`~matplotlib.colors.Colormap` object
             The currently selected colormap.
 
         """
 
         # Obtain the value
-        colormap = get_box_value(self.cmaps_box, *args, **kwargs)
+        cmap = get_box_value(self.cmaps_box)
 
-        # Convert to matplotlib colormap
-        cmap = cm.get_cmap(colormap)
+        # Obtain the Colormap object if requested
+        if Colormap in value_sig:
+            cmap = plt.get_cmap(cmap)
 
         # Return it
         return(cmap)
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current colormap to `value`.
 
         Parameters
         ----------
-        value : :obj:`~matplotlib.colors.Colormap` object
+        value : str or :obj:`~matplotlib.colors.Colormap` object
             The colormap that must be used for this colormap box.
 
         """
 
-        # Obtain the name of the provided colormap
-        name = value.name
+        # Obtain the name of the provided colormap if needed
+        if isinstance(value, Colormap):
+            value = value.name
 
         # Set this as the current colormap
-        set_box_value(self.cmaps_box, name)
+        set_box_value(self.cmaps_box, value)

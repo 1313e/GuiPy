@@ -9,6 +9,7 @@ Radiobuttons
 
 # %% IMPORTS
 # Built-in imports
+from itertools import repeat
 
 # Package imports
 import numpy as np
@@ -35,8 +36,7 @@ class MultiRadioButton(GW.BaseBox):
     modified = QC.Signal([], [int], [str])
 
     # Initialize the MultiRadioButton class
-    def __init__(self, n=2, layout='horizontal', parent=None, *args,
-                 **kwargs):
+    def __init__(self, n=2, layout='horizontal', parent=None):
         """
         Initialize an instance of the :class:`~MultiRadioButton` class.
 
@@ -64,7 +64,7 @@ class MultiRadioButton(GW.BaseBox):
         super().__init__(parent)
 
         # Create the multi-radiobutton
-        self.init(n, layout, *args, **kwargs)
+        self.init(n, layout)
 
     # Override __getitem__ to return the requested radiobutton(s)
     def __getitem__(self, key):
@@ -151,7 +151,7 @@ class MultiRadioButton(GW.BaseBox):
         if isinstance(layout, QW.QGridLayout):
             iterator = zip(names, np.ndindex(n_rows, n_cols))
         else:
-            iterator = zip(names)
+            iterator = zip(names, repeat(()))
 
         # Create all requested radiobuttons
         for item in iterator:
@@ -160,7 +160,7 @@ class MultiRadioButton(GW.BaseBox):
 
             # Add button to list and layout
             self.buttons.append(button)
-            layout.addWidget(button, *item[1:])
+            layout.addWidget(button, *item[1])
 
         # Save the number of radiobuttons
         self.N = len(self.buttons)
@@ -199,7 +199,7 @@ class MultiRadioButton(GW.BaseBox):
             return(index)
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the radiobutton with index `value` to *True*.
 

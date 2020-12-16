@@ -8,18 +8,14 @@ LineEdits
 
 
 # %% IMPORTS
-# Built-in imports
-from functools import partial
-
 # Package imports
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
 from guipy import layouts as GL, widgets as GW
-from guipy.config import CONFIG
 
 # All declaration
-__all__ = ['DualLineEdit', 'NumLineEdit']
+__all__ = ['DualLineEdit', 'FloatLineEdit', 'IntLineEdit']
 
 
 # %% CLASS DEFINITIONS
@@ -73,8 +69,8 @@ class DualLineEdit(GW.DualBaseBox):
 
         # Make dict with different line-edits
         box_types = {
-            float: partial(NumLineEdit, float),
-            int: partial(NumLineEdit, int),
+            float: FloatLineEdit,
+            int: IntLineEdit,
             str: GW.QLineEdit}
 
         # Save provided types
@@ -110,19 +106,22 @@ class DualLineEdit(GW.DualBaseBox):
 
 
 # Make class for setting a number in a line-edit
-class NumLineEdit(GW.QLineEdit):
+class IntLineEdit(GW.QLineEdit):
+    """
+    Defines the :class:`~IntLineEdit` class.
+
+    This class is used for creating a lineedit object that solely accepts
+    integers.
+
+    """
+
     # Signals
     modified = QC.Signal([float], [int])
 
-    # Initialize the FloatLineEdit class
-    def __init__(self, numtype, parent=None, *args, **kwargs):
+    # Initialize the IntLineEdit class
+    def __init__(self, parent=None):
         """
-        Initialize an instance of the :class:`~NumLineEdit` class.
-
-        Parameters
-        ----------
-        numtype : {float; int}
-            The type of number line-edit to use.
+        Initialize an instance of the :class:`~IntLineEdit` class.
 
         Optional
         --------
@@ -136,30 +135,36 @@ class NumLineEdit(GW.QLineEdit):
         super().__init__(parent)
 
         # Create the number line-edit box
-        self.init(numtype, *args, **kwargs)
+        self.init()
 
     # This property returns the default 'modified' signal
     @property
     def default_modified_signal(self):
         return(self.modified.__getitem__(self.numtype))
 
+    # This property returns the number type of this box
+    @property
+    def numtype(self):
+        return(int)
+
+    # This property returns the number getter of this box
+    @property
+    def num_getter(self):
+        return(self.locale().toInt)
+
+    # This property returns the proper validator to use
+    def get_validator(self):
+        return(QG.QIntValidator)
+
     # This function creates the number line-edit box
-    def init(self, numtype):
+    def init(self):
         """
         Sets up the number line-edit box after it has been initialized.
 
         """
 
-        # Save provided numtype
-        self.numtype = numtype
-
-        # Obtain the proper validator and value getter
-        if numtype is int:
-            validator = QG.QIntValidator(self)
-            self.num_getter = CONFIG.locale.toInt
-        else:
-            validator = QG.QDoubleValidator(self)
-            self.num_getter = CONFIG.locale.toDouble
+        # Obtain the proper validator
+        validator = self.get_validator()(self)
 
         # Set the validator
         self.setValidator(validator)
@@ -171,7 +176,7 @@ class NumLineEdit(GW.QLineEdit):
     def focusInEvent(self, event):
         # Obtain a normal string version of the current number
         num = str(self.value)
-        num = num.replace('.', CONFIG.locale.decimalPoint())
+        num = num.replace('.', self.locale().decimalPoint())
 
         # Set this as the current text
         self.setText(num)
@@ -200,7 +205,7 @@ class NumLineEdit(GW.QLineEdit):
         self.validator().setTop(top)
 
     # This function retrieves a value of this special box
-    def get_box_value(self, *args, **kwargs):
+    def get_box_value(self, *value_sig):
         """
         Returns the current number value of this line-edit box.
 
@@ -214,7 +219,7 @@ class NumLineEdit(GW.QLineEdit):
         return(self.value)
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current number value of this line-edit box to `value`.
 
@@ -230,8 +235,33 @@ class NumLineEdit(GW.QLineEdit):
 
         # Save value
         self.value = value
-        self.setText(CONFIG.locale.toString(value))
+        self.setText(self.locale().toString(value))
 
         # Emit modified signal if value was changed
         if(cur_value != self.value):
             self.default_modified_signal.emit(value)
+
+
+# Make class for setting a number in a line-edit
+class FloatLineEdit(IntLineEdit):
+    """
+    Defines the :class:`~FloatLineEdit` class.
+
+    This class is used for creating a lineedit object that solely accepts
+    floats.
+
+    """
+
+    # This property returns the number type of this box
+    @property
+    def numtype(self):
+        return(float)
+
+    # This property returns the number getter of this box
+    @property
+    def num_getter(self):
+        return(self.locale().toDouble)
+
+    # This property returns the proper validator to use
+    def get_validator(self):
+        return(QG.QDoubleValidator)

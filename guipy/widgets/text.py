@@ -13,14 +13,12 @@ handling text and labels in :mod:`~matplotlib`.
 # Built-in imports
 
 # Package imports
-from matplotlib import rcParams
-from matplotlib.font_manager import font_scalings
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
-from guipy import INT_TYPES
 from guipy import layouts as GL, widgets as GW
 from guipy.widgets import get_box_value, set_box_value
+from guipy.widgets.spinbox import FontSizeBox
 
 # All declaration
 __all__ = ['FigureLabelBox']
@@ -28,7 +26,7 @@ __all__ = ['FigureLabelBox']
 
 # %% CLASS DEFINITIONS
 # Make class for setting the label in a figure
-class FigureLabelBox(GW.BaseBox):
+class FigureLabelBox(GW.DualBaseBox):
     """
     Defines the :class:`~FigureLabelBox` class.
 
@@ -38,7 +36,7 @@ class FigureLabelBox(GW.BaseBox):
     modified = QC.Signal([], [str], [str, dict])
 
     # Initialize the FigureLabelBox class
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, parent=None):
         """
         Initialize an instance of the :class:`~FigureLabelBox` class.
 
@@ -54,30 +52,12 @@ class FigureLabelBox(GW.BaseBox):
         super().__init__(parent)
 
         # Create the figure label box
-        self.init(*args, **kwargs)
+        self.init()
 
-    # Override __getitem__ to return the lineedit or fontsize box
-    def __getitem__(self, key):
-        # If key is an integer, return the corresponding box
-        if isinstance(key, INT_TYPES):
-            # If key is 0 or -2, return label_box
-            if key in (0, -2):
-                return(self.label_box)
-            # Else, if key is 1 or -1, return size_box
-            elif key in (1, -1):
-                return(self.size_box)
-            # Else, raise IndexError
-            else:
-                raise IndexError("Index out of range")
-
-        # If key is a slice object, return everything that is requested
-        elif isinstance(key, slice):
-            return(*map(self.__getitem__, range(*key.indices(2))),)
-
-        # Else, raise TypeError
-        else:
-            raise TypeError("Index must be of type 'int' or 'slice', not type "
-                            "%r" % (type(key).__name__))
+    # This property returns the default 'modified' signal
+    @property
+    def default_modified_signal(self):
+        return(self.modified[str])
 
     # This function creates the figure label box
     def init(self):
@@ -93,30 +73,22 @@ class FigureLabelBox(GW.BaseBox):
         # Create a line-edit for setting the label
         label_box = GW.QLineEdit()
         box_layout.addWidget(label_box)
-        self.label_box = label_box
+        self.left_box = label_box
 
         # Create a spinbox for setting the fontsize
-        size_box = GW.QDoubleSpinBox()
-        size_box.setDecimals(1)
-        size_box.setRange(0, 999)
-        size_box.setSuffix(" pts")
+        size_box = FontSizeBox()
         box_layout.addWidget(size_box)
-        self.size_box = size_box
-
-    # This property returns the default 'modified' signal
-    @property
-    def default_modified_signal(self):
-        return(self.modified[str])
+        self.right_box = size_box
 
     # This function is automatically called whenever 'modified' is emitted
     @QC.Slot()
     def modified_signal_slot(self):
         # Emit modified signals
-        self.modified[str].emit(get_box_value(self.label_box))
+        self.modified[str].emit(get_box_value(self.left_box))
         self.modified[str, dict].emit(*self.get_box_value())
 
     # This function retrieves a value of this special box
-    def get_box_value(self, *args, **kwargs):
+    def get_box_value(self, *value_sig):
         """
         Returns the current values of this figure label box as a tuple.
 
@@ -128,11 +100,11 @@ class FigureLabelBox(GW.BaseBox):
 
         """
 
-        return(get_box_value(self.label_box),
-               {'fontsize': get_box_value(self.size_box)})
+        return(get_box_value(self.left_box),
+               {'fontsize': get_box_value(self.right_box)})
 
     # This function sets the value of this special box
-    def set_box_value(self, value, *args, **kwargs):
+    def set_box_value(self, value, *value_sig):
         """
         Sets the current value of the figure label box to `value`.
 
@@ -144,16 +116,6 @@ class FigureLabelBox(GW.BaseBox):
 
         """
 
-        # Set box value of label
-        set_box_value(self.label_box, value[0])
-
-        # Obtain fontsize
-        fontsize = value[1]['fontsize']
-
-        # If fontsize is a string, it is a font scaling keyword
-        if isinstance(fontsize, str):
-            # Obtain actual float fontsize
-            fontsize = rcParams['font.size']*font_scalings[fontsize]
-
-        # Set box value of fontsize
-        set_box_value(self.size_box, fontsize)
+        # Set box value of label and size
+        set_box_value(self.left_box, value[0])
+        set_box_value(self.right_box, value[1]['fontsize'])

@@ -14,25 +14,24 @@ Comboboxes
 from qtpy import QtCore as QC, QtGui as QG, QtWidgets as QW
 
 # GuiPy imports
-from guipy import INT_TYPES
 from guipy import layouts as GL, widgets as GW
-from guipy.widgets import get_box_value, set_box_value
 
 # All declaration
-__all__ = ['ComboBoxValidator', 'DualComboBox', 'EditableComboBox']
+__all__ = ['ComboBoxValidator', 'DualComboBox', 'EditableComboBox',
+           'create_combobox']
 
 
 # %% CLASS DEFINITIONS
 # Define the ComboBoxValidator class
 class ComboBoxValidator(QG.QRegularExpressionValidator):
-    # Initialize the ListValidator class
+    # Initialize the ComboBoxValidator class
     def __init__(self, combobox_obj, regexp=None, parent=None):
         """
         Initialize an instance of the :class:`~ComboBoxValidator` class.
 
         Parameters
         ----------
-        combobox_obj : :obj:`~PyQt5.QtWidgets.ComboBox`
+        combobox_obj : :obj:`~PyQt5.QtWidgets.ComboBox` object
             Combobox object for which the editable line must be validated.
 
         Optional
@@ -176,9 +175,60 @@ class EditableComboBox(GW.QComboBox):
 
     """
 
+    # Create focusLost signal
+    focusLost = QC.Signal([int], [str])
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditable(True)
         self.setInsertPolicy(self.NoInsert)
         self.completer().setCompletionMode(QW.QCompleter.PopupCompletion)
         self.completer().setFilterMode(QC.Qt.MatchContains)
+
+    # Override focusOutEvent to emit signal whenever triggered
+    def focusOutEvent(self, event):
+        # Emit focusLost signal
+        self.focusLost[int].emit(self.currentIndex())
+        self.focusLost[str].emit(self.currentText())
+
+        # Call super method
+        return(super().focusOutEvent(event))
+
+
+# %% FUNCTION DEFINITIONS
+# Create small function factory for comboboxes
+def create_combobox(items, editable=False, parent=None):
+    """
+    Creates and returns a function that, when called, creates the requested
+    :obj:`~guipy.widgets.QComboBox` and populates it with the `items` provided.
+
+    Parameters
+    ----------
+    items : list of str
+        List containing the items that the combobox must have when created.
+
+    Optional
+    --------
+    editable : bool. Default: False
+        Whether the combobox that is created must be editable.
+    parent : :obj:`~PyQt5.QtWidgets.QWidget` object or None. Default: None
+        The parent widget to use for thecombobox or *None* for no parent.
+
+    """
+
+    # Create function
+    def func():
+        # Obtain the proper combobox
+        if editable:
+            combobox = EditableComboBox(parent=parent)
+        else:
+            combobox = GW.QComboBox(parent=parent)
+
+        # Add items
+        combobox.addItems(items)
+
+        # Return combobox
+        return(combobox)
+
+    # Return func
+    return(func)

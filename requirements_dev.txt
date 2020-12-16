@@ -1,9 +1,9 @@
 -e .
 check-manifest
-pytest>=3.8.0
+pytest>=4.6.0
 pytest-cov
 pytest-mpl
-pytest-pep8
+pytest-flake8
 pytest-qt>=2.0
 readme_renderer[md]
 setuptools>=38.6.0

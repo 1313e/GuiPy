@@ -124,7 +124,7 @@ class Data1or2DProp(Data2DProp):
         # Make a combobox for setting the x-axis data
         x_data_box = GW.ToggleBox(
             DataColumnBox(self.data_table_plugin),
-            tooltip="Disable to automatically set the X-axis data.")
+            tooltip="Check to manually set the X-axis data")
         x_data_box.setToolTip("Data table and column to use for the X-axis "
                               "data")
         set_box_value(x_data_box, (False, (None, None)))
@@ -284,7 +284,7 @@ class MultiDataTabWidget(GW.QTabWidget):
     # Override constructor to connect some signals
     def __init__(self, *args, **kwargs):
         # Call super constructor
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, browse_tabs=True, **kwargs)
 
         # Connect signals
         self.tabWasInserted.connect(self.modified)
