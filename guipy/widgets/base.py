@@ -372,6 +372,27 @@ class QAbstractSpinBox(QW.QAbstractSpinBox, QWidget):
     def setSpecialValueText(self, text):
         super().setSpecialValueText(text)
 
+    # This function returns the value of this box
+    def get_box_value(self, *value_sig):
+        # Obtain the value of this box
+        value = self.value()
+
+        # If this value is the minimum, set it to the special value text
+        if self.specialValueText() and (value == self.minimum()):
+            value = self.specialValueText()
+
+        # Return value
+        return(value)
+
+    # This function sets the value of this box
+    def set_box_value(self, value, *value_sig):
+        # If the value is the same as the special value text, set to minimum
+        if value and (value == self.specialValueText()):
+            value = self.minimum()
+
+        # Set value
+        self.setValue(value)
+
 
 # Create custom QDoubleSpinBox
 class QDoubleSpinBox(QW.QDoubleSpinBox, QAbstractSpinBox):

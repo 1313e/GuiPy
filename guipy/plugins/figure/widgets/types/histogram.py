@@ -88,9 +88,8 @@ class HistogramType(BasePlotType):
 #        value_range = value_range[1:] if value_range[0] else None
 
         # Obtain the histogram keyword arguments
-        bins = get_box_value(self.n_bins_box)
         hist_kwargs = {
-            'bins': bins if bins else self.n_bins_box.specialValueText(),
+            'bins': get_box_value(self.n_bins_box),
             'cumulative': get_box_value(self.hist_cumul_box),
             'orientation': get_box_value(self.hist_orient_box).lower()}
 

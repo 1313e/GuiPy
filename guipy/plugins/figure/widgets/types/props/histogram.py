@@ -9,6 +9,7 @@ Histogram Property
 
 # %% IMPORTS
 # Package imports
+from matplotlib import rcParams
 from qtpy import QtCore as QC
 
 # GuiPy imports
@@ -54,8 +55,8 @@ class HistogramProp(BasePlotProp):
         n_bins_box.setRange(0, 100)
         n_bins_box.setSpecialValueText('auto')
 
-        # Set initial value to 'auto'
-        set_box_value(n_bins_box, 0)
+        # Set initial value to the default
+        set_box_value(n_bins_box, rcParams['hist.bins'])
 
         # Return name and box
         return('# of bins', n_bins_box)
