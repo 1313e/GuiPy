@@ -32,17 +32,17 @@ class FigurePlotEntry(GW.BaseBox):
     entryRemoveRequested = QC.Signal()
 
     # Initialize FigurePlotEntry class
-    def __init__(self, index, name, toolbar, parent=None, *args, **kwargs):
-        # Save provided index, name and FigureToolbar object
+    def __init__(self, index, name, figure_widget_obj, parent=None):
+        # Save provided index, name and FigureWidget object
         self.index = index
         self.name = name
-        self.toolbar = toolbar
+        self.figure_widget = figure_widget_obj
 
         # Call super constructor
         super().__init__(parent)
 
         # Set up the plot entry box
-        self.init(*args, **kwargs)
+        self.init()
 
     # This function sets up the plot entry
     def init(self):
@@ -120,7 +120,7 @@ class FigurePlotEntry(GW.BaseBox):
         else:
             # Initialize the proper entry
             plot_type = PLOT_TYPES['2D'][plot_type]
-            plot_entry = plot_type(self.toolbar)
+            plot_entry = plot_type(self.figure_widget)
             entry_name = "%i_%s" % (self.index, plot_type.PREFIX)
 
         # Insert the new plot entry

@@ -19,9 +19,6 @@ __all__ = ['FILE_EXTS', 'FILE_FILTERS', 'FILE_FORMATS', 'FILE_TYPES',
 
 
 # %% GLOBALS
-# Define GuiPy configuration settings dict
-CONFIG = sdict()
-
 # Define dicts of file extensions, filters, formats and types
 FILE_EXTS = sdict()
 FILE_FILTERS = sdict()

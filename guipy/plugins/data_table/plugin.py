@@ -17,7 +17,7 @@ from qtpy import QtCore as QC, QtWidgets as QW
 # GuiPy imports
 from guipy import layouts as GL, plugins as GP, widgets as GW
 from guipy.config import FILE_FILTERS
-from guipy.plugins.data_table.formatters import FORMATTERS
+from guipy.plugins.data_table.formatters import import_formatters, FORMATTERS
 from guipy.plugins.data_table.widgets import DataTableWidget
 from guipy.widgets import set_box_value
 
@@ -42,6 +42,9 @@ class DataTable(GP.BasePluginWidget):
 
     # This function sets up the data table plugin
     def init(self):
+        # Import all DataTable formatters
+        import_formatters()
+
         # Create a layout
         layout = GL.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -53,6 +56,7 @@ class DataTable(GP.BasePluginWidget):
         tab_widget.setTabsClosable(True)
 
         # Connect tab widget signals
+        tab_widget.tabTextChanged.connect(self.set_tab_name)
         tab_widget.tabCloseRequested.connect(self.close_tab)
 
         # Add tab widget to layout
@@ -176,6 +180,7 @@ class DataTable(GP.BasePluginWidget):
         # If name is None, set it to default
         if name is None:
             name = "table_%i" % (self.tab_widget.count())
+        data_table.tab_name = name
 
         # Add data_table to the tab widget
         index = self.tab_widget.addTab(data_table, name)
@@ -236,14 +241,15 @@ class DataTable(GP.BasePluginWidget):
     # This function exports a data table
     @QC.Slot()
     def export_tab(self):
-        # Get name of this data table
-        name = self.tabName()
+        # Get data table
+        data_table = self.dataTable()
+        name = data_table.tab_name
 
         # Open the file saving system
         filepath, selected_filter = GW.getSaveFileName(
             parent=self,
             caption="Export data table %r to..." % (name),
-            basedir=name+'.npz',
+            basedir=name,
             filters=FORMATTERS.keys())
 
         # If filepath is not empty, export data table
@@ -264,7 +270,16 @@ class DataTable(GP.BasePluginWidget):
                 filepath += ext
 
             # Export data table
-            FORMATTERS[ext].exporter(self.dataTable(), filepath)
+            FORMATTERS[ext].exporter(data_table, filepath)
+
+    # This function sets the name of a given tab
+    @QC.Slot(int, str)
+    def set_tab_name(self, index, name):
+        # Obtain the data_table belonging to index
+        data_table = self.tab_widget.widget(index)
+
+        # Set its name
+        data_table.tab_name = name
 
     # This function returns the data table belonging to a specified int
     @QC.Slot(int)
@@ -294,28 +309,28 @@ class DataTable(GP.BasePluginWidget):
         # Return the data table widget with the provided index
         return(self.tab_widget.widget(index))
 
-    # This function returns the name of the tab belonging to the specified int
+    # This function returns the text of the tab belonging to the specified int
     @QC.Slot(int)
-    def tabName(self, index=None):
+    def tabText(self, index=None):
         """
-        Returns the name of the tab with the provided tab `index`.
+        Returns the text of the tab with the provided tab `index`.
 
         Optional
         --------
         index : int or None. Default: None
-            If int, the index of the tab whose name is requested.
-            If *None*, the current tab name is requested.
+            If int, the index of the tab whose text is requested.
+            If *None*, the current tab text is requested.
 
         Returns
         -------
-        name : str
-            The name of the tab specified by the provided `index`.
+        text : str
+            The text of the tab specified by the provided `index`.
 
         """
 
-        # If index is None, return current tab name
+        # If index is None, return current tab text
         if index is None:
             index = self.tab_widget.currentIndex()
 
-        # Return the name of the tab with the provided index
+        # Return the text of the tab with the provided index
         return(self.tab_widget.tabText(index))

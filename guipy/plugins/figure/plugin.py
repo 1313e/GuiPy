@@ -11,10 +11,12 @@ Figure Plugin
 # Built-in imports
 
 # Package imports
+from matplotlib.backend_bases import _default_filetypes
 from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import layouts as GL, plugins as GP, widgets as GW
+from guipy.config import register_file_format
 from guipy.plugins.figure.config import MPLConfigPage
 from guipy.plugins.figure.widgets import FigureWidget
 from guipy.widgets import set_box_value
@@ -45,6 +47,9 @@ class Figure(GP.BasePluginWidget):
 
     # This function sets up the figure plugin
     def init(self):
+        # Register all figure formats
+        self.register_formats()
+
         # Create a layout
         layout = GL.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -56,6 +61,7 @@ class Figure(GP.BasePluginWidget):
         tab_widget.setTabsClosable(True)
 
         # Connect tab widget signals
+        tab_widget.tabTextChanged.connect(self.set_tab_name)
         tab_widget.tabCloseRequested.connect(self.close_tab)
 
         # Add tab widget to layout
@@ -79,6 +85,21 @@ class Figure(GP.BasePluginWidget):
 
         # Call super event
         super().closeEvent(*args, **kwargs)
+
+    # This function adds all supported figure formats to GuiPy
+    def register_formats(self):
+        # Create empty dict of figure formats
+        formats = {}
+
+        # Loop over all entries in _default_filetypes and add them
+        for ext, file_type in _default_filetypes.items():
+            # Add to dict, creating a list if not added before
+            formats.setdefault(file_type, []).append('.'+ext)
+
+        # Loop over all formats and register each
+        for file_type, exts in formats.items():
+            # Register this format
+            register_file_format(file_type, exts)
 
     # This function adds all associated actions to the menus and toolbars
     def add_actions(self):
@@ -106,6 +127,7 @@ class Figure(GP.BasePluginWidget):
         # If name is None, set it to default
         if name is None:
             name = "figure_%i" % (self.tab_widget.count())
+        figure.tab_name = name
 
         # Add figure to the tab widget
         index = self.tab_widget.addTab(figure, name)
@@ -124,3 +146,12 @@ class Figure(GP.BasePluginWidget):
 
         # Remove this figure from the tab widget
         self.tab_widget.removeTab(index)
+
+    # This function sets the name of a given tab
+    @QC.Slot(int, str)
+    def set_tab_name(self, index, name):
+        # Obtain the figure belonging to index
+        figure = self.tab_widget.widget(index)
+
+        # Set its name
+        figure.tab_name = name

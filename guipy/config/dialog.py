@@ -370,5 +370,5 @@ class ConfigDialog(GW.QDialog):
 
     # Override reject to discard all options if called
     def reject(self):
-        self.discard_options()
+        self.cancel_but.click()
         super().reject()

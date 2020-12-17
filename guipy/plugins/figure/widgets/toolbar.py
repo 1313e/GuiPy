@@ -9,15 +9,17 @@ Figure Toolbar
 
 # %% IMPORTS
 # Built-in imports
-from qtpy import QtCore as QC, QtWidgets as QW
+from os import path
 
 # Package imports
+from matplotlib import cbook
+from matplotlib.backend_bases import _default_filetypes, NavigationToolbar2
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
+from qtpy import QtCore as QC, QtWidgets as QW
 
 # GuiPy imports
 from guipy import widgets as GW
-from guipy.plugins.figure.widgets.options import FigureOptionsDialog
-from guipy.widgets import get_modified_signal, set_box_value
+from guipy.config import FILE_FILTERS
 
 # All declaration
 __all__ = ['FigureToolbar']
@@ -26,56 +28,114 @@ __all__ = ['FigureToolbar']
 # %% CLASS DEFINITIONS
 # Custom FigureToolbar class
 class FigureToolbar(NavigationToolbar2QT, GW.QToolBar):
+    # Signals
+    status_message = QC.Signal(str)
+
     # Initialize FigureToolbar class
-    def __init__(self, data_table_plugin_obj, canvas, parent=None):
-        # Save provided data table plugin object
-        self.data_table_plugin = data_table_plugin_obj
+    def __init__(self, canvas, options, figure_widget_obj):
+        # Save provided FigureWidget object
+        self.options = options
+        self.figure_widget = figure_widget_obj
 
-        # Call super constructor
-        super().__init__(canvas, parent, coordinates=False)
+        # Initialize empty actions dict
+        self._actions = {}
 
-        # Retrieve parent methods
-        self.get_parent_methods()
-
-        # Set up figure toolbar
-        self.init()
+        # Call super constructors
+        GW.QToolBar.__init__(self, "Figure Toolbar", parent=figure_widget_obj)
+        NavigationToolbar2.__init__(self, canvas)
 
     # This function sets up the figure toolbar
-    def init(self):
+    def _init_toolbar(self):
         # Create pointer in figure manager to this toolbar
         self.canvas.manager.toolbar = self
 
-        # Initialize options dialog
-        self.options_dialog = FigureOptionsDialog(self)
-        self.labels = ['>>> Figure &options...', '<<< Figure &options...']
+        # Store the base dir for images for NavigationToolbar2QT
+        self.basedir = str(cbook._get_data_path('images'))
 
-        # Obtain the first action in the toolbar
-        action_0 = self.actions()[0]
+        # Determine what icon color to use
+        background_color = self.palette().color(self.backgroundRole())
+        foreground_color = self.palette().color(self.foregroundRole())
+        icon_color = (foreground_color
+                      if background_color.value() < 128 else None)
 
-        # Create button for showing/hiding extra options
-        dialog_but = GW.QPushButton()
-        set_box_value(dialog_but, self.labels[self.options_dialog.isHidden()])
-        dialog_but.setToolTip("Toggle the figure options menu")
-        get_modified_signal(dialog_but).connect(self.toggle_options_dialog)
-        dialog_but.setSizePolicy(QW.QSizePolicy.Fixed, QW.QSizePolicy.Fixed)
-        self.insertWidget(action_0, dialog_but)
-        self.dialog_but = dialog_but
+        # Create list of info for the toolbuttons
+        button_info = [
+            ('Home', 'Reset to original view', 'home', 'home'),
+            ('Back', 'Back to previous view', 'back', 'back'),
+            ('Forward', 'Forward to next view', 'forward', 'forward'),
+            (None, None, None, None),
+            ('Pan', 'Pan with left button, zoom with right', 'move', 'pan'),
+            ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
+            (None, None, None, None),
+            ('Options', 'Add, remove, and edit figure elements',
+             'qt4_editor_options', 'options'),
+            ('Save', 'Save the figure', 'filesave', 'save_figure')]
 
-        # Insert separator
-        self.insertSeparator(action_0)
+        # Loop over all items in button_info and create the actions
+        for text, tooltip, image_file, func in button_info:
+            # If text is None, a separator is required
+            if text is None:
+                self.addSeparator()
+            # Else, create an action
+            else:
+                # Create action
+                action = GW.QAction(
+                    self, text,
+                    tooltip=tooltip,
+                    icon=self._icon(image_file+'.png', icon_color),
+                    triggered=getattr(self, func))
+                self.addAction(action)
+
+                # Add action to self._actions
+                self._actions[func] = action
+
+                # Make zoom and pan checkable
+                if func in ['zoom', 'pan']:
+                    action.setCheckable(True)
 
         # Add separator
         self.addSeparator()
 
         # Add a label that contains the coordinates of the figure
         coord_label = GW.QLabel('')
+        coord_label.setSizePolicy(QW.QSizePolicy.Expanding,
+                                  QW.QSizePolicy.Ignored)
         self.addWidget(coord_label)
-        self.message.connect(coord_label.setText)
+        self.status_message.connect(coord_label.setText)
 
-    # This function toggles the options dialog
-    @QC.Slot()
-    def toggle_options_dialog(self):
-        # Toggle the options dialog
-        self.options_dialog.setVisible(self.options_dialog.isHidden())
-        set_box_value(self.dialog_but,
-                      self.labels[self.options_dialog.isHidden()])
+    # Override set_message to just emit the signal
+    def set_message(self, s):
+        self.status_message.emit(s)
+
+    # Override save_figure to use GuiPy's dialogs
+    def save_figure(self):
+        # Get name of this figure
+        name = self.figure_widget.tab_name
+
+        # Open the file saving system
+        filepath, selected_filter = GW.getSaveFileName(
+            parent=self.figure_widget,
+            caption="Save figure %r to..." % (name),
+            basedir=name,
+            filters=list(map(lambda x: '.'+x, _default_filetypes.keys())),
+            initial_filter='.png')
+
+        # If filepath is not empty, save figure
+        if filepath:
+            # Obtain the ext of the filepath
+            ext = path.splitext(filepath)[1]
+
+            # If ext is empty, check what filter was used
+            if not ext:
+                # If "All (Supported) Files" was not used, get ext from filter
+                if not selected_filter.startswith("All "):
+                    ext = FILE_FILTERS[selected_filter]
+                # Else, set it to '.png'
+                else:
+                    ext = '.png'
+
+                # Add extension to filepath
+                filepath += ext
+
+            # Save figure
+            self.canvas.figure.savefig(filepath)

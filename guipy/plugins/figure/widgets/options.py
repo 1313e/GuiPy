@@ -36,18 +36,40 @@ class FigureOptionsDialog(GW.QDialog):
     refreshing_figure = QC.Signal()
 
     # Initialize FigureOptionsDialog
-    def __init__(self, toolbar, *args, **kwargs):
-        # Save provided FigureToolbar object
-        self.toolbar = toolbar
-        self.canvas = toolbar.canvas
+    def __init__(self, canvas, figure_widget_obj):
+        # Save provided FigureWidget object
+        self.figure_widget = figure_widget_obj
+        self.canvas = canvas
         self.figure = self.canvas.figure
         self.axis = self.figure.gca()
 
         # Call super constructor
-        super().__init__(toolbar)
+        super().__init__(figure_widget_obj)
 
         # Set up the figure options dialog
-        self.init(*args, **kwargs)
+        self.init()
+
+    # This function shows the dialog
+    @QC.Slot()
+    def __call__(self):
+        # Show it
+        self.show()
+
+        # Determine the position of the top left corner of the figure dock
+        dock_pos = self.figure_widget.rect().topLeft()
+
+        # Determine the size of this dialog
+        size = self.size()
+        size = QC.QPoint(size.width(), 0)
+
+        # Determine position of top left corner
+        dialog_pos = self.figure_widget.mapToGlobal(dock_pos-size)
+
+        # Move it slightly to give some spacing
+        dialog_pos.setX(dialog_pos.x()-12)
+
+        # Move the dialog there
+        self.move(dialog_pos)
 
     # This function sets up the figure options dialog
     def init(self):
@@ -60,11 +82,14 @@ class FigureOptionsDialog(GW.QDialog):
         # Set dialog properties
         # TODO: Figure out how to make the menu modal without it moving
         # automatically to the center on Linux
-        # self.setWindowModality(QC.Qt.ApplicationModal)
+        self.setWindowTitle("Figure options")
+        self.setWindowModality(QC.Qt.ApplicationModal)
         self.setWindowFlags(
+            QC.Qt.MSWindowsOwnDC |
             QC.Qt.Dialog |
-            QC.Qt.FramelessWindowHint |
-            QC.Qt.NoDropShadowWindowHint)
+            QC.Qt.WindowTitleHint |
+            QC.Qt.WindowSystemMenuHint |
+            QC.Qt.WindowCloseButtonHint)
 
         # Create a layout
         layout = GL.QVBoxLayout(self)
@@ -109,11 +134,11 @@ class FigureOptionsDialog(GW.QDialog):
             button_box.AcceptRole: [
                 self.refresh_figure,
                 self.apply_options,
-                self.toolbar.toggle_options_dialog],
+                self.close],
             button_box.RejectRole: [
                 self.discard_options,
                 self.refresh_figure,
-                self.toolbar.toggle_options_dialog],
+                self.close],
             button_box.ApplyRole: [
                 self.apply_options],
             button_box.ActionRole: [
@@ -385,7 +410,7 @@ class FigureOptionsDialog(GW.QDialog):
         name = "%i_plot" % (index)
 
         # Create plot entry box
-        plot_entry = FigurePlotEntry(index, name, self.toolbar)
+        plot_entry = FigurePlotEntry(index, name, self.figure_widget)
 
         # Connect signals
         plot_entry.entryNameChanged.connect(
@@ -427,27 +452,6 @@ class FigureOptionsDialog(GW.QDialog):
             widget.setParent(None)
             widget.close()
             del widget
-
-    # Override showEvent to show the dialog in the proper location
-    def showEvent(self, event):
-        # Call super event
-        super().showEvent(event)
-
-        # Determine the position of the top left corner of the figure dock
-        dock_pos = self.toolbar.rect().topLeft()
-
-        # Determine the size of this dialog
-        size = self.size()
-        size = QC.QPoint(size.width(), 0)
-
-        # Determine position of top left corner
-        dialog_pos = self.toolbar.mapToGlobal(dock_pos-size)
-
-        # Move it slightly to give some spacing
-        dialog_pos.setX(dialog_pos.x()-12)
-
-        # Move the dialog there
-        self.move(dialog_pos)
 
     # Override eventFilter to filter out ESC presses
     def eventFilter(self, widget, event):
@@ -556,3 +560,8 @@ class FigureOptionsDialog(GW.QDialog):
 
         # Disable the apply button
         self.disable_apply_button()
+
+    # Override reject to discard all options if called
+    def reject(self):
+        self.cancel_but.click()
+        super().reject()

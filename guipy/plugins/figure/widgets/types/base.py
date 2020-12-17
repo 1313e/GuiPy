@@ -49,12 +49,12 @@ class BasePlotType(GW.QWidget):
     PROP_NAMES = []
 
     # Initialize this plot type
-    def __init__(self, toolbar, parent=None, *args, **kwargs):
-        # Save provided FigureToolbar object
-        self.toolbar = toolbar
-        self.options = toolbar.options_dialog
-        self.data_table_plugin = toolbar.data_table_plugin
-        self.figure = toolbar.canvas.figure
+    def __init__(self, figure_widget_obj, parent=None, *args, **kwargs):
+        # Save provided FigureWidget object
+        self.figure_widget = figure_widget_obj
+        self.options = self.figure_widget.options
+        self.data_table_plugin = self.figure_widget.data_table_plugin
+        self.figure = self.figure_widget.canvas.figure
         self.axis = self.figure.gca()
 
         # Save the option getter

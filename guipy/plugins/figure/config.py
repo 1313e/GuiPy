@@ -21,8 +21,7 @@ from sortedcontainers import SortedDict as sdict
 
 # GuiPy imports
 from guipy import layouts as GL, plugins as GP, widgets as GW
-from guipy.widgets import (
-    create_combobox, get_box_value, type_box_dict, set_box_value)
+from guipy.widgets import create_combobox, get_box_value, set_box_value
 
 # All declaration
 __all__ = ['MPLConfigPage']

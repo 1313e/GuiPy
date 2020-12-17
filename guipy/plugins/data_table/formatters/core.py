@@ -21,7 +21,7 @@ from sortedcontainers import SortedDict as sdict
 from guipy.config import register_file_format
 
 # All declaration
-__all__ = ['FORMATTERS', 'register_formatter']
+__all__ = ['FORMATTERS', 'import_formatters', 'register_formatter']
 
 
 # %% GLOBALS
@@ -83,7 +83,7 @@ def register_formatter(formatter_class):
 
 
 # This function imports all pre-defined formatters and registers them
-def _import_formatters():
+def import_formatters():
     """
     Imports and registers all pre-defined data table formatters for use in
     *GuiPy*.
@@ -113,7 +113,3 @@ def _import_formatters():
         for prop in mod.__all__:
             formatter = getattr(mod, prop)
             register_formatter(formatter)
-
-
-# Import all defined formatters
-_import_formatters()

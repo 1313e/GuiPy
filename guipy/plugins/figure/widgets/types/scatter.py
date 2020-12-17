@@ -86,13 +86,13 @@ class ScatterType(BasePlotType):
                 set_box_value(self.data_label_box, self.plot.get_label())
 
             # If the figure currently has no title, set it
-            title_box = self.toolbar.options_dialog.title_box[0]
+            title_box = self.options.title_box[0]
             if not get_box_value(title_box):
                 set_box_value(title_box, "%s vs. %s" % (xcol.name, ycol.name))
 
             # If the figure currently has no axes labels, set them
-            x_label_box = self.toolbar.options_dialog.x_label_box[0]
-            y_label_box = self.toolbar.options_dialog.y_label_box[0]
+            x_label_box = self.options.x_label_box[0]
+            y_label_box = self.options.y_label_box[0]
             if not (get_box_value(x_label_box) or get_box_value(y_label_box)):
                 set_box_value(x_label_box, xcol.name)
                 set_box_value(y_label_box, ycol.name)
